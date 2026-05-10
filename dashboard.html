@@ -1,1108 +1,908 @@
-<!DOCTYPE html>
-<html lang="ja">
+// ====================================================================
+// 【列構成 最新版】インデックス定義（公開プロフィール / 個人情報マスタ共通）
+// A:ID / B:生徒メアド / C:保護者メアド / D:氏名 / E:ニックネーム
+// F:目標時間 / G:URLトークン / H:模試名 / I:模試日
+// ====================================================================
+const IDX_PROFILE = {
+  ID: 0,             // A列
+  STUDENT_EMAIL: 1,  // B列
+  PARENT_EMAIL: 2,   // C列
+  NAME: 3,           // D列
+  NICKNAME: 4,       // E列
+  GOAL_HOURS: 5,     // F列
+  TOKEN: 6,          // G列
+  EXAM_NAME: 7,      // H列
+  EXAM_DATE: 8       // I列
+};
+const IDX_PERSONAL = IDX_PROFILE;
 
-<head>
-  <meta charset="UTF-8">
-  <title>マイダッシュボード | SSS Education</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+// ====================================================================
+// 📊 スプレッドシートのURL定義（一元管理）
+//   ★本番移行時はこの2つのURLを書き換えるだけで全関数が連動する★
+//
+//   - MAIN_SS_URL     : メインスプレッドシート
+//                       「公開プロフィール」「管理シート」「生徒設定」を格納
+//   - PERSONAL_SS_URL : 個人情報マスタ（極秘情報）
+//                       現状は未使用だが、将来的に氏名・住所等をこちらへ分離する
+//                       想定で定数として保持
+// ====================================================================
+const MAIN_SS_URL     = 'https://docs.google.com/spreadsheets/d/1QcruSLwoyPCQvCuaPK9m5Q3mFK2F2pacZPeu6VHEvps/edit';
+const PERSONAL_SS_URL = 'https://docs.google.com/spreadsheets/d/1quXMzVooCCFb8Ig4zIgbhlBjkRNtUohWfu_iWomG7tI/edit';
 
-  <!-- ===== PWA / Apple Touch ===== -->
-  <meta name="theme-color" content="#000000">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="SSS Edu">
+/**
+ * メインスプレッドシートを取得する共通ヘルパー。
+ * 全関数は必ずこれを使うことで、参照先がブレないようにする。
+ */
+function getMainSpreadsheet() {
+  return SpreadsheetApp.openByUrl(MAIN_SS_URL);
+}
 
-  <link rel="apple-touch-icon" href="Company(1).png">
-  <link rel="manifest" href='data:application/manifest+json,{"name":"SSS Education","short_name":"SSS Education","display":"standalone","background_color":"#000000","theme_color":"#d3ad4f","icons":[{"src":"./icon.png","sizes":"192x192","type":"image/png"}]}'>
+/**
+ * 極秘情報スプレッドシート（個人情報マスタ）を取得する。
+ * 現状未使用だが、将来の機能拡張時に使用。
+ */
+function getPersonalSpreadsheet() {
+  return SpreadsheetApp.openByUrl(PERSONAL_SS_URL);
+}
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="qrcode.min.js"></script>
-  <style>
-    :root {
-      --gold: #d3ad4f;
-      --black: #000000;
-      --dark-gray: #111111;
-      --card-bg: #1a1a1a;
-      --white: #ffffff;
-      --text-gray: #a0a0a0;
-      --bronze: #cd7f32;
-      --silver: #c0c0c0;
-      --platinum: #e5e4e2;
+// ====================================================================
+// 🔔 Google Chat Webhook URL
+//   入退室通知用。WebhookのURLは秘密情報なのでGAS内のみで保管する
+//   （リポジトリには絶対にアップロードしないこと）
+// ====================================================================
+const GCHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAUHWNd34/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=YEAO0z4xaLIh9y2bvuVsQqHR0ncqPk0ZdTu-nB3KOcg';
+
+// ====================================================================
+// 🔗 生徒マイページのベースURL
+//   本番URLが変わったらここだけ書き換えればOK
+// ====================================================================
+const STUDENT_DASHBOARD_BASE_URL = 'https://ahmadtanzeel.github.io/-dev-webpages-/dashboard.html?token=';
+
+// ====================================================================
+// 📘 小テスト用スプレッドシートの設定
+// ====================================================================
+const TEST_SS_ID = '15C3TN3oMgx8tEWinCUx_TMg_ZzfgRBnhIOEt3tC82aA';
+const TEST_TEMPLATE_NAME = 'テンプレート';
+
+// ====================================================================
+// 管理シート（打刻ログ）の列インデックス
+// A列:日付 / B列:ID / D列:入室時刻 / E列:退室時刻 / F列:エール数
+// ====================================================================
+const IDX_LOG = {
+  DATE: 0,    // A列
+  ID: 1,      // B列
+  IN: 3,      // D列
+  OUT: 4,     // E列
+  CHEERS: 5   // F列
+};
+
+// ====================================================================
+// ① アクセス振り分け処理
+// ====================================================================
+function doGet(e) {
+  const params = e.parameter || {};
+  const action = params.action;
+  const token  = params.token;
+
+  if (action === 'stats' && token) {
+    try {
+      const data = getStudentStats(token);
+      return jsonResponse({ ok: true, data: data });
+    } catch (err) {
+      return jsonResponse({ ok: false, error: String(err && err.message || err) });
+    }
+  }
+
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setTitle('SSS Education 自習室受付')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no');
+}
+
+function doPost(e) {
+  try {
+    const body = JSON.parse(e.postData.contents || '{}');
+    const action = body.action;
+
+    if (action === 'saveSettings') {
+      const msg = saveStudentSettings(body.token, body.examName, body.examDate);
+      return jsonResponse({ ok: true, message: msg });
+    }
+    if (action === 'scan') {
+      const msg = processScan(body.id);
+      return jsonResponse({ ok: true, message: msg });
     }
 
-    body {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      background-color: var(--black);
-      color: var(--white);
-      margin: 0;
-      padding: 0 20px 50px 20px;
+    return jsonResponse({ ok: false, error: 'Unknown action: ' + action });
+  } catch (err) {
+    return jsonResponse({ ok: false, error: String(err && err.message || err) });
+  }
+}
+
+function jsonResponse(obj) {
+  return ContentService
+    .createTextOutput(JSON.stringify(obj))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// ====================================================================
+// ② ダッシュボード用データ集計
+// ====================================================================
+function getStudentStats(studentToken) {
+  const cache = CacheService.getScriptCache();
+  const cachedData = cache.get(studentToken);
+  if (cachedData) return JSON.parse(cachedData);
+
+  const ss = getMainSpreadsheet();
+  const profileSheet = ss.getSheetByName('公開プロフィール');
+  const logSheet = ss.getSheetByName('管理シート');
+  const settingsSheet = ss.getSheetByName('生徒設定') || ss.insertSheet('生徒設定');
+
+  const profileData = profileSheet.getDataRange().getValues();
+  const logData = logSheet.getDataRange().getValues();
+  const settingsData = settingsSheet.getDataRange().getValues();
+
+  let targetId = null;
+  let targetNickname = "学習者";
+  let weeklyGoalHours = 15;
+  let customExam = { name: "", date: "" };
+  let nickMap = {};
+
+  for (let i = 1; i < profileData.length; i++) {
+    let pId = String(profileData[i][IDX_PROFILE.ID]).trim();
+    let pToken = String(profileData[i][IDX_PROFILE.TOKEN]).trim();
+    let pName = profileData[i][IDX_PROFILE.NAME] || profileData[i][IDX_PROFILE.NICKNAME] || pId;
+    nickMap[pId] = pName;
+
+    if (pToken === studentToken) {
+      targetId = pId;
+      targetNickname = pName;
+      let goalRaw = profileData[i][IDX_PROFILE.GOAL_HOURS];
+      if (goalRaw && !isNaN(parseFloat(goalRaw))) weeklyGoalHours = parseFloat(goalRaw);
     }
+  }
 
-    .header {
-      text-align: center;
-      padding: 30px 0 20px;
-      border-bottom: 1px solid rgba(211, 173, 79, 0.3);
-      margin-bottom: 20px;
-      position: sticky;
-      top: 0;
-      background-color: rgba(0, 0, 0, 0.9);
-      z-index: 100;
+  if (!targetId) throw new Error("無効なURLです。管理者に連絡してください。");
+
+  for (let i = 1; i < settingsData.length; i++) {
+    if (String(settingsData[i][0]).trim() === targetId) {
+      customExam.name = settingsData[i][1];
+      let sDate = settingsData[i][2];
+      customExam.date = sDate instanceof Date ? Utilities.formatDate(sDate, "JST", "yyyy/MM/dd") : sDate;
+      break;
     }
-
-    .logo {
-      font-size: 12px;
-      letter-spacing: 4px;
-      color: var(--gold);
-      margin-bottom: 5px;
-    }
-
-    h1 {
-      font-size: 24px;
-      margin: 0;
-      font-weight: 400;
-      letter-spacing: 1px;
-    }
-
-    #student-name {
-      color: var(--gold);
-      font-weight: bold;
-    }
-
-    .quote-box {
-      text-align: center;
-      font-style: italic;
-      color: var(--text-gray);
-      font-size: 13px;
-      margin-bottom: 30px;
-      padding: 0 10px;
-      line-height: 1.5;
-    }
-
-    /* ローディングアニメーション（ダークテーマ対応） */
-    #loading {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
-      min-height: 80vh;
-    }
-
-    .loader {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 30px;
-    }
-
-    .book {
-      position: relative;
-      width: 140px;
-      height: 100px;
-      background-color: var(--gold);
-      border-radius: 4px;
-      perspective: 600px;
-      box-shadow: 0 0 20px rgba(211, 173, 79, 0.3);
-    }
-
-    .book::before,
-    .book::after {
-      position: absolute;
-      width: 60px;
-      height: 85px;
-      top: 7.5px;
-      background-color: var(--card-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: bold;
-      color: var(--gold);
-      box-sizing: border-box;
-    }
-
-    .book::before {
-      content: 'SSS';
-      left: 8px;
-      border-radius: 2px 0 0 2px;
-      border-right: 1px solid #333;
-    }
-
-    .book::after {
-      content: 'Education';
-      right: 8px;
-      border-radius: 0 2px 2px 0;
-      border-left: 1px solid #333;
-    }
-
-    .page {
-      position: absolute;
-      width: 60px;
-      height: 85px;
-      top: 7.5px;
-      right: 8px;
-      transform-origin: left center;
-      transform-style: preserve-3d;
-      animation: flip 2s infinite ease-in-out;
-    }
-
-    .page-face {
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      backface-visibility: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      font-weight: bold;
-      background-color: var(--card-bg);
-      box-sizing: border-box;
-    }
-
-    .front {
-      border-radius: 0 2px 2px 0;
-      border-left: 1px solid #333;
-      color: var(--gold);
-    }
-
-    .back {
-      transform: rotateY(180deg);
-      border-radius: 2px 0 0 2px;
-      border-right: 1px solid #333;
-      color: var(--gold);
-    }
-
-    .page:nth-child(1) { animation-delay: 0s; }
-    .page:nth-child(2) { animation-delay: 0.4s; }
-    .page:nth-child(3) { animation-delay: 0.8s; }
-
-    @keyframes flip {
-      0% { transform: rotateY(0deg); z-index: 2; }
-      50% { transform: rotateY(-180deg); z-index: 2; }
-      50.1%, 100% { z-index: 1; transform: rotateY(-180deg); opacity: 0; }
-    }
-
-    .loading-text {
-      font-size: 16px;
-      letter-spacing: 4px;
-      color: var(--gold);
-      font-weight: 600;
-    }
-
-    /* エラー表示 */
-    .error-box {
-      background-color: var(--card-bg);
-      border: 1px solid #ff4d4d;
-      color: #ff4d4d;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      max-width: 400px;
-      margin: 0 auto;
-    }
-    .error-box .err-title { font-size: 14px; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold; }
-    .error-box .err-msg { font-size: 12px; color: var(--text-gray); margin-bottom: 15px; line-height: 1.5; }
-    .error-box .err-retry {
-      background: transparent; border: 1px solid var(--gold); color: var(--gold);
-      padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 12px; letter-spacing: 1px;
-    }
-    .error-box .err-retry:hover { background: var(--gold); color: var(--black); }
-
-    /* カウントダウン */
-    .countdown-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-      gap: 10px;
-      margin-bottom: 30px;
-    }
-
-    .cd-card {
-      background-color: var(--card-bg);
-      border: 1px solid #333;
-      padding: 15px 10px;
-      text-align: center;
-      border-radius: 8px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    }
-
-    .cd-title {
-      font-size: 10px;
-      color: var(--text-gray);
-      margin-bottom: 5px;
-      letter-spacing: 1px;
-    }
-
-    .cd-days {
-      font-size: 28px;
-      color: var(--white);
-      font-weight: bold;
-      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
-    }
-
-    .cd-days span {
-      font-size: 14px;
-      color: var(--gold);
-      font-weight: normal;
-      margin-left: 3px;
-    }
-
-    /* プロフィール */
-    .profile-grid {
-      display: flex;
-      justify-content: space-between;
-      gap: 15px;
-      margin-bottom: 30px;
-    }
-
-    .profile-card {
-      flex: 1;
-      background-color: var(--card-bg);
-      border: 1px solid #333;
-      padding: 15px;
-      text-align: center;
-      border-radius: 8px;
-    }
-
-    .rank-title { font-size: 11px; color: var(--text-gray); letter-spacing: 2px; margin-bottom: 5px; }
-    .rank-badge { font-size: 20px; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
-    .rank-BRONZE { color: var(--bronze); }
-    .rank-SILVER { color: var(--silver); }
-    .rank-GOLD { color: var(--gold); text-shadow: 0 0 10px rgba(211, 173, 79, 0.5); }
-    .rank-PLATINUM { color: var(--platinum); text-shadow: 0 0 10px rgba(229, 228, 226, 0.5); }
-    .rank-SSSMASTER { color: #ff00ff; text-shadow: 0 0 10px rgba(255, 0, 255, 0.5); }
-    .rank-next { font-size: 11px; color: var(--text-gray); }
-
-    .att-list { margin-top: 10px; display: flex; flex-direction: column; gap: 10px; }
-    .att-row { display: flex; justify-content: space-between; align-items: center; }
-    .att-primary { border-bottom: 1px dashed #444; padding-bottom: 12px; margin-bottom: 5px; flex-direction: column; gap: 5px; }
-    .att-primary .att-label { font-size: 14px; color: var(--white); font-weight: bold; }
-    .att-primary .att-val { font-size: 32px; color: var(--gold); text-shadow: 0 0 15px rgba(211, 173, 79, 0.4); }
-    .att-primary .att-unit { font-size: 12px; color: var(--gold); }
-    .att-secondary .att-label { font-size: 12px; color: var(--text-gray); display: flex; align-items: center; gap: 5px; }
-    .att-secondary .att-val { font-size: 16px; font-weight: bold; color: #ff6b6b; }
-    .att-secondary .att-unit { font-size: 10px; color: var(--text-gray); }
-    .att-val-group { display: flex; align-items: baseline; gap: 4px; }
-
-    /* 目標と実績 */
-    .goal-container { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; margin-bottom: 40px; }
-    .goal-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; }
-    .goal-title { color: var(--gold); letter-spacing: 1px; }
-    .goal-text { color: var(--white); }
-    .progress-track { width: 100%; height: 12px; background-color: #222; border-radius: 6px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #8b6b23, var(--gold)); width: 0%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
-
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 40px; }
-    .stat-card { background-color: var(--card-bg); border: 1px solid #333; padding: 15px 10px; text-align: center; position: relative; }
-    .stat-card::before { content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); }
-    .stat-title { font-size: 11px; color: var(--text-gray); margin-bottom: 8px; letter-spacing: 1px; }
-    .stat-value { font-size: 18px; color: var(--gold); font-weight: bold; }
-
-    .content-area { display: none; }
-
-    /* 小テスト＆アコーディオン */
-    details.test-container { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
-    details.test-container summary { outline: none; cursor: pointer; list-style: none; font-size: 16px; color: var(--gold); letter-spacing: 2px; border-bottom: 1px dashed #444; padding-bottom: 15px; margin-bottom: 15px; font-weight: bold; }
-    details.test-container summary::-webkit-details-marker { display: none; }
-    details.test-container summary::after { content: '▼ OPEN'; float: right; font-size: 12px; color: var(--text-gray); margin-top: 2px; }
-    details.test-container[open] summary::after { content: '▲ CLOSE'; }
-    .test-item { margin-bottom: 25px; }
-    .test-item:last-child { margin-bottom: 0; }
-    .test-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .test-name { color: var(--white); font-size: 14px; font-weight: bold; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
-    .test-count { color: var(--text-gray); font-size: 13px; font-family: monospace; }
-    .test-count span { color: var(--gold); font-weight: bold; font-size: 16px; }
-    .grid-container { display: flex; flex-wrap: wrap; gap: 8px; }
-    .grid-box { width: 30px; height: 30px; border-radius: 4px; border: 1px solid #333; background-color: #111; display: flex; justify-content: center; align-items: center; transition: all 0.5s ease; box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.8); }
-    .stamp-icon { width: 85%; height: 85%; transition: all 0.5s ease; object-fit: contain; }
-    .grid-box:not(.completed) .stamp-icon { opacity: 0.15; filter: grayscale(100%); }
-    .grid-box.completed { border-color: rgba(211, 173, 79, 0.4); background-color: rgba(211, 173, 79, 0.05); box-shadow: 0 0 8px rgba(211, 173, 79, 0.15), inset 0 0 5px rgba(255, 255, 255, 0.1); transform: scale(1.05); }
-    .grid-box.completed .stamp-icon { opacity: 1; filter: drop-shadow(0 0 4px rgba(211, 173, 79, 0.8)); transform: scale(1.1); }
-
-    /* コミュニティ・グラフ・履歴 */
-    .community-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 40px; }
-    .comm-card { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
-    .comm-title { color: var(--gold); font-size: 13px; letter-spacing: 2px; margin-bottom: 15px; text-align: center; border-bottom: 1px dashed #444; padding-bottom: 10px; }
-    .comm-list { list-style: none; padding: 0; margin: 0; }
-    .comm-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 13px; align-items: center; }
-    .comm-item:last-child { border-bottom: none; }
-    .rank-name { color: var(--white); display: flex; align-items: center; gap: 8px; }
-    .rank-score { color: var(--gold); font-weight: bold; font-size: 14px; }
-    .rank-icon { width: 20px; text-align: center; font-size: 14px; }
-    .feed-name { color: var(--platinum); }
-    .section-title { font-size: 16px; color: var(--white); margin: 50px 0 20px; padding-left: 10px; border-left: 3px solid var(--gold); letter-spacing: 2px; }
-    .chart-container, .history-container { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; overflow-x: auto; }
-    .visible { opacity: 1 !important; transform: translateY(0) !important; }
-    .chart-title { font-size: 13px; color: var(--text-gray); margin-bottom: 20px; letter-spacing: 2px; text-align: center; }
-    table { width: 100%; border-collapse: collapse; min-width: 300px; }
-    th { color: var(--gold); border-bottom: 1px solid var(--gold); padding: 10px 5px; text-align: center; font-size: 12px; font-weight: normal; }
-    td { border-bottom: 1px solid #222; padding: 12px 5px; text-align: center; font-size: 13px; }
-
-    /* 設定モーダル */
-    #settings-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); border: 2px solid var(--gold); padding: 30px; z-index: 1000; border-radius: 15px; width: 80%; max-width: 300px; box-shadow: 0 0 50px rgba(0, 0, 0, 0.9); }
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); z-index: 999; }
-    .modal-input { width: 100%; background: #000; border: 1px solid #444; color: #fff; padding: 10px; margin: 10px 0; border-radius: 5px; box-sizing: border-box;}
-    .modal-btn { background: var(--gold); color: var(--black); border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px;}
-    .modal-btn:disabled { opacity: 0.5; cursor: wait; }
-    .settings-trigger { font-size: 12px; color: var(--text-gray); text-decoration: underline; cursor: pointer; text-align: center; display: block; margin-top: 10px; margin-bottom: 30px;}
-
-    /* ===== 更新ボタン ===== */
-    .refresh-btn {
-      position: absolute;
-      top: 28px;
-      right: 15px;
-      background: transparent;
-      border: 1px solid rgba(211, 173, 79, 0.5);
-      color: var(--gold);
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-      padding: 0;
-    }
-    .refresh-btn:hover { background: rgba(211, 173, 79, 0.1); border-color: var(--gold); }
-    .refresh-btn:active { transform: scale(0.92); }
-    .refresh-btn:disabled { opacity: 0.5; cursor: wait; }
-    .refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-    /* ===== QRコード ===== */
-    /* QRボックスはスクロールアニメーション対象外（常に表示） */
-    #box-qr { opacity: 1 !important; transform: none !important; }
-
-    .qr-content {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 10px 0 5px;
-    }
-    .qr-note {
-      color: var(--text-gray);
-      font-size: 12px;
-      letter-spacing: 1px;
-      margin: 0 0 20px 0;
-      text-align: center;
-    }
-    .qr-frame {
-      background: #ffffff;
-      padding: 16px;
-      border-radius: 12px;
-      box-shadow: 0 0 30px rgba(211, 173, 79, 0.15);
-      margin-bottom: 20px;
-    }
-    .qr-frame canvas { display: block; }
-    .qr-id-label {
-      font-size: 10px;
-      color: var(--text-gray);
-      letter-spacing: 2px;
-      margin: 0 0 5px 0;
-    }
-    .qr-id {
-      font-size: 18px;
-      color: var(--gold);
-      font-family: monospace;
-      letter-spacing: 2px;
-      margin: 0;
-    }
-  </style>
-</head>
-
-<body>
-
-
-  <div class="header">
-    <button id="refresh-btn" class="refresh-btn" onclick="refreshData()" aria-label="更新" title="データを更新">
-      <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"></polyline>
-        <polyline points="1 20 1 14 7 14"></polyline>
-        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-      </svg>
-    </button>
-    <div class="logo">SSS Education</div>
-    <h1><span id="student-name">...</span> さんの記録</h1>
-  </div>
-
-  <!-- ローディング画面 -->
-  <div id="loading">
-    <div class="loader">
-      <div class="book">
-        <div class="page">
-          <div class="page-face front">Education</div>
-          <div class="page-face back">SSS</div>
-        </div>
-        <div class="page">
-          <div class="page-face front">Education</div>
-          <div class="page-face back">SSS</div>
-        </div>
-        <div class="page">
-          <div class="page-face front">Education</div>
-          <div class="page-face back">SSS</div>
-        </div>
-      </div>
-      <div class="loading-text">SSS Education</div>
-      <div style="font-size:12px; color:var(--text-gray); margin-top:10px; letter-spacing: 2px;">SYSTEM IS GATHERING DATA...</div>
-    </div>
-  </div>
-
-  <!-- エラー画面（必要時のみ表示） -->
-  <div id="error-screen" style="display:none; min-height:60vh; display:none; justify-content:center; align-items:center; padding-top:60px;">
-    <div class="error-box">
-      <div class="err-title">⚠ ERROR</div>
-      <div class="err-msg" id="err-message">データの取得に失敗しました。</div>
-      <button class="err-retry" onclick="location.reload()">再読み込み</button>
-    </div>
-  </div>
-
-  <!-- メインコンテンツ -->
-  <div class="content-area" id="content">
-    <div class="quote-box" id="quote-text"></div>
-
-    <div class="countdown-grid" id="box-countdown">
-      <div class="cd-card">
-        <div class="cd-title">共通テストまで</div>
-        <div class="cd-days" id="cd-common">--<span>日</span></div>
-      </div>
-      <div class="cd-card">
-        <div class="cd-title">国立二次まで</div>
-        <div class="cd-days" id="cd-national">--<span>日</span></div>
-      </div>
-      <div class="cd-card" id="cd-custom-card" style="display: none;">
-        <div class="cd-title" id="cd-custom-title">目標模試まで</div>
-        <div class="cd-days" id="cd-custom">--<span>日</span></div>
-      </div>
-    </div>
-
-    <details class="test-container" id="box-qr" open>
-      <summary>📱 MY QR CODE</summary>
-      <div class="qr-content">
-        <p class="qr-note">受付のiPadにこの画面をかざしてください</p>
-        <div class="qr-frame">
-          <canvas id="qr-canvas"></canvas>
-        </div>
-        <p class="qr-id-label">学習者ID</p>
-        <p class="qr-id" id="qr-id-text">---</p>
-      </div>
-    </details>
-
-    <div class="settings-trigger" onclick="openModal()">⚙️ 目標を自分専用に設定する</div>
-
-    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
-    <div id="settings-modal">
-      <h3 style="color:var(--gold); margin-top:0;">MY GOAL SETTING</h3>
-      <label style="font-size:12px;">目標模試名</label>
-      <input type="text" id="input-exam-name" class="modal-input" placeholder="例：全統共通テスト模試">
-      <label style="font-size:12px;">模試日程</label>
-      <input type="date" id="input-exam-date" class="modal-input">
-      <button class="modal-btn" id="save-btn" onclick="saveSettings()">SAVE SETTINGS</button>
-    </div>
-
-    <div class="profile-grid">
-      <div class="profile-card">
-        <div class="rank-title">CURRENT RANK</div>
-        <div id="rank-badge" class="rank-badge">---</div>
-        <div id="rank-next" class="rank-next">---</div>
-      </div>
-      <div class="profile-card">
-        <div class="rank-title">ATTENDANCE</div>
-        <div class="att-list">
-          <div class="att-row att-primary">
-            <div class="att-label">👑 累計来室</div>
-            <div class="att-val-group">
-              <span class="att-val" id="streak-total">0</span><span class="att-unit">Days</span>
-            </div>
-          </div>
-          <div class="att-row att-secondary">
-            <div class="att-label">🔥 現在継続</div>
-            <div class="att-val-group">
-              <span class="att-val" id="streak-active">0</span><span class="att-unit">Days</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="goal-container">
-      <div class="goal-header">
-        <div class="goal-title" id="goal-title-text">今週の目標（--h）</div>
-        <div class="goal-text"><span id="goal-current">0</span>h / <span id="goal-percent">0</span>%</div>
-      </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="progress-bar"></div>
-      </div>
-    </div>
-
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-title" id="today-title">今日の学習</div>
-        <div class="stat-value" id="val-today">-時間-分</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">直近7日間</div>
-        <div class="stat-value" id="val-week">-時間-分</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-title">累計時間</div>
-        <div class="stat-value" id="val-total">-時間-分</div>
-      </div>
-    </div>
-
-    <details class="test-container" id="box-tests">
-      <summary>TEST PROGRESS</summary>
-      <div id="test-list">
-        <div style="text-align:center; color:#666; padding: 20px;">データ取得中...</div>
-      </div>
-    </details>
-
-    <div class="section-title">COMMUNITY</div>
-    <div class="community-grid">
-      <div class="comm-card" id="box-ranking">
-        <div class="comm-title">🏆 今週のトップランカー</div>
-        <ul class="comm-list" id="ranking-list">
-          <li class="comm-item" style="color:#666; justify-content:center;">集計中...</li>
-        </ul>
-      </div>
-      <div class="comm-card" id="box-feed">
-        <div class="comm-title">⚡ リアルタイム速報</div>
-        <ul class="comm-list" id="feed-list">
-          <li class="comm-item" style="color:#666; justify-content:center;">データ取得中...</li>
-        </ul>
-      </div>
-    </div>
-
-    <div class="section-title">LEARNING TRENDS</div>
-    <div class="chart-container" id="box-daily">
-      <div class="chart-title">日別の学習推移 (h)</div><canvas id="dailyChart"></canvas>
-    </div>
-    <div class="chart-container" id="box-weekly">
-      <div class="chart-title">週別の学習推移 (h)</div><canvas id="weeklyChart"></canvas>
-    </div>
-    <div class="chart-container" id="box-monthly">
-      <div class="chart-title">月別の学習推移 (h)</div><canvas id="monthlyChart"></canvas>
-    </div>
-
-    <div class="section-title">ALL RECORDS</div>
-    <div class="history-container" id="box-history">
-      <table>
-        <thead>
-          <tr>
-            <th>日付</th>
-            <th>入室</th>
-            <th>退室</th>
-            <th>時間</th>
-          </tr>
-        </thead>
-        <tbody id="history-body"></tbody>
-      </table>
-    </div>
-  </div>
-
-  <script>
-    // =====================================================================
-    // 設定（デプロイ後にAPIエンドポイントURLを書き換えてください）
-    // =====================================================================
-    const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyclB58dLRD1kawXot4nE9cW0Lq3tMnnFPZ_29NbOhp9StL693615lPrVW_palugJp9_A/exec';
-
-    // 入試カウントダウンの目標日（年度更新時はここを書き換えてください）
-    const TARGET_COMMON   = '2027/01/16';
-    const TARGET_NATIONAL = '2027/02/25';
-
-    // =====================================================================
-    // 認証トークン取得（URLクエリ ?token=xxx から）
-    // =====================================================================
-    const studentToken = new URLSearchParams(location.search).get('token');
-
-    // チャートデータ＆Chart.jsインスタンス管理
-    let chartData = {};
-    let chartInstances = {};
-
-    // =====================================================================
-    // API通信ラッパー
-    // =====================================================================
-
-    /**
-     * GETリクエストでJSONを取得
-     * @param {Object} params - クエリパラメータのオブジェクト
-     */
-    async function apiGet(params) {
-      const query = new URLSearchParams(params).toString();
-      const url = `${API_ENDPOINT}?${query}`;
-      const res = await fetch(url, { method: 'GET', redirect: 'follow' });
-      if (!res.ok) throw new Error(`通信エラー (HTTP ${res.status})`);
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error || 'サーバー側でエラーが発生しました');
-      return json;
-    }
-
-    /**
-     * POSTリクエストでJSONを送信／受信
-     * GASのCORSプリフライトを避けるため Content-Type: text/plain を使用
-     * @param {Object} payload - 送信するJSONオブジェクト
-     */
-    async function apiPost(payload) {
-      const res = await fetch(API_ENDPOINT, {
-        method: 'POST',
-        redirect: 'follow',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
-      });
-      if (!res.ok) throw new Error(`通信エラー (HTTP ${res.status})`);
-      const json = await res.json();
-      if (!json.ok) throw new Error(json.error || 'サーバー側でエラーが発生しました');
-      return json;
-    }
-
-    // 統計データ取得
-    function fetchStats(token) {
-      return apiGet({ action: 'stats', token }).then(j => j.data);
-    }
-
-    // 設定保存
-    function saveStudentSettings(token, examName, examDate) {
-      return apiPost({ action: 'saveSettings', token, examName, examDate }).then(j => j.message);
-    }
-
-    // =====================================================================
-    // UI制御
-    // =====================================================================
-
-    function showLoading() {
-      document.getElementById('loading').style.display = 'flex';
-      document.getElementById('content').style.display = 'none';
-      document.getElementById('error-screen').style.display = 'none';
-    }
-
-    function showContent() {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('error-screen').style.display = 'none';
-      document.getElementById('content').style.display = 'block';
-    }
-
-    function showError(message) {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('content').style.display = 'none';
-      const errBox = document.getElementById('error-screen');
-      errBox.style.display = 'flex';
-      document.getElementById('err-message').textContent = message || 'データの取得に失敗しました。';
-    }
-
-    // =====================================================================
-    // 初期化
-    // =====================================================================
-
-    document.addEventListener('DOMContentLoaded', async () => {
-      setupQRToggle();   // QRアコーディオン開閉の監視を開始
-      if (!studentToken) {
-        showError('URLが正しくありません。管理者から配布されたURLからアクセスしてください。');
-        return;
+  }
+
+  const toDate = (val) => {
+    if (!val) return null;
+    if (val instanceof Date) return val;
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? null : d;
+  };
+
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const getMonday = (d) => {
+    let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
+    return new Date(d.getFullYear(), d.getMonth(), diff);
+  };
+  const thisMondayMs = getMonday(new Date()).getTime();
+
+  let totalMs = 0, todayMs = 0, weekMs = 0, todayCheers = 0;
+  let dailyMap = {}, weeklyMap = {}, monthlyMap = {}, weeklyRankingMap = {};
+  let recentActions = [], historyList = [];
+  let uniqueDates = new Set();
+
+  for(let i = logData.length - 1; i >= 1; i--){
+    let rowId = String(logData[i][IDX_LOG.ID]).trim();
+    let inTime = toDate(logData[i][IDX_LOG.IN]);
+    let outTime = toDate(logData[i][IDX_LOG.OUT]);
+
+    if(inTime) {
+      let logDateMs = new Date(inTime.getFullYear(), inTime.getMonth(), inTime.getDate()).getTime();
+      let diffMs = (outTime) ? outTime.getTime() - inTime.getTime() : 0;
+      if (diffMs < 0) diffMs = 0;
+
+      if(rowId === targetId) {
+        if(diffMs > 0) {
+          totalMs += diffMs;
+          if (logDateMs === todayStart) todayMs += diffMs;
+          if (logDateMs >= (todayStart - 7*24*60*60*1000)) weekMs += diffMs;
+
+          let dayKey = Utilities.formatDate(inTime, "JST", "MM/dd");
+          dailyMap[dayKey] = (dailyMap[dayKey] || 0) + diffMs;
+
+          let monday = getMonday(inTime);
+          let weekKey = Utilities.formatDate(monday, "JST", "MM/dd") + "週";
+          weeklyMap[weekKey] = (weeklyMap[weekKey] || 0) + diffMs;
+
+          let monthKey = Utilities.formatDate(inTime, "JST", "yyyy/MM");
+          monthlyMap[monthKey] = (monthlyMap[monthKey] || 0) + diffMs;
+
+          uniqueDates.add(Utilities.formatDate(inTime, "JST", "yyyy/MM/dd"));
+
+          historyList.push({
+            date: Utilities.formatDate(inTime, "JST", "MM/dd"),
+            in: Utilities.formatDate(inTime, "JST", "HH:mm"),
+            out: outTime ? Utilities.formatDate(outTime, "JST", "HH:mm") : "---",
+            time: formatTime(diffMs)
+          });
+        }
+        if (logDateMs === todayStart) {
+          todayCheers += parseInt(logData[i][IDX_LOG.CHEERS] || 0);
+        }
       }
-      try {
-        const data = await fetchStats(studentToken);
-        showStats(data);
-      } catch (err) {
-        console.error(err);
-        showError(err.message || '通信エラーが発生しました。');
+
+      // 今週ランキング集計（全員、退室済みのみ）
+      if(logDateMs >= thisMondayMs && diffMs > 0) {
+        weeklyRankingMap[rowId] = (weeklyRankingMap[rowId] || 0) + diffMs;
       }
+
+      if(recentActions.length < 5) {
+        recentActions.push({
+          id: rowId,
+          name: nickMap[rowId] || "学習者",
+          action: (outTime) ? "退室" : "入室",
+          time: Utilities.formatDate((outTime ? outTime : inTime), "JST", "HH:mm")
+        });
+      }
+    }
+  }
+
+  // ★ ランキング修正：未退室（diffMs=0）も「現在進行中の入室」として含める
+  for(let i = logData.length - 1; i >= 1; i--){
+    let rowId = String(logData[i][IDX_LOG.ID]).trim();
+    let inTime = toDate(logData[i][IDX_LOG.IN]);
+    let outTime = toDate(logData[i][IDX_LOG.OUT]);
+    if (!inTime) continue;
+    let logDateMs = new Date(inTime.getFullYear(), inTime.getMonth(), inTime.getDate()).getTime();
+    if (logDateMs < thisMondayMs) break;
+
+    if (!outTime) {
+      let liveMs = now.getTime() - inTime.getTime();
+      if (liveMs > 0 && liveMs < 12 * 3600000) {
+        weeklyRankingMap[rowId] = (weeklyRankingMap[rowId] || 0) + liveMs;
+      }
+    }
+  }
+
+  let top5Ranking = Object.keys(weeklyRankingMap).map(id => {
+    return { name: nickMap[id] || "学習者", hours: (weeklyRankingMap[id] / 3600000).toFixed(1) };
+  }).filter(r => parseFloat(r.hours) > 0)
+    .sort((a, b) => parseFloat(b.hours) - parseFloat(a.hours))
+    .slice(0, 5);
+
+  // 小テスト進捗（シートが無ければテンプレートから自動生成）
+  const testProgress = getOrCreateTestProgress(targetNickname, targetId);
+
+  const formatChartData = (map) => {
+    let labels = Object.keys(map).sort();
+    let values = labels.map(k => (map[k]/3600000).toFixed(1));
+    return { labels, values };
+  };
+
+  const resultData = {
+    name: targetNickname,
+    id: targetId,
+    today: formatTime(todayMs),
+    week: formatTime(weekMs),
+    total: formatTime(totalMs),
+    daily: formatChartData(dailyMap),
+    weekly: formatChartData(weeklyMap),
+    monthly: formatChartData(monthlyMap),
+    rank: calculateRank(totalMs / 3600000),
+    community: { ranking: top5Ranking, feed: recentActions },
+    weeklyGoal: { currentHours: (weekMs / 3600000).toFixed(1), targetHours: weeklyGoalHours, percent: Math.min(100, ((weekMs/3600000)/weeklyGoalHours)*100).toFixed(1) },
+    history: historyList.slice(0, 30),
+    streak: { totalDays: uniqueDates.size, active: calculateStreak(uniqueDates) },
+    tests: testProgress,
+    exam: customExam,
+    cheers: todayCheers
+  };
+
+  cache.put(studentToken, JSON.stringify(resultData), 900);
+  return resultData;
+}
+
+// ====================================================================
+// ③ 設定保存
+// ====================================================================
+function saveStudentSettings(token, examName, examDate) {
+  const ss = getMainSpreadsheet();
+  const profileData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
+  let studentId = null;
+
+  for (let i = 1; i < profileData.length; i++) {
+    if (String(profileData[i][IDX_PROFILE.TOKEN]).trim() === token) {
+      studentId = String(profileData[i][IDX_PROFILE.ID]).trim();
+      break;
+    }
+  }
+  if (!studentId) return "認証エラー";
+
+  const settingsSheet = ss.getSheetByName("生徒設定");
+  const settingsData = settingsSheet.getDataRange().getValues();
+  let targetRow = -1;
+
+  for (let i = 1; i < settingsData.length; i++) {
+    if (String(settingsData[i][0]).trim() === studentId) {
+      targetRow = i + 1;
+      break;
+    }
+  }
+
+  if (targetRow === -1) targetRow = settingsSheet.getLastRow() + 1;
+
+  settingsSheet.getRange(targetRow, 1).setValue(studentId);
+  settingsSheet.getRange(targetRow, 2).setValue(examName);
+  settingsSheet.getRange(targetRow, 3).setValue(examDate);
+
+  CacheService.getScriptCache().remove(token);
+
+  return "設定を保存しました！";
+}
+
+// ====================================================================
+// ④ 受付打刻処理（保護者メール通知 + Google Chat通知つき）
+// ====================================================================
+function processScan(studentId) {
+  if (!studentId) return "エラー：IDが読み込めませんでした";
+  const cleanTargetId = String(studentId).trim();
+  const ss = getMainSpreadsheet();
+  const sheet = ss.getSheetByName("管理シート");
+  const now = new Date();
+  const todayStr = Utilities.formatDate(now, "JST", "yyyy/MM/dd");
+
+  const sheetMaxRow = sheet.getLastRow();
+
+  // 「B列(ID)に実データがある最終行」を求める
+  let actualLastDataRow = 1;
+  if (sheetMaxRow >= 2) {
+    const bColumn = sheet.getRange(2, 2, sheetMaxRow - 1, 1).getValues();
+    for (let i = bColumn.length - 1; i >= 0; i--) {
+      const v = bColumn[i][0];
+      if (v !== "" && v !== null && v !== undefined) {
+        actualLastDataRow = i + 2;
+        break;
+      }
+    }
+  }
+
+  // 直近100件だけを後ろから取得
+  let existingRowIndex = -1;
+  let existingInTime = null;
+  let searchSize = Math.min(100, Math.max(0, actualLastDataRow - 1));
+  let attempt = 0;
+  let maxAttempts = 3;
+
+  while (existingRowIndex === -1 && attempt < maxAttempts && searchSize > 0) {
+    let startRow = Math.max(2, actualLastDataRow - searchSize + 1);
+    let numRows = actualLastDataRow - startRow + 1;
+    if (numRows <= 0) break;
+
+    const data = sheet.getRange(startRow, 1, numRows, 5).getValues();
+
+    for (let i = data.length - 1; i >= 0; i--) {
+      const rowDate = data[i][IDX_LOG.DATE];
+      const rowDateStr = rowDate instanceof Date ? Utilities.formatDate(rowDate, "JST", "yyyy/MM/dd") : "";
+      if (rowDateStr !== todayStr) continue;
+      if (String(data[i][IDX_LOG.ID]).trim() !== cleanTargetId) continue;
+      if (data[i][IDX_LOG.OUT] === "" || data[i][IDX_LOG.OUT] === null) {
+        existingRowIndex = startRow + i;
+        existingInTime = data[i][IDX_LOG.IN];
+        break;
+      }
+    }
+
+    attempt++;
+    searchSize *= 3;
+  }
+
+  let actionType = "";
+  let studyMs = 0;
+  if (existingRowIndex > 0) {
+    sheet.getRange(existingRowIndex, IDX_LOG.OUT + 1).setValue(now);
+    actionType = "退室";
+    if (existingInTime instanceof Date) {
+      studyMs = now.getTime() - existingInTime.getTime();
+      if (studyMs < 0) studyMs = 0;
+    }
+  } else {
+    // 入室処理：実データ最終行の直下に追記（C列の数式は触らない）
+    const targetRow = actualLastDataRow + 1;
+    sheet.getRange(targetRow, 1, 1, 2).setValues([[now, cleanTargetId]]);
+    sheet.getRange(targetRow, 4).setValue(now);
+    actionType = "入室";
+  }
+
+  // 【優先度1】画面応答用の情報を確定
+  const pData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
+  let studentName = "学習者";
+  let studentToken = null;
+  let parentEmail = null;
+
+  for (let i = 1; i < pData.length; i++) {
+    if (String(pData[i][IDX_PROFILE.ID]).trim() === cleanTargetId) {
+      studentName = pData[i][IDX_PROFILE.NAME] || pData[i][IDX_PROFILE.NICKNAME] || "学習者";
+      studentToken = String(pData[i][IDX_PROFILE.TOKEN]).trim();
+      const rawParentEmail = pData[i][IDX_PROFILE.PARENT_EMAIL];
+      if (rawParentEmail && String(rawParentEmail).indexOf('@') > 0) {
+        parentEmail = String(rawParentEmail).trim();
+      }
+      break;
+    }
+  }
+
+  const responseMessage = `${studentName} さんが ${actionType} しました！`;
+
+  if (studentToken) CacheService.getScriptCache().remove(studentToken);
+
+  // 【優先度2】保護者メール通知
+  if (parentEmail) {
+    try {
+      notifyParent(studentName, parentEmail, actionType, now, studyMs);
+    } catch (e) {
+      console.error('[優先度2] 保護者メール処理で例外:', e);
+    }
+  }
+
+  // 【優先度3】Google Chat Webhook通知
+  try {
+    notifyGoogleChat(studentName, actionType, now, studyMs);
+  } catch (e) {
+    console.error('[優先度3] Webhook処理で例外:', e);
+  }
+
+  return responseMessage;
+}
+
+// ====================================================================
+// ④-2 保護者向けメール送信
+// ====================================================================
+function notifyParent(studentName, parentEmail, actionType, datetime, studyMs) {
+  const timeStr = Utilities.formatDate(datetime, "JST", "yyyy年MM月dd日 HH時mm分");
+  const subject = `【SSS Education】${studentName}さんが${actionType}しました`;
+
+  let body =
+    `${studentName} さんの保護者様\n\n` +
+    `いつもSSS Educationをご利用いただき、ありがとうございます。\n` +
+    `お子様が以下の通り自習室に${actionType}されました。\n\n` +
+    `  日時：${timeStr}\n` +
+    `  行動：${actionType}\n`;
+
+  if (actionType === "退室" && studyMs > 0) {
+    body += `  本日の学習時間：${formatTime(studyMs)}\n`;
+  }
+
+  body +=
+    `\n` +
+    `引き続き、お子様の学習を見守ってまいります。\n` +
+    `何かございましたら、お気軽に塾までお問い合わせください。\n\n` +
+    `──────────────────\n` +
+    `SSS Education 自習室管理システム\n` +
+    `※このメールは自動送信されています。返信はできませんのでご了承ください。\n` +
+    `──────────────────\n`;
+
+  try {
+    MailApp.sendEmail({ to: parentEmail, subject: subject, body: body });
+  } catch (err) {
+    console.error(`保護者メール送信失敗 (${parentEmail}):`, err);
+  }
+}
+
+// ====================================================================
+// ④-3 Google Chat通知（Webhook経由）
+// ====================================================================
+function notifyGoogleChat(studentName, actionType, datetime, studyMs) {
+  if (!GCHAT_WEBHOOK_URL) return;
+
+  const timeStr = Utilities.formatDate(datetime, "JST", "HH:mm");
+  let message;
+
+  if (actionType === "入室") {
+    message = `🟢 *${studentName}* さんが入室しました（${timeStr}）`;
+  } else if (actionType === "退室") {
+    const studyTime = studyMs > 0 ? formatTime(studyMs) : "—";
+    message = `🔴 *${studentName}* さんが退室しました（${timeStr} / 学習時間: ${studyTime}）`;
+  } else {
+    message = `${studentName} さんが${actionType}しました（${timeStr}）`;
+  }
+
+  try {
+    UrlFetchApp.fetch(GCHAT_WEBHOOK_URL, {
+      method: 'post',
+      contentType: 'application/json',
+      payload: JSON.stringify({ text: message }),
+      muteHttpExceptions: true
     });
+  } catch (err) {
+    console.error('Google Chat通知失敗:', err);
+  }
+}
 
-    // =====================================================================
-    // データ反映
-    // =====================================================================
+// ====================================================================
+// ⑥ 生徒マイページURLのメール下書き一括作成
+// ====================================================================
+function createDraftsByIds(idsString) {
+  if (!idsString || !String(idsString).trim()) {
+    return { success: false, message: "⚠ IDが入力されていません" };
+  }
 
-    function showStats(data, isRefresh = false) {
-      showContent();
+  const ids = String(idsString)
+    .split(/[,、\s]+/)
+    .map(s => s.trim())
+    .filter(s => s);
 
-      document.getElementById('student-name').innerText = data.name;
-      document.getElementById('quote-text').innerText = data.quote || "小さなことの積み重ねが、とんでもないところへ行くただ一つの道。";
+  if (ids.length === 0) {
+    return { success: false, message: "⚠ 有効なIDがありません" };
+  }
 
-      // カウントダウン
-      const calculateDays = (targetDateStr) => {
-        const today = new Date(); today.setHours(0, 0, 0, 0);
-        const target = new Date(targetDateStr); target.setHours(0, 0, 0, 0);
-        const diffMs = target - today;
-        const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-        return days > 0 ? days : 0;
-      };
+  const ss = getMainSpreadsheet();
+  const profileData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
 
-      document.getElementById('cd-common').innerHTML = `${calculateDays(TARGET_COMMON)}<span>日</span>`;
-      document.getElementById('cd-national').innerHTML = `${calculateDays(TARGET_NATIONAL)}<span>日</span>`;
+  const profileMap = {};
+  for (let i = 1; i < profileData.length; i++) {
+    const id = String(profileData[i][IDX_PROFILE.ID]).trim();
+    if (!id) continue;
+    profileMap[id] = {
+      name:         profileData[i][IDX_PROFILE.NAME] || profileData[i][IDX_PROFILE.NICKNAME] || id,
+      parentEmail:  String(profileData[i][IDX_PROFILE.PARENT_EMAIL] || '').trim(),
+      studentEmail: String(profileData[i][IDX_PROFILE.STUDENT_EMAIL] || '').trim(),
+      token:        String(profileData[i][IDX_PROFILE.TOKEN] || '').trim()
+    };
+  }
 
-      if (data.exam && data.exam.name && data.exam.date) {
-        document.getElementById('cd-custom-card').style.display = 'block';
-        document.getElementById('cd-custom-title').innerText = `${data.exam.name}まで`;
-        document.getElementById('cd-custom').innerHTML = `${calculateDays(data.exam.date)}<span>日</span>`;
-      } else {
-        document.getElementById('cd-custom-card').style.display = 'none';
-      }
+  let successList = [];
+  let errorList = [];
 
-      // ランク
-      const badge = document.getElementById('rank-badge');
-      badge.innerText = data.rank.current;
-      badge.className = 'rank-badge rank-' + data.rank.current.replace(' ', '');
-      document.getElementById('rank-next').innerText = data.rank.remainHours > 0
-        ? `次のランクまで: 残り ${data.rank.remainHours}h`
-        : '最高ランク到達！';
-
-      // 出席
-      document.getElementById('streak-total').innerText  = data.streak ? data.streak.totalDays : 0;
-      document.getElementById('streak-active').innerText = data.streak ? data.streak.active   : 0;
-
-      // 週次目標
-      if (data.weeklyGoal) {
-        document.getElementById('goal-title-text').innerText = `今週の目標（${data.weeklyGoal.targetHours}h）`;
-        document.getElementById('goal-current').innerText = data.weeklyGoal.currentHours;
-        document.getElementById('goal-percent').innerText = data.weeklyGoal.percent;
-        setTimeout(() => {
-          document.getElementById('progress-bar').style.width = data.weeklyGoal.percent + '%';
-        }, 300);
-      }
-
-      // 学習時間
-      document.getElementById('val-today').innerText = data.today;
-      document.getElementById('val-week').innerText  = data.week;
-      document.getElementById('val-total').innerText = data.total;
-
-      // 小テスト
-      renderTests(data.tests);
-
-      // 今週ランキング
-      renderRanking(data.community && data.community.ranking);
-
-      // リアルタイム速報（エールボタン廃止済み）
-      renderFeed(data.community && data.community.feed);
-
-      // 履歴
-      renderHistory(data.history);
-
-      // QRコード描画（data.id が無くてもエラーにならないようガード）
-      renderQRCode(data.id);
-
-      // チャート用データ準備
-      chartData = {
-        daily:   data.daily   || { labels: [], values: [] },
-        weekly:  data.weekly  || { labels: [], values: [] },
-        monthly: data.monthly || { labels: [], values: [] }
-      };
-
-      if (isRefresh) {
-        // 更新時：スクロールアニメーションをスキップして即座に全描画
-        drawChart('dailyChart',   chartData.daily.labels,   chartData.daily.values);
-        drawChart('weeklyChart',  chartData.weekly.labels,  chartData.weekly.values);
-        drawChart('monthlyChart', chartData.monthly.labels, chartData.monthly.values);
-        document.querySelectorAll('.chart-container, .comm-card, .test-container, .history-container')
-          .forEach(el => el.classList.add('visible'));
-      } else {
-        setupScrollAnimations();
-      }
+  ids.forEach(id => {
+    const profile = profileMap[id];
+    if (!profile) {
+      errorList.push(`✗ ${id}：プロフィールが見つかりません`);
+      return;
+    }
+    if (!profile.token) {
+      errorList.push(`✗ ${id} (${profile.name})：URLトークン未設定`);
+      return;
     }
 
-    // ----- 各セクションのレンダラ -----
-
-    function renderTests(tests) {
-      const testList = document.getElementById('test-list');
-      if (!tests || tests.length === 0) {
-        testList.innerHTML = '<div style="text-align:center; color:#666; padding: 20px;">現在挑戦中の小テストはありません</div>';
-        return;
-      }
-      testList.innerHTML = tests.map(test => {
-        const blocks = test.blocks.map(isCompleted =>
-          `<div class="grid-box${isCompleted ? ' completed' : ''}">
-             <img class="stamp-icon" src="合格シール.png" alt="合格" loading="lazy">
-           </div>`
-        ).join('');
-        return `
-          <div class="test-item">
-            <div class="test-header">
-              <div class="test-name">📘 ${escapeHtml(test.name)}</div>
-              <div class="test-count"><span>${test.completed}</span> / ${test.total}</div>
-            </div>
-            <div class="grid-container">${blocks}</div>
-          </div>
-        `;
-      }).join('');
+    // 送信先：必ず生徒メアド（B列）
+    const to = profile.studentEmail;
+    if (!to || to.indexOf('@') < 0) {
+      errorList.push(`✗ ${id} (${profile.name})：生徒メアド(B列)が未設定`);
+      return;
     }
 
-    function renderRanking(ranking) {
-      const rankList = document.getElementById('ranking-list');
-      if (!ranking || ranking.length === 0) {
-        rankList.innerHTML = '<li class="comm-item" style="color:#666; justify-content:center;">データがありません</li>';
-        return;
-      }
-      const medals = ['🥇', '🥈', '🥉', '🎖', '🎖'];
-      rankList.innerHTML = ranking.map((r, idx) => `
-        <li class="comm-item">
-          <span class="rank-name"><span class="rank-icon">${medals[idx] || ''}</span> ${escapeHtml(r.name)}</span>
-          <span class="rank-score">${r.hours}h</span>
-        </li>
-      `).join('');
+    const url = STUDENT_DASHBOARD_BASE_URL + encodeURIComponent(profile.token);
+    const subject = `【SSS Education】${profile.name}さん専用 学習ダッシュボードのご案内`;
+    const body =
+      `${profile.name} さん\n\n` +
+      `いつもSSS Educationでの学習、お疲れさまです。\n` +
+      `あなた専用の学習ダッシュボードをご用意しました。\n\n` +
+      `▼ あなたのマイページURL\n${url}\n\n` +
+      `※ このURLはあなた個人専用です。他の方には共有しないようご注意ください。\n` +
+      `※ スマートフォンの場合、ホーム画面に追加すると、アプリのように使えます。\n\n` +
+      `【マイページでできること】\n` +
+      `・自分の自習室入退室履歴の確認\n` +
+      `・週間/月間の学習時間グラフ\n` +
+      `・小テストの進捗状況\n` +
+      `・受付用のQRコード（毎回これをかざせばOK）\n\n` +
+      `不明な点があれば、講師までお気軽にお声がけください。\n\n` +
+      `──────────────────\n` +
+      `SSS Education\n` +
+      `──────────────────\n`;
+
+    try {
+      GmailApp.createDraft(to, subject, body);
+      successList.push(`✓ ${profile.name} (${id}) → ${to}`);
+    } catch (e) {
+      errorList.push(`✗ ${id} (${profile.name})：下書き作成失敗 - ${e.message}`);
+    }
+  });
+
+  let message = '';
+  if (successList.length > 0) {
+    message += `✅ ${successList.length}件の下書きを作成しました\n\n`;
+    message += successList.join('\n');
+  }
+  if (errorList.length > 0) {
+    if (message) message += '\n\n';
+    message += `⚠ ${errorList.length}件のエラー\n\n`;
+    message += errorList.join('\n');
+  }
+  if (successList.length > 0) {
+    message += `\n\n👉 Gmailの「下書き」フォルダで内容を確認してから送信してください。`;
+  }
+
+  return { success: successList.length > 0, message: message };
+}
+
+// ====================================================================
+// ⑦ 小テスト進捗の取得（シートが無ければテンプレートから自動生成）
+// ====================================================================
+function getOrCreateTestProgress(studentName, studentId) {
+  const testProgress = [];
+
+  try {
+    const testSs = SpreadsheetApp.openById(TEST_SS_ID);
+
+    let testSheet = testSs.getSheetByName(studentName);
+    if (!testSheet) {
+      testSheet = testSs.getSheetByName(studentId);
     }
 
-    function renderFeed(feed) {
-      const feedList = document.getElementById('feed-list');
-      if (!feed || feed.length === 0) {
-        feedList.innerHTML = '<li class="comm-item" style="color:#666; justify-content:center;">データがありません</li>';
-        return;
-      }
-      feedList.innerHTML = feed.map(f => {
-        const isEntry = f.action === '入室';
-        const color = isEntry ? '#d3ad4f' : '#a0a0a0';
-        const icon  = isEntry ? '▶' : '■';
-        return `
-          <li class="comm-item">
-            <span style="color:${color}; font-size:11px;">${icon} ${escapeHtml(f.time)}</span>
-            <span class="feed-name">${escapeHtml(f.name)} さんが${escapeHtml(f.action)}</span>
-          </li>
-        `;
-      }).join('');
-    }
-
-    function renderHistory(history) {
-      const historyBody = document.getElementById('history-body');
-      if (!history || history.length === 0) {
-        historyBody.innerHTML = '<tr><td colspan="4" style="color:#666;">最近の記録はありません</td></tr>';
-        return;
-      }
-      historyBody.innerHTML = history.map(h => `
-        <tr>
-          <td>${escapeHtml(h.date)}</td>
-          <td>${escapeHtml(h.in)}</td>
-          <td>${escapeHtml(h.out)}</td>
-          <td>${escapeHtml(h.time)}</td>
-        </tr>
-      `).join('');
-    }
-
-    // 簡易エスケープ（XSS対策）
-    function escapeHtml(str) {
-      if (str === null || str === undefined) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
-
-    // =====================================================================
-    // QRコード描画（localStorageキャッシュ対応で高速化）
-    // =====================================================================
-
-    // 最後に取得したID（details開閉時の再描画用）
-    let lastQRId = null;
-
-    function renderQRCode(studentId) {
-      const idText = document.getElementById('qr-id-text');
-
-      if (!studentId) {
-        if (idText) idText.textContent = '取得できませんでした';
-        return;
+    if (!testSheet) {
+      const templateSheet = testSs.getSheetByName(TEST_TEMPLATE_NAME);
+      if (!templateSheet) {
+        console.error(`テンプレートシート「${TEST_TEMPLATE_NAME}」が見つかりません`);
+        return testProgress;
       }
 
-      lastQRId = studentId;
-      if (idText) idText.textContent = String(studentId);
-
-      // detailsが開いているなら即描画。閉じていればtoggleイベントで描画される。
-      const qrDetails = document.getElementById('box-qr');
-      if (qrDetails && qrDetails.open) {
-        drawQRCanvas(studentId);
+      const lock = LockService.getScriptLock();
+      const acquired = lock.tryLock(10000);
+      if (!acquired) {
+        console.warn('LockService取得失敗。シート自動生成をスキップします。');
+        return testProgress;
       }
-    }
-
-    function drawQRCanvas(studentId) {
-      const canvas = document.getElementById('qr-canvas');
-      if (!canvas || !studentId) return;
-
-      // ★ localStorageに保存済みのDataURLがあればそれを使う（QR再生成ゼロ）
-      const cacheKey = 'qr_cache_' + studentId;
-      const cachedDataURL = localStorage.getItem(cacheKey);
-
-      if (cachedDataURL) {
-        // キャッシュから即復元（計算ゼロ・約1ms）
-        const img = new Image();
-        img.onload = function() {
-          canvas.width = img.width;
-          canvas.height = img.height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0);
-        };
-        img.src = cachedDataURL;
-        return;
-      }
-
-      // 初回のみライブラリで生成し、生成結果をlocalStorageに保存
-      if (typeof QRCode === 'undefined') {
-        console.warn('QRCodeライブラリが読み込まれていません');
-        return;
-      }
-
-      requestAnimationFrame(() => {
-        QRCode.toCanvas(canvas, String(studentId), {
-          width: 220,
-          margin: 1,
-          color: { dark: '#000000', light: '#ffffff' },
-          errorCorrectionLevel: 'M'
-        }, (err) => {
-          if (err) {
-            console.error('QR生成エラー:', err);
-            return;
-          }
-          // 生成成功 → DataURLとしてキャッシュ
-          try {
-            const dataURL = canvas.toDataURL('image/png');
-            localStorage.setItem(cacheKey, dataURL);
-          } catch (e) {
-            // localStorage 容量超過などは無視
-            console.warn('QRキャッシュ保存失敗:', e);
-          }
-        });
-      });
-    }
-
-    // アコーディオンが開かれるたびに再描画（キャッシュ経由なので高速）
-    function setupQRToggle() {
-      const qrDetails = document.getElementById('box-qr');
-      if (!qrDetails) return;
-      qrDetails.addEventListener('toggle', () => {
-        if (qrDetails.open && lastQRId) {
-          drawQRCanvas(lastQRId);
-        }
-      });
-    }
-
-    // =====================================================================
-    // 画面更新（PWA内でリロード相当のことを行う）
-    // =====================================================================
-
-    async function refreshData() {
-      if (!studentToken) return;
-      const btn = document.getElementById('refresh-btn');
-      if (btn) {
-        btn.disabled = true;
-        btn.classList.add('spinning');
-      }
-      try {
-        const data = await fetchStats(studentToken);
-        showStats(data, true);
-      } catch (err) {
-        console.error(err);
-        alert('更新に失敗しました：' + (err.message || '通信エラー'));
-      } finally {
-        if (btn) {
-          btn.disabled = false;
-          btn.classList.remove('spinning');
-        }
-      }
-    }
-
-    // =====================================================================
-    // 設定モーダル
-    // =====================================================================
-
-    function openModal() {
-      document.getElementById('modal-overlay').style.display = 'block';
-      document.getElementById('settings-modal').style.display = 'block';
-    }
-
-    function closeModal() {
-      document.getElementById('modal-overlay').style.display = 'none';
-      document.getElementById('settings-modal').style.display = 'none';
-    }
-
-    async function saveSettings() {
-      const name = document.getElementById('input-exam-name').value.trim();
-      const date = document.getElementById('input-exam-date').value;
-      const btn  = document.getElementById('save-btn');
-
-      if (!name || !date) {
-        alert('模試名と日付を入力してください');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerText = 'SAVING...';
 
       try {
-        // 1. 設定を保存
-        await saveStudentSettings(studentToken, name, date);
-
-        // 2. モーダルを閉じてローディング表示
-        closeModal();
-        showLoading();
-
-        // 3. 最新データを取り直して画面を再描画
-        const data = await fetchStats(studentToken);
-        showStats(data);
-      } catch (err) {
-        console.error(err);
-        alert('保存に失敗しました：' + (err.message || '不明なエラー'));
+        testSheet = testSs.getSheetByName(studentName);
+        if (!testSheet) {
+          const copied = templateSheet.copyTo(testSs);
+          copied.setName(studentName);
+          testSheet = copied;
+          console.log(`新規シート作成: ${studentName}`);
+        }
+      } catch (copyErr) {
+        console.error('シート作成失敗:', copyErr.message);
+        return testProgress;
       } finally {
-        btn.disabled = false;
-        btn.innerText = 'SAVE SETTINGS';
+        lock.releaseLock();
       }
     }
 
-    // =====================================================================
-    // チャート＆スクロールアニメーション
-    // =====================================================================
-
-    function drawChart(canvasId, labels, values) {
-      const ctx = document.getElementById(canvasId).getContext('2d');
-
-      // 既存のチャートがあれば破棄してから再描画（更新時の重複防止）
-      if (chartInstances[canvasId]) {
-        chartInstances[canvasId].destroy();
-      }
-
-      chartInstances[canvasId] = new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: values,
-            backgroundColor: 'rgba(211, 173, 79, 0.15)',
-            borderColor: '#d3ad4f',
-            borderWidth: 2,
-            fill: true,
-            tension: 0.4,
-            pointBackgroundColor: '#d3ad4f',
-            pointRadius: 3,
-            pointHoverRadius: 6
-          }]
-        },
-        options: {
-          responsive: true,
-          animation: { duration: 1500, easing: 'easeOutQuart' },
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#a0a0a0' } },
-            x: { grid: { display: false }, ticks: { color: '#a0a0a0', maxRotation: 45, minRotation: 45 } }
+    if (testSheet) {
+      const testData = testSheet.getDataRange().getValues();
+      for (let i = 1; i < testData.length; i++) {
+        const bookName = testData[i][0];
+        if (!bookName) continue;
+        let totalCount = 0, completedCount = 0;
+        const blocks = [];
+        for (let j = 1; j <= 30; j++) {
+          const cellValue = testData[i][j];
+          if (cellValue === true || cellValue === false) {
+            totalCount++;
+            if (cellValue === true) { completedCount++; blocks.push(true); }
+            else { blocks.push(false); }
           }
         }
-      });
+        if (totalCount > 0) {
+          testProgress.push({
+            name: bookName,
+            total: totalCount,
+            completed: completedCount,
+            blocks: blocks
+          });
+        }
+      }
     }
+  } catch (e) {
+    console.error("小テスト取得失敗:", e.message);
+  }
 
-    function setupScrollAnimations() {
-      const observer = new IntersectionObserver((entries, obs) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            if (entry.target.id === 'box-daily')   drawChart('dailyChart',   chartData.daily.labels,   chartData.daily.values);
-            if (entry.target.id === 'box-weekly')  drawChart('weeklyChart',  chartData.weekly.labels,  chartData.weekly.values);
-            if (entry.target.id === 'box-monthly') drawChart('monthlyChart', chartData.monthly.labels, chartData.monthly.values);
-            obs.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.1 });
+  return testProgress;
+}
 
-      ['box-tests', 'box-ranking', 'box-feed', 'box-daily', 'box-weekly', 'box-monthly', 'box-history'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) observer.observe(el);
-      });
+// ====================================================================
+// 補助関数群
+// ====================================================================
+function formatTime(ms) { return `${Math.floor(ms/3600000)}時間${Math.floor((ms%3600000)/60000)}分`; }
+
+function calculateRank(hours) {
+  if (hours >= 300) return { current: "SSS MASTER", remainHours: 0 };
+  if (hours >= 150) return { current: "PLATINUM", remainHours: (300 - hours).toFixed(1) };
+  if (hours >= 50)  return { current: "GOLD", remainHours: (150 - hours).toFixed(1) };
+  if (hours >= 10)  return { current: "SILVER", remainHours: (50 - hours).toFixed(1) };
+  return { current: "BRONZE", remainHours: (10 - hours).toFixed(1) };
+}
+
+function calculateStreak(uniqueDates) {
+  let sorted = Array.from(uniqueDates).sort().reverse();
+  let streak = 0, check = new Date();
+  check.setHours(0,0,0,0);
+  for(let i=0; i<sorted.length; i++) {
+    let d = new Date(sorted[i]); d.setHours(0,0,0,0);
+    if((check - d) / (1000*60*60*24) <= 1) { streak++; check = d; } else break;
+  }
+  return streak;
+}
+
+// ====================================================================
+// UI操作系（コンテナバインド時のみ動作）
+// ====================================================================
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('★管理メニュー').addItem('QRメールの下書き作成', 'showDraftDialog').addToUi();
+}
+
+function showDraftDialog() {
+  SpreadsheetApp.getUi().showModalDialog(
+    HtmlService.createHtmlOutputFromFile('draftDialog').setWidth(400).setHeight(320),
+    'QRコード送付'
+  );
+}
+
+// ====================================================================
+// ⑤ 旧エール送信（廃止済み・互換用に残置）
+// ====================================================================
+function sendCheer(targetStudentId) {
+  return "エール機能は廃止されました";
+}
+
+// ====================================================================
+// 🔧 デバッグ用：今週のランキング状況を出力
+// ====================================================================
+function debugWeeklyRanking() {
+  const ss = getMainSpreadsheet();
+  const logSheet = ss.getSheetByName('管理シート');
+  const profileSheet = ss.getSheetByName('公開プロフィール');
+
+  const logData = logSheet.getDataRange().getValues();
+  const profileData = profileSheet.getDataRange().getValues();
+
+  let nickMap = {};
+  for (let i = 1; i < profileData.length; i++) {
+    let pId = String(profileData[i][IDX_PROFILE.ID]).trim();
+    let pName = profileData[i][IDX_PROFILE.NAME] || profileData[i][IDX_PROFILE.NICKNAME] || pId;
+    nickMap[pId] = pName;
+  }
+
+  const getMonday = (d) => {
+    let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
+    return new Date(d.getFullYear(), d.getMonth(), diff);
+  };
+  const thisMondayMs = getMonday(new Date()).getTime();
+  console.log('今週月曜:', new Date(thisMondayMs));
+
+  let weeklyMap = {};
+  let weekRecords = [];
+
+  for (let i = logData.length - 1; i >= 1; i--) {
+    let rowId = String(logData[i][IDX_LOG.ID]).trim();
+    let inTime = logData[i][IDX_LOG.IN];
+    let outTime = logData[i][IDX_LOG.OUT];
+
+    if (!(inTime instanceof Date)) continue;
+    let logDateMs = new Date(inTime.getFullYear(), inTime.getMonth(), inTime.getDate()).getTime();
+    if (logDateMs < thisMondayMs) continue;
+
+    let diffMs = (outTime instanceof Date) ? outTime.getTime() - inTime.getTime() : 0;
+    weekRecords.push({
+      id: rowId,
+      name: nickMap[rowId] || '不明',
+      in: inTime,
+      out: outTime || '(未退室)',
+      hours: diffMs > 0 ? (diffMs / 3600000).toFixed(2) : 0
+    });
+    if (diffMs > 0) {
+      weeklyMap[rowId] = (weeklyMap[rowId] || 0) + diffMs;
     }
-  </script>
-</body>
+  }
 
-</html>
+  console.log('今週のレコード件数:', weekRecords.length);
+  weekRecords.forEach(r => console.log(`  ${r.name}(${r.id}): ${r.in} → ${r.out} (${r.hours}h)`));
+  console.log('\n今週ランキング集計結果:');
+  Object.keys(weeklyMap).forEach(id => {
+    console.log(`  ${nickMap[id]}: ${(weeklyMap[id]/3600000).toFixed(2)}h`);
+  });
+}
+
+// ====================================================================
+// 🔧 デバッグ用：processScanの速度テスト
+// ====================================================================
+function testProcessScanSpeed() {
+  const start = new Date().getTime();
+  const result = processScan('テスト用の実在する学習者ID');
+  const elapsed = new Date().getTime() - start;
+  console.log(`処理時間: ${elapsed}ms / 結果: ${result}`);
+}
+
+// ====================================================================
+// 🔧 デバッグ用：「公開プロフィール」シートの列構成を確認
+// ====================================================================
+function debugProfileColumns() {
+  const sheet = getMainSpreadsheet().getSheetByName('公開プロフィール');
+  if (!sheet) { console.log('シート「公開プロフィール」が見つかりません'); return; }
+  const lastCol = sheet.getLastColumn();
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+
+  console.log('=== シート上の列構成 ===');
+  headers.forEach((h, i) => {
+    const col = String.fromCharCode(65 + i);
+    console.log(`  ${col}列(${i}): ${h}`);
+  });
+
+  console.log('\n=== コード側の認識（IDX_PROFILE） ===');
+  Object.keys(IDX_PROFILE).forEach(key => {
+    const idx = IDX_PROFILE[key];
+    const col = String.fromCharCode(65 + idx);
+    const headerVal = idx < headers.length ? headers[idx] : '(範囲外)';
+    console.log(`  ${key.padEnd(15)} → ${col}列(${idx})：${headerVal}`);
+  });
+}
+
+// ====================================================================
+// 🔧 デバッグ用：保護者メール送信テスト
+// ====================================================================
+function testEmailSend() {
+  const testEmail = 'test@example.com';  // ★自分のメアドに変更
+  notifyParent('テスト 太郎', testEmail, '退室', new Date(), 3 * 3600000 + 25 * 60000);
+  console.log(`テストメールを ${testEmail} に送信しました`);
+}
+
+// ====================================================================
+// 🔧 デバッグ用：小テストシート自動生成のテスト
+// ====================================================================
+function testCreateTestSheet() {
+  const testName = 'テスト用_' + Utilities.formatDate(new Date(), 'JST', 'MMddHHmm');
+  console.log(`テスト名「${testName}」でシート生成を試行します...`);
+
+  const result = getOrCreateTestProgress(testName, 'TEST_ID_999');
+  console.log('取得結果:', JSON.stringify(result, null, 2));
+
+  const testSs = SpreadsheetApp.openById(TEST_SS_ID);
+  const newSheet = testSs.getSheetByName(testName);
+  if (newSheet) {
+    console.log(`✓ シート「${testName}」が正常に作成されました（行数: ${newSheet.getLastRow()}）`);
+    console.log('  → 動作確認後、不要なら手動で削除してください');
+  } else {
+    console.log(`✗ シートが作成されませんでした`);
+  }
+}
+
+// ====================================================================
+// 🔧 デバッグ用：スプレッドシート参照のヘルスチェック
+//    本番移行後、最初に実行することを強く推奨
+// ====================================================================
+function debugSpreadsheetConnection() {
+  console.log('=== スプレッドシート参照チェック ===\n');
+
+  // メインSS
+  try {
+    const mainSs = getMainSpreadsheet();
+    console.log(`✓ メインSS接続OK`);
+    console.log(`  名前: ${mainSs.getName()}`);
+    console.log(`  URL: ${mainSs.getUrl()}`);
+
+    const sheets = ['公開プロフィール', '管理シート', '生徒設定'];
+    sheets.forEach(name => {
+      const sheet = mainSs.getSheetByName(name);
+      console.log(`  ${sheet ? '✓' : '✗'} シート「${name}」: ${sheet ? '存在' : '見つかりません'}`);
+    });
+  } catch (e) {
+    console.log(`✗ メインSS接続失敗: ${e.message}`);
+  }
+
+  console.log('');
+
+  // 極秘情報SS
+  try {
+    const personalSs = getPersonalSpreadsheet();
+    console.log(`✓ 極秘情報SS接続OK`);
+    console.log(`  名前: ${personalSs.getName()}`);
+    console.log(`  URL: ${personalSs.getUrl()}`);
+  } catch (e) {
+    console.log(`✗ 極秘情報SS接続失敗: ${e.message}`);
+  }
+
+  console.log('');
+
+  // 小テストSS
+  try {
+    const testSs = SpreadsheetApp.openById(TEST_SS_ID);
+    console.log(`✓ 小テストSS接続OK`);
+    console.log(`  名前: ${testSs.getName()}`);
+    const tmpl = testSs.getSheetByName(TEST_TEMPLATE_NAME);
+    console.log(`  ${tmpl ? '✓' : '✗'} テンプレート「${TEST_TEMPLATE_NAME}」: ${tmpl ? '存在' : '見つかりません'}`);
+  } catch (e) {
+    console.log(`✗ 小テストSS接続失敗: ${e.message}`);
+  }
+}
