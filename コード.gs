@@ -4,7 +4,7 @@
 // F:目標時間 / G:URLトークン / H:模試名 / I:模試日
 // ====================================================================
 const IDX_PROFILE = {
-  ID: 0,             // A列-
+  ID: 0,             // A列
   STUDENT_EMAIL: 1,  // B列
   PARENT_EMAIL: 2,   // C列
   NAME: 3,           // D列
@@ -15,6 +15,35 @@ const IDX_PROFILE = {
   EXAM_DATE: 8       // I列
 };
 const IDX_PERSONAL = IDX_PROFILE;
+
+// ====================================================================
+// 📊 スプレッドシートのURL定義（一元管理）
+//   ★本番移行時はこの2つのURLを書き換えるだけで全関数が連動する★
+//
+//   - MAIN_SS_URL     : メインスプレッドシート
+//                       「公開プロフィール」「管理シート」「生徒設定」を格納
+//   - PERSONAL_SS_URL : 個人情報マスタ（極秘情報）
+//                       現状は未使用だが、将来的に氏名・住所等をこちらへ分離する
+//                       想定で定数として保持
+// ====================================================================
+const MAIN_SS_URL     = 'https://docs.google.com/spreadsheets/d/1QcruSLwoyPCQvCuaPK9m5Q3mFK2F2pacZPeu6VHEvps/edit';
+const PERSONAL_SS_URL = 'https://docs.google.com/spreadsheets/d/1quXMzVooCCFb8Ig4zIgbhlBjkRNtUohWfu_iWomG7tI/edit';
+
+/**
+ * メインスプレッドシートを取得する共通ヘルパー。
+ * 全関数は必ずこれを使うことで、参照先がブレないようにする。
+ */
+function getMainSpreadsheet() {
+  return SpreadsheetApp.openByUrl(MAIN_SS_URL);
+}
+
+/**
+ * 極秘情報スプレッドシート（個人情報マスタ）を取得する。
+ * 現状未使用だが、将来の機能拡張時に使用。
+ */
+function getPersonalSpreadsheet() {
+  return SpreadsheetApp.openByUrl(PERSONAL_SS_URL);
+}
 
 // ====================================================================
 // 🔔 Google Chat Webhook URL
@@ -31,9 +60,6 @@ const STUDENT_DASHBOARD_BASE_URL = 'https://ahmadtanzeel.github.io/-dev-webpages
 
 // ====================================================================
 // 📘 小テスト用スプレッドシートの設定
-//   - TEST_SS_ID         : 小テスト管理用スプレッドシートのID
-//   - TEST_TEMPLATE_NAME : テンプレートシートの名称
-//   生徒名のシートが存在しない場合、このテンプレートをコピーして自動生成する
 // ====================================================================
 const TEST_SS_ID = '15C3TN3oMgx8tEWinCUx_TMg_ZzfgRBnhIOEt3tC82aA';
 const TEST_TEMPLATE_NAME = 'テンプレート';
@@ -106,8 +132,7 @@ function getStudentStats(studentToken) {
   const cachedData = cache.get(studentToken);
   if (cachedData) return JSON.parse(cachedData);
 
-  
-const ss = SpreadsheetApp.openById("1QcruSLwoyPCQvCuaPK9m5Q3mFK2F2pacZPeu6VHEvps");
+  const ss = getMainSpreadsheet();
   const profileSheet = ss.getSheetByName('公開プロフィール');
   const logSheet = ss.getSheetByName('管理シート');
   const settingsSheet = ss.getSheetByName('生徒設定') || ss.insertSheet('生徒設定');
@@ -223,21 +248,18 @@ const ss = SpreadsheetApp.openById("1QcruSLwoyPCQvCuaPK9m5Q3mFK2F2pacZPeu6VHEvps
     }
   }
 
-  // ★ ランキング修正：未退室（diffMs=0）も「現在進行中の入室」として含めて、データがある人を全員カウント
-  // 上記のままだと「入室中だがまだ退室していない人」がランキングに入らないため
-  // 改善版：ranking用のmapに、退室時刻がない場合は入室時刻から現在時刻までを暫定加算
+  // ★ ランキング修正：未退室（diffMs=0）も「現在進行中の入室」として含める
   for(let i = logData.length - 1; i >= 1; i--){
     let rowId = String(logData[i][IDX_LOG.ID]).trim();
     let inTime = toDate(logData[i][IDX_LOG.IN]);
     let outTime = toDate(logData[i][IDX_LOG.OUT]);
     if (!inTime) continue;
     let logDateMs = new Date(inTime.getFullYear(), inTime.getMonth(), inTime.getDate()).getTime();
-    if (logDateMs < thisMondayMs) break;  // 今週分のみで打ち切り（高速化）
+    if (logDateMs < thisMondayMs) break;
 
     if (!outTime) {
-      // 入室中：暫定で現在時刻までを加算
       let liveMs = now.getTime() - inTime.getTime();
-      if (liveMs > 0 && liveMs < 12 * 3600000) {  // 12時間超は異常値とみなしスキップ
+      if (liveMs > 0 && liveMs < 12 * 3600000) {
         weeklyRankingMap[rowId] = (weeklyRankingMap[rowId] || 0) + liveMs;
       }
     }
@@ -249,9 +271,7 @@ const ss = SpreadsheetApp.openById("1QcruSLwoyPCQvCuaPK9m5Q3mFK2F2pacZPeu6VHEvps
     .sort((a, b) => parseFloat(b.hours) - parseFloat(a.hours))
     .slice(0, 5);
 
-  // ====================================================================
-  // 小テスト進捗の取得（シートが無ければテンプレートから自動生成）
-  // ====================================================================
+  // 小テスト進捗（シートが無ければテンプレートから自動生成）
   const testProgress = getOrCreateTestProgress(targetNickname, targetId);
 
   const formatChartData = (map) => {
@@ -287,7 +307,7 @@ const ss = SpreadsheetApp.openById("1QcruSLwoyPCQvCuaPK9m5Q3mFK2F2pacZPeu6VHEvps
 // ③ 設定保存
 // ====================================================================
 function saveStudentSettings(token, examName, examDate) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getMainSpreadsheet();
   const profileData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
   let studentId = null;
 
@@ -322,47 +342,43 @@ function saveStudentSettings(token, examName, examDate) {
 }
 
 // ====================================================================
-// ④ 受付打刻処理（★ 保護者メール通知機能つき ★）
+// ④ 受付打刻処理（保護者メール通知 + Google Chat通知つき）
 // ====================================================================
 function processScan(studentId) {
   if (!studentId) return "エラー：IDが読み込めませんでした";
   const cleanTargetId = String(studentId).trim();
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getMainSpreadsheet();
   const sheet = ss.getSheetByName("管理シート");
   const now = new Date();
   const todayStr = Utilities.formatDate(now, "JST", "yyyy/MM/dd");
 
   const sheetMaxRow = sheet.getLastRow();
 
-  // ★ 「B列(ID)に実データがある最終行」を求める
-  //    F列などに数式が入っていて getLastRow() が水増しされていても
-  //    実データの末尾を正確に把握できる。
-  let actualLastDataRow = 1; // ヘッダー行のみの状態
+  // 「B列(ID)に実データがある最終行」を求める
+  let actualLastDataRow = 1;
   if (sheetMaxRow >= 2) {
     const bColumn = sheet.getRange(2, 2, sheetMaxRow - 1, 1).getValues();
     for (let i = bColumn.length - 1; i >= 0; i--) {
       const v = bColumn[i][0];
       if (v !== "" && v !== null && v !== undefined) {
-        actualLastDataRow = i + 2; // bColumn の i=0 はシートの2行目
+        actualLastDataRow = i + 2;
         break;
       }
     }
   }
 
-  // ★ 直近100件だけを後ろから取得（actualLastDataRow基準）
-  // 100件で見つからなければ300件、900件と段階的に拡張する保険つき
+  // 直近100件だけを後ろから取得
   let existingRowIndex = -1;
-  let existingInTime = null;  // 退室時にメールへ含める「本日の学習時間」計算用
+  let existingInTime = null;
   let searchSize = Math.min(100, Math.max(0, actualLastDataRow - 1));
   let attempt = 0;
-  let maxAttempts = 3; // 100, 300, 900 件まで遡る
+  let maxAttempts = 3;
 
   while (existingRowIndex === -1 && attempt < maxAttempts && searchSize > 0) {
     let startRow = Math.max(2, actualLastDataRow - searchSize + 1);
     let numRows = actualLastDataRow - startRow + 1;
     if (numRows <= 0) break;
 
-    // A〜E列のみ取得（F列のエール数は不要）
     const data = sheet.getRange(startRow, 1, numRows, 5).getValues();
 
     for (let i = data.length - 1; i >= 0; i--) {
@@ -371,20 +387,19 @@ function processScan(studentId) {
       if (rowDateStr !== todayStr) continue;
       if (String(data[i][IDX_LOG.ID]).trim() !== cleanTargetId) continue;
       if (data[i][IDX_LOG.OUT] === "" || data[i][IDX_LOG.OUT] === null) {
-        existingRowIndex = startRow + i; // 実際の行番号
-        existingInTime = data[i][IDX_LOG.IN]; // 入室時刻を保持
+        existingRowIndex = startRow + i;
+        existingInTime = data[i][IDX_LOG.IN];
         break;
       }
     }
 
     attempt++;
-    searchSize *= 3; // 100 → 300 → 900件
+    searchSize *= 3;
   }
 
   let actionType = "";
   let studyMs = 0;
   if (existingRowIndex > 0) {
-    // 退室処理
     sheet.getRange(existingRowIndex, IDX_LOG.OUT + 1).setValue(now);
     actionType = "退室";
     if (existingInTime instanceof Date) {
@@ -392,20 +407,14 @@ function processScan(studentId) {
       if (studyMs < 0) studyMs = 0;
     }
   } else {
-    // ★ 入室処理：実データ最終行の直下に追記
-    //    (getLastRow() ではなく actualLastDataRow を使うのがポイント)
-    //    C列に自動フォーミュラ等が入っている可能性があるため、C列は絶対に触らない
+    // 入室処理：実データ最終行の直下に追記（C列の数式は触らない）
     const targetRow = actualLastDataRow + 1;
-    sheet.getRange(targetRow, 1, 1, 2).setValues([[now, cleanTargetId]]); // A列とB列を一括
-    sheet.getRange(targetRow, 4).setValue(now);                            // D列のみ
+    sheet.getRange(targetRow, 1, 1, 2).setValues([[now, cleanTargetId]]);
+    sheet.getRange(targetRow, 4).setValue(now);
     actionType = "入室";
   }
 
-  // ====================================================================
-  // 【優先度1】画面応答用の情報を確定する
-  //   ここまでで打刻処理は完了。クライアントへの応答メッセージはここで決定される。
-  //   以降の通知処理（メール・Webhook）は、もし失敗しても画面応答には一切影響しない。
-  // ====================================================================
+  // 【優先度1】画面応答用の情報を確定
   const pData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
   let studentName = "学習者";
   let studentToken = null;
@@ -423,16 +432,11 @@ function processScan(studentId) {
     }
   }
 
-  // 応答メッセージはここで確定（以降の処理が失敗しても変わらない）
   const responseMessage = `${studentName} さんが ${actionType} しました！`;
 
-  // キャッシュクリア（軽量処理なのでここに置く）
   if (studentToken) CacheService.getScriptCache().remove(studentToken);
 
-  // ====================================================================
   // 【優先度2】保護者メール通知
-  //   失敗しても画面応答には影響しないように try-catch で完全分離
-  // ====================================================================
   if (parentEmail) {
     try {
       notifyParent(studentName, parentEmail, actionType, now, studyMs);
@@ -441,10 +445,7 @@ function processScan(studentId) {
     }
   }
 
-  // ====================================================================
   // 【優先度3】Google Chat Webhook通知
-  //   メールより遅延の影響は小さい。失敗時もログのみで応答に影響させない
-  // ====================================================================
   try {
     notifyGoogleChat(studentName, actionType, now, studyMs);
   } catch (e) {
@@ -468,7 +469,6 @@ function notifyParent(studentName, parentEmail, actionType, datetime, studyMs) {
     `  日時：${timeStr}\n` +
     `  行動：${actionType}\n`;
 
-  // 退室時のみ「本日の学習時間」を追記
   if (actionType === "退室" && studyMs > 0) {
     body += `  本日の学習時間：${formatTime(studyMs)}\n`;
   }
@@ -483,11 +483,7 @@ function notifyParent(studentName, parentEmail, actionType, datetime, studyMs) {
     `──────────────────\n`;
 
   try {
-    MailApp.sendEmail({
-      to: parentEmail,
-      subject: subject,
-      body: body
-    });
+    MailApp.sendEmail({ to: parentEmail, subject: subject, body: body });
   } catch (err) {
     console.error(`保護者メール送信失敗 (${parentEmail}):`, err);
   }
@@ -525,7 +521,6 @@ function notifyGoogleChat(studentName, actionType, datetime, studyMs) {
 
 // ====================================================================
 // ⑥ 生徒マイページURLのメール下書き一括作成
-//    管理者向けUI（draftDialog.html）から呼ばれる
 // ====================================================================
 function createDraftsByIds(idsString) {
   if (!idsString || !String(idsString).trim()) {
@@ -533,7 +528,7 @@ function createDraftsByIds(idsString) {
   }
 
   const ids = String(idsString)
-    .split(/[,、\s]+/)              // カンマ/読点/空白すべてに対応
+    .split(/[,、\s]+/)
     .map(s => s.trim())
     .filter(s => s);
 
@@ -541,10 +536,9 @@ function createDraftsByIds(idsString) {
     return { success: false, message: "⚠ 有効なIDがありません" };
   }
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getMainSpreadsheet();
   const profileData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
 
-  // ID → プロフィール情報のマップを構築
   const profileMap = {};
   for (let i = 1; i < profileData.length; i++) {
     const id = String(profileData[i][IDX_PROFILE.ID]).trim();
@@ -571,7 +565,7 @@ function createDraftsByIds(idsString) {
       return;
     }
 
-    // 送信先：必ず生徒メアド（B列）。保護者には送らない。
+    // 送信先：必ず生徒メアド（B列）
     const to = profile.studentEmail;
     if (!to || to.indexOf('@') < 0) {
       errorList.push(`✗ ${id} (${profile.name})：生徒メアド(B列)が未設定`);
@@ -619,16 +613,11 @@ function createDraftsByIds(idsString) {
     message += `\n\n👉 Gmailの「下書き」フォルダで内容を確認してから送信してください。`;
   }
 
-  return {
-    success: successList.length > 0,
-    message: message
-  };
+  return { success: successList.length > 0, message: message };
 }
 
 // ====================================================================
 // ⑦ 小テスト進捗の取得（シートが無ければテンプレートから自動生成）
-//    優先順：①生徒名のシート → ②学習者IDのシート（旧形式互換）
-//    どちらも無ければ → テンプレートをコピーして生徒名のシートを新規作成
 // ====================================================================
 function getOrCreateTestProgress(studentName, studentId) {
   const testProgress = [];
@@ -636,21 +625,18 @@ function getOrCreateTestProgress(studentName, studentId) {
   try {
     const testSs = SpreadsheetApp.openById(TEST_SS_ID);
 
-    // 【ステップ1】既存シートを探す
     let testSheet = testSs.getSheetByName(studentName);
     if (!testSheet) {
-      testSheet = testSs.getSheetByName(studentId); // 旧形式（学習者ID）の互換
+      testSheet = testSs.getSheetByName(studentId);
     }
 
-    // 【ステップ2】どちらも無ければテンプレートから自動生成
     if (!testSheet) {
       const templateSheet = testSs.getSheetByName(TEST_TEMPLATE_NAME);
       if (!templateSheet) {
         console.error(`テンプレートシート「${TEST_TEMPLATE_NAME}」が見つかりません`);
-        return testProgress; // 空配列を返す
+        return testProgress;
       }
 
-      // 同時アクセスでの競合を防ぐためロック取得（最大10秒待機）
       const lock = LockService.getScriptLock();
       const acquired = lock.tryLock(10000);
       if (!acquired) {
@@ -659,10 +645,8 @@ function getOrCreateTestProgress(studentName, studentId) {
       }
 
       try {
-        // ロック取得後、再度シート存在を確認（他リクエストが先に作成済の可能性）
         testSheet = testSs.getSheetByName(studentName);
         if (!testSheet) {
-          // テンプレートをコピーして生徒名にリネーム
           const copied = templateSheet.copyTo(testSs);
           copied.setName(studentName);
           testSheet = copied;
@@ -676,7 +660,6 @@ function getOrCreateTestProgress(studentName, studentId) {
       }
     }
 
-    // 【ステップ3】シートからデータを抽出
     if (testSheet) {
       const testData = testSheet.getDataRange().getValues();
       for (let i = 1; i < testData.length; i++) {
@@ -733,6 +716,9 @@ function calculateStreak(uniqueDates) {
   return streak;
 }
 
+// ====================================================================
+// UI操作系（コンテナバインド時のみ動作）
+// ====================================================================
 function onOpen() {
   SpreadsheetApp.getUi().createMenu('★管理メニュー').addItem('QRメールの下書き作成', 'showDraftDialog').addToUi();
 }
@@ -755,7 +741,7 @@ function sendCheer(targetStudentId) {
 // 🔧 デバッグ用：今週のランキング状況を出力
 // ====================================================================
 function debugWeeklyRanking() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const ss = getMainSpreadsheet();
   const logSheet = ss.getSheetByName('管理シート');
   const profileSheet = ss.getSheetByName('公開プロフィール');
 
@@ -802,20 +788,11 @@ function debugWeeklyRanking() {
   }
 
   console.log('今週のレコード件数:', weekRecords.length);
-  console.log('今週のレコード詳細:');
   weekRecords.forEach(r => console.log(`  ${r.name}(${r.id}): ${r.in} → ${r.out} (${r.hours}h)`));
-
   console.log('\n今週ランキング集計結果:');
   Object.keys(weeklyMap).forEach(id => {
     console.log(`  ${nickMap[id]}: ${(weeklyMap[id]/3600000).toFixed(2)}h`);
   });
-
-  if (weekRecords.length === 0) {
-    console.log('⚠ 今週のレコードがありません。日付の判定がズレている可能性があります。');
-  }
-  if (Object.keys(weeklyMap).length === 0) {
-    console.log('⚠ ランキングが空です。退室済みの記録が今週分にない可能性があります。');
-  }
 }
 
 // ====================================================================
@@ -823,17 +800,16 @@ function debugWeeklyRanking() {
 // ====================================================================
 function testProcessScanSpeed() {
   const start = new Date().getTime();
-  const result = processScan('テスト用の実在する学習者ID');  // ここを実IDに書き換えて実行
+  const result = processScan('テスト用の実在する学習者ID');
   const elapsed = new Date().getTime() - start;
   console.log(`処理時間: ${elapsed}ms / 結果: ${result}`);
 }
 
 // ====================================================================
 // 🔧 デバッグ用：「公開プロフィール」シートの列構成を確認
-//    シート列とコード側のIDX_PROFILE定数が一致しているか確認用
 // ====================================================================
 function debugProfileColumns() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('公開プロフィール');
+  const sheet = getMainSpreadsheet().getSheetByName('公開プロフィール');
   if (!sheet) { console.log('シート「公開プロフィール」が見つかりません'); return; }
   const lastCol = sheet.getLastColumn();
   const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
@@ -855,7 +831,6 @@ function debugProfileColumns() {
 
 // ====================================================================
 // 🔧 デバッグ用：保護者メール送信テスト
-//    test@example.com の部分を自分のメアドに変更して実行
 // ====================================================================
 function testEmailSend() {
   const testEmail = 'test@example.com';  // ★自分のメアドに変更
@@ -865,8 +840,6 @@ function testEmailSend() {
 
 // ====================================================================
 // 🔧 デバッグ用：小テストシート自動生成のテスト
-//   実在しない名前で getOrCreateTestProgress を呼び、テンプレートから
-//   新規シートが作られることを確認する
 // ====================================================================
 function testCreateTestSheet() {
   const testName = 'テスト用_' + Utilities.formatDate(new Date(), 'JST', 'MMddHHmm');
@@ -875,13 +848,61 @@ function testCreateTestSheet() {
   const result = getOrCreateTestProgress(testName, 'TEST_ID_999');
   console.log('取得結果:', JSON.stringify(result, null, 2));
 
-  // 生成確認
   const testSs = SpreadsheetApp.openById(TEST_SS_ID);
   const newSheet = testSs.getSheetByName(testName);
   if (newSheet) {
     console.log(`✓ シート「${testName}」が正常に作成されました（行数: ${newSheet.getLastRow()}）`);
     console.log('  → 動作確認後、不要なら手動で削除してください');
   } else {
-    console.log(`✗ シートが作成されませんでした。テンプレート「${TEST_TEMPLATE_NAME}」が存在するか確認してください`);
+    console.log(`✗ シートが作成されませんでした`);
+  }
+}
+
+// ====================================================================
+// 🔧 デバッグ用：スプレッドシート参照のヘルスチェック
+//    本番移行後、最初に実行することを強く推奨
+// ====================================================================
+function debugSpreadsheetConnection() {
+  console.log('=== スプレッドシート参照チェック ===\n');
+
+  // メインSS
+  try {
+    const mainSs = getMainSpreadsheet();
+    console.log(`✓ メインSS接続OK`);
+    console.log(`  名前: ${mainSs.getName()}`);
+    console.log(`  URL: ${mainSs.getUrl()}`);
+
+    const sheets = ['公開プロフィール', '管理シート', '生徒設定'];
+    sheets.forEach(name => {
+      const sheet = mainSs.getSheetByName(name);
+      console.log(`  ${sheet ? '✓' : '✗'} シート「${name}」: ${sheet ? '存在' : '見つかりません'}`);
+    });
+  } catch (e) {
+    console.log(`✗ メインSS接続失敗: ${e.message}`);
+  }
+
+  console.log('');
+
+  // 極秘情報SS
+  try {
+    const personalSs = getPersonalSpreadsheet();
+    console.log(`✓ 極秘情報SS接続OK`);
+    console.log(`  名前: ${personalSs.getName()}`);
+    console.log(`  URL: ${personalSs.getUrl()}`);
+  } catch (e) {
+    console.log(`✗ 極秘情報SS接続失敗: ${e.message}`);
+  }
+
+  console.log('');
+
+  // 小テストSS
+  try {
+    const testSs = SpreadsheetApp.openById(TEST_SS_ID);
+    console.log(`✓ 小テストSS接続OK`);
+    console.log(`  名前: ${testSs.getName()}`);
+    const tmpl = testSs.getSheetByName(TEST_TEMPLATE_NAME);
+    console.log(`  ${tmpl ? '✓' : '✗'} テンプレート「${TEST_TEMPLATE_NAME}」: ${tmpl ? '存在' : '見つかりません'}`);
+  } catch (e) {
+    console.log(`✗ 小テストSS接続失敗: ${e.message}`);
   }
 }
