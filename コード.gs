@@ -458,32 +458,46 @@ function processScan(studentId) {
 // ====================================================================
 // ④-2 保護者向けメール送信
 // ====================================================================
+// ====================================================================
+// ④-2 保護者向けメール送信（入退室の両方に対応）
+// ====================================================================
 function notifyParent(studentName, parentEmail, actionType, datetime, studyMs) {
-  // 参考文面に合わせて日付フォーマットを変更 (例: 2026/05/09 20:54)
   const timeStr = Utilities.formatDate(datetime, "JST", "yyyy/MM/dd HH:mm");
   const subject = `【SSS Education】${studentName}さんが${actionType}しました`;
+  
+  // 日本語の助詞を調整（入室なら「に」、退室なら「を」）
+  const particle = (actionType === "入室") ? "に" : "を";
 
   let body =
     `${studentName}さんの保護者様\n\n` +
     `お世話になっております。SSS Education自習室管理部です。\n` +
-    `${studentName}さんが自習室を${actionType}したことをお知らせいたします。\n\n` +
+    `${studentName}さんが自習室${particle}${actionType}したことをお知らせいたします。\n\n` +
     `■ ${actionType}時刻： ${timeStr}\n`;
 
-  // ※参考文面にはありませんでしたが、「本日の学習時間」は保護者にとって
-  // 非常に有用な情報のため残しています。不要であれば以下の3行を削除してください。
+  // 退室時のみ学習時間を表示
   if (actionType === "退室" && studyMs > 0) {
     body += `■ 本日の学習時間： ${formatTime(studyMs)}\n`;
   }
 
   body +=
     `\n` +
-    `こちらのメールは送信専用となります。\nよろしくお願いいたします。\n`;
+    `こちらのメールは送信専用となります。\n` +
+    `よろしくお願いいたします。\n`;
 
   try {
     MailApp.sendEmail({ to: parentEmail, subject: subject, body: body });
   } catch (err) {
     console.error(`保護者メール送信失敗 (${parentEmail}):`, err);
   }
+}
+
+// ====================================================================
+// 🔧 デバッグ用：入室メールの送信テスト
+// ====================================================================
+function testEntryEmailSend() {
+  const testEmail = 'Ahmadtanzeel0204@gmail.com'; // ★ご自身のメアドでテストしてください
+  notifyParent('テスト 太郎', testEmail, '入室', new Date(), 0);
+  console.log(`入室テストメールを ${testEmail} に送信しました`);
 }
 
 // ====================================================================
