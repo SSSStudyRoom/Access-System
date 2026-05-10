@@ -50,13 +50,13 @@ function getPersonalSpreadsheet() {
 //   入退室通知用。WebhookのURLは秘密情報なのでGAS内のみで保管する
 //   （リポジトリには絶対にアップロードしないこと）
 // ====================================================================
-const GCHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAUHWNd34/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=YEAO0z4xaLIh9y2bvuVsQqHR0ncqPk0ZdTu-nB3KOcg';
+const GCHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAAA0vJlI2Y/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=f-kzFXpztI6sKpwumPo2aiG_QyTPIKR1_qGgDfHFSjo';
 
 // ====================================================================
 // 🔗 生徒マイページのベースURL
 //   本番URLが変わったらここだけ書き換えればOK
 // ====================================================================
-const STUDENT_DASHBOARD_BASE_URL = 'https://ahmadtanzeel.github.io/-dev-webpages-/dashboard.html?token=';
+const STUDENT_DASHBOARD_BASE_URL = 'https://sssstudyroom.github.io/Access-System/dashboard.html?token=';
 
 // ====================================================================
 // 📘 小テスト用スプレッドシートの設定
