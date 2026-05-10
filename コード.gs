@@ -459,28 +459,25 @@ function processScan(studentId) {
 // ④-2 保護者向けメール送信
 // ====================================================================
 function notifyParent(studentName, parentEmail, actionType, datetime, studyMs) {
-  const timeStr = Utilities.formatDate(datetime, "JST", "yyyy年MM月dd日 HH時mm分");
+  // 参考文面に合わせて日付フォーマットを変更 (例: 2026/05/09 20:54)
+  const timeStr = Utilities.formatDate(datetime, "JST", "yyyy/MM/dd HH:mm");
   const subject = `【SSS Education】${studentName}さんが${actionType}しました`;
 
   let body =
-    `${studentName} さんの保護者様\n\n` +
-    `いつもSSS Educationをご利用いただき、ありがとうございます。\n` +
-    `お子様が以下の通り自習室に${actionType}されました。\n\n` +
-    `  日時：${timeStr}\n` +
-    `  行動：${actionType}\n`;
+    `${studentName}さんの保護者様\n\n` +
+    `お世話になっております。SSS Education自習室管理部です。\n` +
+    `${studentName}さんが自習室を${actionType}したことをお知らせいたします。\n\n` +
+    `■ ${actionType}時刻： ${timeStr}\n`;
 
+  // ※参考文面にはありませんでしたが、「本日の学習時間」は保護者にとって
+  // 非常に有用な情報のため残しています。不要であれば以下の3行を削除してください。
   if (actionType === "退室" && studyMs > 0) {
-    body += `  本日の学習時間：${formatTime(studyMs)}\n`;
+    body += `■ 本日の学習時間： ${formatTime(studyMs)}\n`;
   }
 
   body +=
     `\n` +
-    `引き続き、お子様の学習を見守ってまいります。\n` +
-    `何かございましたら、お気軽に塾までお問い合わせください。\n\n` +
-    `──────────────────\n` +
-    `SSS Education 自習室管理システム\n` +
-    `※このメールは自動送信されています。返信はできませんのでご了承ください。\n` +
-    `──────────────────\n`;
+    `こちらのメールは送信専用となります。\nよろしくお願いいたします。\n`;
 
   try {
     MailApp.sendEmail({ to: parentEmail, subject: subject, body: body });
@@ -499,10 +496,10 @@ function notifyGoogleChat(studentName, actionType, datetime, studyMs) {
   let message;
 
   if (actionType === "入室") {
-    message = `🟢 *${studentName}* さんが入室しました（${timeStr}）`;
+    message = `📢 *${studentName}* さんが入室しました（${timeStr}）`;
   } else if (actionType === "退室") {
     const studyTime = studyMs > 0 ? formatTime(studyMs) : "—";
-    message = `🔴 *${studentName}* さんが退室しました（${timeStr} / 学習時間: ${studyTime}）`;
+    message = `🐍 *${studentName}* さんが退室しました（${timeStr} / 学習時間: ${studyTime}）`;
   } else {
     message = `${studentName} さんが${actionType}しました（${timeStr}）`;
   }
@@ -833,7 +830,7 @@ function debugProfileColumns() {
 // 🔧 デバッグ用：保護者メール送信テスト
 // ====================================================================
 function testEmailSend() {
-  const testEmail = 'test@example.com';  // ★自分のメアドに変更
+  const testEmail = 'Ahmadtanzeel0204@gmail.com';  // ★自分のメアドに変更
   notifyParent('テスト 太郎', testEmail, '退室', new Date(), 3 * 3600000 + 25 * 60000);
   console.log(`テストメールを ${testEmail} に送信しました`);
 }
