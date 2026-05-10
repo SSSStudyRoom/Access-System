@@ -106,7 +106,8 @@ function getStudentStats(studentToken) {
   const cachedData = cache.get(studentToken);
   if (cachedData) return JSON.parse(cachedData);
 
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  
+const ss = SpreadsheetApp.openById("1QcruSLwoyPCQvCuaPK9m5Q3mFK2F2pacZPeu6VHEvps");
   const profileSheet = ss.getSheetByName('公開プロフィール');
   const logSheet = ss.getSheetByName('管理シート');
   const settingsSheet = ss.getSheetByName('生徒設定') || ss.insertSheet('生徒設定');
