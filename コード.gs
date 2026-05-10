@@ -50,7 +50,7 @@ function getPersonalSpreadsheet() {
 //   入退室通知用。WebhookのURLは秘密情報なのでGAS内のみで保管する
 //   （リポジトリには絶対にアップロードしないこと）
 // ====================================================================
-const GCHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAAA0vJlI2Y/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=f-kzFXpztI6sKpwumPo2aiG_QyTPIKR1_qGgDfHFSjo';
+const GCHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAUHWNd34/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=Cj4ffnZEhNIzEAtmcwWLnKy-TEu_r08HKZsDPVB9FoM';
 
 // ====================================================================
 // 🔗 生徒マイページのベースURL
