@@ -43,53 +43,79 @@
       padding: 0 20px 50px 20px;
     }
 
+    /* ===== ヘッダー ===== */
     .header {
       text-align: center;
       padding: 30px 0 20px;
       border-bottom: 1px solid rgba(211, 173, 79, 0.3);
-      margin-bottom: 20px;
       position: sticky;
       top: 0;
-      background-color: rgba(0, 0, 0, 0.9);
+      background-color: rgba(0, 0, 0, 0.92);
+      backdrop-filter: blur(6px);
       z-index: 100;
     }
-
     .logo { font-size: 12px; letter-spacing: 4px; color: var(--gold); margin-bottom: 5px; }
-    h1 { font-size: 24px; margin: 0; font-weight: 400; letter-spacing: 1px; }
+    h1 { font-size: 22px; margin: 0; font-weight: 400; letter-spacing: 1px; }
     #student-name { color: var(--gold); font-weight: bold; }
+
+    /* ===== タブナビ ===== */
+    .tab-nav {
+      position: sticky;
+      top: 89px;
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(8px);
+      z-index: 99;
+      display: flex;
+      border-bottom: 1px solid rgba(211, 173, 79, 0.25);
+      margin: 0 -20px 25px;
+      padding: 0 10px;
+    }
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-gray);
+      padding: 12px 4px 11px;
+      font-size: 12px;
+      letter-spacing: 1px;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.25s ease;
+      font-family: inherit;
+    }
+    .tab-btn:hover { color: var(--white); }
+    .tab-btn.active { color: var(--gold); }
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 18%; right: 18%;
+      height: 2px;
+      background: var(--gold);
+      box-shadow: 0 0 10px var(--gold-glow);
+      border-radius: 2px 2px 0 0;
+    }
+    .tab-icon { display: block; font-size: 18px; margin-bottom: 2px; line-height: 1; }
+    .tab-label { display: block; font-size: 10px; letter-spacing: 1px; }
+
+    /* ===== タブコンテンツ ===== */
+    .tab-content { display: none; animation: fadeInUp 0.4s ease-out; }
+    .tab-content.active { display: block; }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
     .quote-box {
       text-align: center;
       font-style: italic;
       color: var(--text-gray);
       font-size: 13px;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
       padding: 0 10px;
       line-height: 1.5;
     }
 
-    /* ===== パーソナルメッセージ (機能9) ===== */
-    .personal-msg {
-      background: linear-gradient(135deg, rgba(211, 173, 79, 0.12), rgba(211, 173, 79, 0.04));
-      border: 1px solid rgba(211, 173, 79, 0.4);
-      border-radius: 12px;
-      padding: 16px 20px;
-      margin-bottom: 25px;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      box-shadow: 0 0 25px rgba(211, 173, 79, 0.1);
-      animation: msgPulse 4s ease-in-out infinite;
-    }
-    @keyframes msgPulse {
-      0%, 100% { box-shadow: 0 0 25px rgba(211, 173, 79, 0.1); }
-      50% { box-shadow: 0 0 35px rgba(211, 173, 79, 0.25); }
-    }
-    .personal-msg-icon { font-size: 28px; flex-shrink: 0; }
-    .personal-msg-text { font-size: 13px; line-height: 1.6; color: var(--white); }
-    .personal-msg-text strong { color: var(--gold); }
-
-    /* ローディング */
+    /* ===== ローディング ===== */
     #loading { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; min-height: 80vh; }
     .loader { display: flex; flex-direction: column; align-items: center; gap: 30px; }
     .book { position: relative; width: 140px; height: 100px; background-color: var(--gold); border-radius: 4px; perspective: 600px; box-shadow: 0 0 20px rgba(211, 173, 79, 0.3); }
@@ -110,22 +136,22 @@
     }
     .loading-text { font-size: 16px; letter-spacing: 4px; color: var(--gold); font-weight: 600; }
 
-    /* エラー */
+    /* ===== エラー ===== */
     .error-box { background-color: var(--card-bg); border: 1px solid #ff4d4d; color: #ff4d4d; padding: 20px; border-radius: 8px; text-align: center; max-width: 400px; margin: 0 auto; }
     .error-box .err-title { font-size: 14px; letter-spacing: 2px; margin-bottom: 10px; font-weight: bold; }
     .error-box .err-msg { font-size: 12px; color: var(--text-gray); margin-bottom: 15px; line-height: 1.5; }
     .error-box .err-retry { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 12px; letter-spacing: 1px; }
     .error-box .err-retry:hover { background: var(--gold); color: var(--black); }
 
-    /* カウントダウン */
-    .countdown-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 30px; }
+    /* ===== カウントダウン ===== */
+    .countdown-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 25px; }
     .cd-card { background-color: var(--card-bg); border: 1px solid #333; padding: 15px 10px; text-align: center; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3); }
     .cd-title { font-size: 10px; color: var(--text-gray); margin-bottom: 5px; letter-spacing: 1px; }
     .cd-days { font-size: 28px; color: var(--white); font-weight: bold; text-shadow: 0 0 10px rgba(255, 255, 255, 0.2); }
     .cd-days span { font-size: 14px; color: var(--gold); font-weight: normal; margin-left: 3px; }
 
-    /* プロフィール */
-    .profile-grid { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 30px; }
+    /* ===== プロフィール ===== */
+    .profile-grid { display: flex; justify-content: space-between; gap: 15px; margin-bottom: 25px; }
     .profile-card { flex: 1; background-color: var(--card-bg); border: 1px solid #333; padding: 15px; text-align: center; border-radius: 8px; }
     .rank-title { font-size: 11px; color: var(--text-gray); letter-spacing: 2px; margin-bottom: 5px; }
     .rank-badge { font-size: 20px; font-weight: bold; letter-spacing: 1px; margin-bottom: 5px; }
@@ -147,13 +173,13 @@
     .att-secondary .att-unit { font-size: 10px; color: var(--text-gray); }
     .att-val-group { display: flex; align-items: baseline; gap: 4px; }
 
-    /* ===== レベル＆経験値 (機能1) ===== */
+    /* ===== レベル＆経験値 ===== */
     .level-card {
       background: linear-gradient(135deg, var(--card-bg), #221c10);
       border: 1px solid rgba(211, 173, 79, 0.4);
       border-radius: 12px;
       padding: 18px 20px;
-      margin-bottom: 30px;
+      margin-bottom: 25px;
       position: relative;
       overflow: hidden;
     }
@@ -175,7 +201,7 @@
     .level-bar { width: 100%; height: 8px; background: #222; border-radius: 4px; overflow: hidden; position: relative; z-index: 1; }
     .level-bar-fill { height: 100%; background: linear-gradient(90deg, #8b6b23, var(--gold), #ffd76a); width: 0%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); box-shadow: 0 0 10px var(--gold-glow); }
 
-    /* 目標と実績 */
+    /* ===== 目標 ===== */
     .goal-container { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; margin-bottom: 25px; border-radius: 8px; }
     .goal-header { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; }
     .goal-title { color: var(--gold); letter-spacing: 1px; }
@@ -183,8 +209,8 @@
     .progress-track { width: 100%; height: 12px; background-color: #222; border-radius: 6px; overflow: hidden; }
     .progress-fill { height: 100%; background: linear-gradient(90deg, #8b6b23, var(--gold)); width: 0%; transition: width 1.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
 
-    /* ===== 過去の自分との比較 (機能7) ===== */
-    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 30px; }
+    /* ===== 比較 ===== */
+    .compare-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
     .compare-card { background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; padding: 14px; text-align: center; }
     .compare-title { font-size: 11px; color: var(--text-gray); margin-bottom: 8px; letter-spacing: 1px; }
     .compare-value { font-size: 20px; font-weight: bold; color: var(--white); }
@@ -193,22 +219,250 @@
     .compare-diff.down { color: var(--warning); background: rgba(255, 107, 107, 0.08); border: 1px solid rgba(255, 107, 107, 0.3); }
     .compare-diff.flat { color: var(--text-gray); background: rgba(255, 255, 255, 0.05); }
 
-    /* 統計カード */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 40px; }
+    /* ===== 統計カード ===== */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin-bottom: 30px; }
     .stat-card { background-color: var(--card-bg); border: 1px solid #333; padding: 15px 10px; text-align: center; position: relative; }
     .stat-card::before { content: ''; position: absolute; top: -1px; left: -1px; width: 10px; height: 10px; border-top: 1px solid var(--gold); border-left: 1px solid var(--gold); }
     .stat-title { font-size: 11px; color: var(--text-gray); margin-bottom: 8px; letter-spacing: 1px; }
     .stat-value { font-size: 18px; color: var(--gold); font-weight: bold; }
 
-    .content-area { display: none; }
+    /* ===== セクション共通 ===== */
+    .section-card { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+    .section-card-title { font-size: 13px; color: var(--gold); letter-spacing: 2px; margin-bottom: 15px; text-align: center; padding-bottom: 10px; border-bottom: 1px dashed #444; }
+    .section-title { font-size: 14px; color: var(--white); margin: 30px 0 15px; padding-left: 10px; border-left: 3px solid var(--gold); letter-spacing: 2px; }
 
-    /* 小テスト＆アコーディオン */
-    details.test-container { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
-    details.test-container summary { outline: none; cursor: pointer; list-style: none; font-size: 16px; color: var(--gold); letter-spacing: 2px; border-bottom: 1px dashed #444; padding-bottom: 15px; margin-bottom: 15px; font-weight: bold; }
+    /* ===== デイリーミッション ===== */
+    .mission-list { display: flex; flex-direction: column; gap: 10px; }
+    .mission-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: #111; border: 1px solid #333; border-radius: 8px; transition: all 0.3s; cursor: pointer; }
+    .mission-item.done { background: rgba(74, 222, 128, 0.05); border-color: rgba(74, 222, 128, 0.4); }
+    .mission-checkbox { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #444; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.3s; font-size: 14px; }
+    .mission-item.done .mission-checkbox { background: var(--success); border-color: var(--success); color: #000; }
+    .mission-text { flex: 1; font-size: 13px; color: var(--white); }
+    .mission-item.done .mission-text { text-decoration: line-through; color: var(--text-gray); }
+    .mission-reward { font-size: 11px; color: var(--gold); font-weight: bold; }
+
+    /* ===== アチーブメント ===== */
+    .ach-summary { color: var(--text-gray); font-size: 11px; margin-bottom: 14px; text-align: center; }
+    .ach-summary strong { color: var(--gold); font-size: 14px; }
+    .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 12px; }
+    .ach-item { aspect-ratio: 1; background: #111; border: 1px solid #333; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; padding: 8px; text-align: center; position: relative; }
+    .ach-item.unlocked { background: radial-gradient(circle, rgba(211, 173, 79, 0.15), rgba(211, 173, 79, 0.02)); border-color: var(--gold); box-shadow: 0 0 12px rgba(211, 173, 79, 0.25); }
+    .ach-item.locked .ach-icon { filter: grayscale(100%) brightness(0.3); opacity: 0.5; }
+    .ach-icon { font-size: 28px; line-height: 1; margin-bottom: 2px; }
+    .ach-label { font-size: 9px; color: var(--text-gray); letter-spacing: 0.5px; line-height: 1.2; }
+    .ach-item.unlocked .ach-label { color: var(--white); }
+    .ach-tooltip { position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid var(--gold); padding: 6px 10px; border-radius: 4px; font-size: 11px; color: var(--white); white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; }
+    .ach-item:hover .ach-tooltip { opacity: 1; }
+
+    /* ===== ヒートマップ：7日 × 24時間 ===== */
+    .heatmap-wrap {
+      background-color: var(--card-bg);
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 20px 14px;
+      margin-bottom: 25px;
+      overflow-x: auto;
+    }
+    .heatmap-sub { font-size: 11px; color: var(--text-gray); text-align: center; margin-bottom: 14px; }
+    .heatmap-table { margin: 0 auto; border-collapse: separate; border-spacing: 2px; }
+    .heatmap-table th {
+      font-size: 10px;
+      color: var(--text-gray);
+      padding: 4px 0;
+      font-weight: normal;
+      letter-spacing: 0.5px;
+    }
+    .heatmap-table th.day-today { color: var(--gold); font-weight: bold; }
+    .heatmap-table th .dow { display: block; font-size: 9px; opacity: 0.7; }
+    .heatmap-table td.hour-label {
+      font-size: 9px;
+      color: var(--text-gray);
+      padding-right: 8px;
+      text-align: right;
+      font-family: monospace;
+      vertical-align: middle;
+    }
+    .hm-cell {
+      width: 36px;
+      height: 12px;
+      border-radius: 2px;
+      background: #1a1a1a;
+      cursor: pointer;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .hm-cell.lv1 { background: #3a2e15; }
+    .hm-cell.lv2 { background: #6a541c; }
+    .hm-cell.lv3 { background: #a07e28; }
+    .hm-cell.lv4 { background: var(--gold); box-shadow: 0 0 6px var(--gold-glow); }
+    .hm-cell:hover { outline: 1px solid var(--white); transform: scale(1.15); z-index: 5; }
+    .hm-cell:hover::after {
+      content: attr(data-tip);
+      position: absolute;
+      bottom: 100%; left: 50%;
+      transform: translateX(-50%);
+      background: #222;
+      border: 1px solid var(--gold);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      color: var(--white);
+      z-index: 10;
+    }
+    .heatmap-legend { display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: 10px; color: var(--text-gray); margin-top: 14px; }
+    .heatmap-legend-cell { width: 12px; height: 12px; border-radius: 2px; }
+
+    /* ===== チャート（タブ切替） ===== */
+    .chart-tabs { display: flex; gap: 6px; margin-bottom: 14px; justify-content: center; flex-wrap: wrap; }
+    .chart-tab-btn { background: transparent; color: var(--text-gray); border: 1px solid #333; padding: 6px 18px; border-radius: 20px; cursor: pointer; font-size: 12px; letter-spacing: 1px; font-family: inherit; transition: all 0.2s; }
+    .chart-tab-btn:hover { color: var(--white); border-color: #555; }
+    .chart-tab-btn.active { color: var(--gold); border-color: var(--gold); background: rgba(211, 173, 79, 0.08); box-shadow: 0 0 12px rgba(211, 173, 79, 0.15); }
+    .chart-pane { display: none; }
+    .chart-pane.active { display: block; }
+    .chart-container { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; }
+    .chart-title { font-size: 12px; color: var(--text-gray); margin-bottom: 16px; letter-spacing: 1px; text-align: center; }
+
+    /* ===== コミュニティ ===== */
+    .community-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 25px; }
+    .comm-card { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; }
+    .comm-title { color: var(--gold); font-size: 13px; letter-spacing: 2px; margin-bottom: 15px; text-align: center; border-bottom: 1px dashed #444; padding-bottom: 10px; }
+    .comm-list { list-style: none; padding: 0; margin: 0; }
+    .comm-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 13px; align-items: center; }
+    .comm-item:last-child { border-bottom: none; }
+    .rank-name { color: var(--white); display: flex; align-items: center; gap: 8px; }
+    .rank-score { color: var(--gold); font-weight: bold; font-size: 14px; }
+    .rank-icon { width: 20px; text-align: center; font-size: 14px; }
+    .feed-name { color: var(--platinum); }
+
+    /* ===== 参考書おすすめ ===== */
+    .book-form {
+      background: #0c0c0c;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 20px;
+    }
+    .book-form-row { margin-bottom: 12px; }
+    .book-form-row:last-child { margin-bottom: 0; }
+    .book-input, .book-textarea {
+      width: 100%;
+      background: #000;
+      border: 1px solid #333;
+      color: var(--white);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+    .book-input:focus, .book-textarea:focus { outline: none; border-color: var(--gold); }
+    .book-textarea { min-height: 60px; resize: vertical; }
+    .rating-input { display: flex; align-items: center; gap: 10px; padding: 4px 0; }
+    .rating-label { font-size: 12px; color: var(--text-gray); }
+    .star-picker { display: flex; gap: 4px; }
+    .star-picker .star {
+      font-size: 24px;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      line-height: 1;
+    }
+    .star-picker .star.selected { color: var(--gold); text-shadow: 0 0 6px var(--gold-glow); }
+    .star-picker .star:hover { transform: scale(1.15); }
+    .rating-display { font-size: 13px; color: var(--gold); font-weight: bold; min-width: 40px; }
+    .book-form-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+    .char-counter { font-size: 11px; color: var(--text-gray); }
+    .book-post-btn {
+      background: var(--gold);
+      color: var(--black);
+      border: none;
+      padding: 8px 22px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      letter-spacing: 1px;
+      font-family: inherit;
+    }
+    .book-post-btn:disabled { opacity: 0.5; cursor: wait; }
+    .book-post-btn:hover:not(:disabled) { box-shadow: 0 0 12px var(--gold-glow); }
+
+    .book-feed { display: flex; flex-direction: column; gap: 12px; }
+    .book-card {
+      background: #111;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 14px;
+      transition: border-color 0.2s;
+    }
+    .book-card.mine { border-color: rgba(211, 173, 79, 0.4); background: rgba(211, 173, 79, 0.04); }
+    .book-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .book-name {
+      font-size: 14px;
+      color: var(--white);
+      font-weight: bold;
+      flex: 1;
+      line-height: 1.4;
+    }
+    .book-rating {
+      font-size: 14px;
+      color: var(--gold);
+      flex-shrink: 0;
+      letter-spacing: 1px;
+    }
+    .book-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-gray);
+      margin-bottom: 8px;
+    }
+    .book-author { color: var(--platinum); font-weight: 500; }
+    .book-card.mine .book-author { color: var(--gold); }
+    .book-comment {
+      font-size: 13px;
+      color: var(--white);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      margin-bottom: 10px;
+    }
+    .book-reactions { display: flex; flex-wrap: wrap; gap: 6px; }
+    .reaction-btn {
+      background: #1c1c1c;
+      border: 1px solid #333;
+      color: var(--white);
+      padding: 3px 9px;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-family: inherit;
+    }
+    .reaction-btn:hover:not(:disabled) { border-color: var(--gold); }
+    .reaction-btn.active { background: rgba(211, 173, 79, 0.15); border-color: var(--gold); }
+    .reaction-btn .count { font-size: 11px; color: var(--text-gray); font-weight: bold; }
+    .reaction-btn.active .count { color: var(--gold); }
+    .book-empty { text-align: center; color: var(--text-gray); padding: 30px 10px; font-size: 13px; line-height: 1.7; }
+
+    /* ===== 小テスト ===== */
+    details.test-container { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; margin-bottom: 25px; }
+    details.test-container summary { outline: none; cursor: pointer; list-style: none; font-size: 14px; color: var(--gold); letter-spacing: 2px; border-bottom: 1px dashed #444; padding-bottom: 12px; margin-bottom: 15px; font-weight: bold; }
     details.test-container summary::-webkit-details-marker { display: none; }
-    details.test-container summary::after { content: '▼ OPEN'; float: right; font-size: 12px; color: var(--text-gray); margin-top: 2px; }
+    details.test-container summary::after { content: '▼ OPEN'; float: right; font-size: 11px; color: var(--text-gray); margin-top: 2px; }
     details.test-container[open] summary::after { content: '▲ CLOSE'; }
-    .test-item { margin-bottom: 25px; }
+    .test-item { margin-bottom: 22px; }
     .test-item:last-child { margin-bottom: 0; }
     .test-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .test-name { color: var(--white); font-size: 14px; font-weight: bold; letter-spacing: 1px; display: flex; align-items: center; gap: 8px; }
@@ -221,113 +475,13 @@
     .grid-box.completed { border-color: rgba(211, 173, 79, 0.4); background-color: rgba(211, 173, 79, 0.05); box-shadow: 0 0 8px rgba(211, 173, 79, 0.15), inset 0 0 5px rgba(255, 255, 255, 0.1); transform: scale(1.05); }
     .grid-box.completed .stamp-icon { opacity: 1; filter: drop-shadow(0 0 4px rgba(211, 173, 79, 0.8)); transform: scale(1.1); }
 
-    /* ===== アチーブメント (機能2) ===== */
-    .ach-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(70px, 1fr)); gap: 12px; }
-    .ach-item { aspect-ratio: 1; background: #111; border: 1px solid #333; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s; padding: 8px; text-align: center; position: relative; }
-    .ach-item.unlocked { background: radial-gradient(circle, rgba(211, 173, 79, 0.15), rgba(211, 173, 79, 0.02)); border-color: var(--gold); box-shadow: 0 0 12px rgba(211, 173, 79, 0.25); }
-    .ach-item.locked .ach-icon { filter: grayscale(100%) brightness(0.3); opacity: 0.5; }
-    .ach-icon { font-size: 28px; line-height: 1; margin-bottom: 2px; }
-    .ach-label { font-size: 9px; color: var(--text-gray); letter-spacing: 0.5px; line-height: 1.2; }
-    .ach-item.unlocked .ach-label { color: var(--white); }
-    .ach-summary { color: var(--text-gray); font-size: 11px; margin-bottom: 14px; text-align: center; }
-    .ach-summary strong { color: var(--gold); font-size: 14px; }
-    .ach-tooltip { position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid var(--gold); padding: 6px 10px; border-radius: 4px; font-size: 11px; color: var(--white); white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 10; }
-    .ach-item:hover .ach-tooltip { opacity: 1; }
-
-    /* ===== デイリーミッション (機能3) ===== */
-    .mission-list { display: flex; flex-direction: column; gap: 10px; }
-    .mission-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: #111; border: 1px solid #333; border-radius: 8px; transition: all 0.3s; }
-    .mission-item.done { background: rgba(74, 222, 128, 0.05); border-color: rgba(74, 222, 128, 0.4); }
-    .mission-checkbox { width: 22px; height: 22px; border-radius: 50%; border: 2px solid #444; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.3s; font-size: 14px; }
-    .mission-item.done .mission-checkbox { background: var(--success); border-color: var(--success); color: #000; }
-    .mission-text { flex: 1; font-size: 13px; color: var(--white); }
-    .mission-item.done .mission-text { text-decoration: line-through; color: var(--text-gray); }
-    .mission-reward { font-size: 11px; color: var(--gold); font-weight: bold; }
-
-    /* ===== ヒートマップ (機能4) ===== */
-    .heatmap-wrap { background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; padding: 20px; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; overflow-x: auto; }
-    .heatmap-title { font-size: 13px; color: var(--text-gray); margin-bottom: 14px; letter-spacing: 2px; text-align: center; }
-    .heatmap-grid { display: inline-grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 3px; padding-bottom: 5px; }
-    .heatmap-cell { width: 12px; height: 12px; border-radius: 2px; background: #1a1a1a; transition: all 0.2s; cursor: pointer; }
-    .heatmap-cell:hover { transform: scale(1.4); z-index: 2; outline: 1px solid var(--white); }
-    .heatmap-cell.lv0 { background: #1a1a1a; }
-    .heatmap-cell.lv1 { background: #3a2e15; }
-    .heatmap-cell.lv2 { background: #6a541c; }
-    .heatmap-cell.lv3 { background: #a07e28; }
-    .heatmap-cell.lv4 { background: var(--gold); box-shadow: 0 0 6px var(--gold-glow); }
-    .heatmap-legend { display: flex; align-items: center; justify-content: flex-end; gap: 5px; font-size: 10px; color: var(--text-gray); margin-top: 10px; }
-    .heatmap-legend-cell { width: 12px; height: 12px; border-radius: 2px; }
-
-    /* ===== 時間帯プロファイル (機能5) ===== */
-    .hourly-wrap { background-color: var(--card-bg); border: 1px solid #333; border-radius: 8px; padding: 20px; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
-    .hourly-title { font-size: 13px; color: var(--text-gray); margin-bottom: 6px; letter-spacing: 2px; text-align: center; }
-    .hourly-type-tag { text-align: center; font-size: 18px; font-weight: bold; color: var(--gold); margin-bottom: 18px; text-shadow: 0 0 10px var(--gold-glow); }
-    .hourly-bars { display: flex; align-items: flex-end; height: 100px; gap: 2px; padding: 0 5px; border-bottom: 1px solid #333; }
-    .hourly-bar { flex: 1; background: linear-gradient(to top, #8b6b23, var(--gold)); border-radius: 2px 2px 0 0; min-height: 2px; position: relative; transition: all 0.3s; }
-    .hourly-bar.peak { background: linear-gradient(to top, var(--gold), #ffd76a); box-shadow: 0 0 8px var(--gold-glow); }
-    .hourly-bar:hover { filter: brightness(1.3); }
-    .hourly-bar:hover::after { content: attr(data-tip); position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%); background: #222; border: 1px solid var(--gold); padding: 4px 8px; border-radius: 4px; font-size: 11px; white-space: nowrap; color: var(--white); }
-    .hourly-labels { display: flex; justify-content: space-between; padding: 6px 5px 0; font-size: 9px; color: var(--text-gray); }
-
-    /* コミュニティ・グラフ・履歴 */
-    .community-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 40px; }
-    .comm-card { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
-    .comm-title { color: var(--gold); font-size: 13px; letter-spacing: 2px; margin-bottom: 15px; text-align: center; border-bottom: 1px dashed #444; padding-bottom: 10px; }
-    .comm-list { list-style: none; padding: 0; margin: 0; }
-    .comm-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #222; font-size: 13px; align-items: center; }
-    .comm-item:last-child { border-bottom: none; }
-    .rank-name { color: var(--white); display: flex; align-items: center; gap: 8px; }
-    .rank-score { color: var(--gold); font-weight: bold; font-size: 14px; }
-    .rank-icon { width: 20px; text-align: center; font-size: 14px; }
-    .feed-name { color: var(--platinum); }
-
-    /* ===== ライバル比較 (機能11) ===== */
-    .rivals-list { display: flex; flex-direction: column; gap: 10px; }
-    .rival-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: #111; border-radius: 6px; border: 1px solid #2a2a2a; }
-    .rival-name { flex: 1; color: var(--white); font-size: 13px; }
-    .rival-vs { font-size: 11px; color: var(--gold); font-weight: bold; padding: 2px 8px; border: 1px solid var(--gold); border-radius: 10px; }
-    .rival-hours { color: var(--gold); font-weight: bold; font-size: 14px; }
-    .rival-empty { color: var(--text-gray); font-size: 12px; text-align: center; padding: 20px 10px; line-height: 1.7; }
-    .rival-action-btn { background: transparent; color: var(--gold); border: 1px solid var(--gold); padding: 6px 14px; font-size: 11px; letter-spacing: 1px; border-radius: 4px; cursor: pointer; margin-top: 10px; width: 100%; }
-    .rival-action-btn:hover { background: var(--gold); color: var(--black); }
-    .rival-bar { flex: 1; height: 6px; background: #333; border-radius: 3px; overflow: hidden; max-width: 100px; }
-    .rival-bar-fill { height: 100%; background: linear-gradient(90deg, #8b6b23, var(--gold)); transition: width 1s; }
-    .rival-bar-fill.mine { background: linear-gradient(90deg, var(--success), #6ee7a7); }
-
-    /* ===== スタディログ (機能10) ===== */
-    .studylog-card { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
-    .studylog-title { color: var(--gold); font-size: 13px; letter-spacing: 2px; margin-bottom: 15px; text-align: center; border-bottom: 1px dashed #444; padding-bottom: 10px; }
-    .studylog-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; padding: 12px; background: #0c0c0c; border-radius: 6px; border: 1px solid #2a2a2a; }
-    .studylog-textarea { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; border-radius: 4px; resize: vertical; min-height: 50px; font-family: inherit; font-size: 13px; }
-    .studylog-textarea:focus { outline: none; border-color: var(--gold); }
-    .studylog-form-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--text-gray); }
-    .studylog-post-btn { background: var(--gold); color: var(--black); border: none; padding: 7px 16px; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; letter-spacing: 1px; }
-    .studylog-post-btn:disabled { opacity: 0.5; cursor: wait; }
-    .studylog-feed { display: flex; flex-direction: column; gap: 12px; max-height: 480px; overflow-y: auto; padding-right: 4px; }
-    .studylog-item { padding: 12px; background: #111; border-radius: 6px; border: 1px solid #2a2a2a; }
-    .studylog-item.mine { border-color: rgba(211, 173, 79, 0.4); background: rgba(211, 173, 79, 0.04); }
-    .studylog-meta { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-gray); margin-bottom: 6px; }
-    .studylog-author { color: var(--platinum); font-weight: bold; }
-    .studylog-item.mine .studylog-author { color: var(--gold); }
-    .studylog-msg { font-size: 13px; color: var(--white); line-height: 1.5; white-space: pre-wrap; word-wrap: break-word; }
-    .studylog-reactions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .reaction-btn { background: #1c1c1c; border: 1px solid #333; color: var(--white); padding: 3px 9px; border-radius: 14px; cursor: pointer; font-size: 12px; transition: all 0.2s; display: inline-flex; align-items: center; gap: 4px; }
-    .reaction-btn:hover { border-color: var(--gold); }
-    .reaction-btn.active { background: rgba(211, 173, 79, 0.15); border-color: var(--gold); }
-    .reaction-btn .count { font-size: 11px; color: var(--text-gray); font-weight: bold; }
-    .reaction-btn.active .count { color: var(--gold); }
-    .studylog-empty { text-align: center; color: var(--text-gray); padding: 20px; font-size: 12px; }
-
-    /* セクション・グラフ・履歴 */
-    .section-title { font-size: 16px; color: var(--white); margin: 50px 0 20px; padding-left: 10px; border-left: 3px solid var(--gold); letter-spacing: 2px; }
-    .chart-container, .history-container { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; overflow-x: auto; border-radius: 8px; }
-    .visible { opacity: 1 !important; transform: translateY(0) !important; }
-    .chart-title { font-size: 13px; color: var(--text-gray); margin-bottom: 20px; letter-spacing: 2px; text-align: center; }
+    /* ===== 履歴テーブル ===== */
+    .history-container { background-color: var(--card-bg); border: 1px solid #333; padding: 20px; border-radius: 8px; overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; min-width: 300px; }
     th { color: var(--gold); border-bottom: 1px solid var(--gold); padding: 10px 5px; text-align: center; font-size: 12px; font-weight: normal; }
     td { border-bottom: 1px solid #222; padding: 12px 5px; text-align: center; font-size: 13px; }
 
-    /* ===== モーダル共通 ===== */
+    /* ===== モーダル ===== */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); z-index: 999; }
     .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: var(--card-bg); border: 2px solid var(--gold); padding: 25px; z-index: 1000; border-radius: 15px; width: 88%; max-width: 380px; box-shadow: 0 0 50px rgba(0, 0, 0, 0.9); max-height: 85vh; overflow-y: auto; }
     .modal h3 { color: var(--gold); margin: 0 0 15px 0; font-size: 16px; letter-spacing: 2px; }
@@ -335,18 +489,9 @@
     .modal-btn { background: var(--gold); color: var(--black); border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 10px;}
     .modal-btn:disabled { opacity: 0.5; cursor: wait; }
     .modal-close-btn { background: transparent; color: var(--text-gray); border: 1px solid #444; }
-    .settings-trigger { font-size: 12px; color: var(--text-gray); text-decoration: underline; cursor: pointer; text-align: center; display: block; margin-top: 10px; margin-bottom: 30px;}
+    .settings-trigger { font-size: 12px; color: var(--text-gray); text-decoration: underline; cursor: pointer; text-align: center; display: block; margin-top: 10px; margin-bottom: 25px;}
 
-    /* ライバル選択モーダル */
-    .rival-search-input { width: 100%; background: #000; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 5px; margin-bottom: 12px; box-sizing: border-box; }
-    .rival-checklist { max-height: 50vh; overflow-y: auto; border: 1px solid #2a2a2a; border-radius: 6px; padding: 6px; background: #0c0c0c; }
-    .rival-check-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 5px; cursor: pointer; transition: background 0.2s; }
-    .rival-check-row:hover { background: #1a1a1a; }
-    .rival-check-row input { accent-color: var(--gold); transform: scale(1.2); }
-    .rival-count-info { font-size: 11px; color: var(--text-gray); text-align: center; margin-bottom: 10px; }
-    .rival-count-info span { color: var(--gold); font-weight: bold; }
-
-    /* 更新ボタン */
+    /* ===== 更新ボタン ===== */
     .refresh-btn { position: absolute; top: 28px; right: 15px; background: transparent; border: 1px solid rgba(211, 173, 79, 0.5); color: var(--gold); width: 38px; height: 38px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; padding: 0; }
     .refresh-btn:hover { background: rgba(211, 173, 79, 0.1); border-color: var(--gold); }
     .refresh-btn:active { transform: scale(0.92); }
@@ -354,8 +499,7 @@
     .refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-    /* QR */
-    #box-qr { opacity: 1 !important; transform: none !important; }
+    /* ===== QR ===== */
     .qr-content { display: flex; flex-direction: column; align-items: center; padding: 10px 0 5px; }
     .qr-note { color: var(--text-gray); font-size: 12px; letter-spacing: 1px; margin: 0 0 20px 0; text-align: center; }
     .qr-frame { background: #ffffff; padding: 16px; border-radius: 12px; box-shadow: 0 0 30px rgba(211, 173, 79, 0.15); margin-bottom: 20px; }
@@ -363,7 +507,7 @@
     .qr-id-label { font-size: 10px; color: var(--text-gray); letter-spacing: 2px; margin: 0 0 5px 0; }
     .qr-id { font-size: 18px; color: var(--gold); font-family: monospace; letter-spacing: 2px; margin: 0; }
 
-    /* ===== 紙吹雪・お祝い演出 (機能13) ===== */
+    /* ===== 紙吹雪・お祝い ===== */
     .confetti-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999; overflow: hidden; }
     .confetti { position: absolute; width: 8px; height: 14px; opacity: 0.9; animation: confetti-fall linear forwards; }
     @keyframes confetti-fall {
@@ -388,7 +532,6 @@
     .celebration-title { color: var(--gold); font-size: 22px; font-weight: bold; letter-spacing: 2px; margin-bottom: 8px; text-shadow: 0 0 12px var(--gold-glow); }
     .celebration-sub { color: var(--white); font-size: 13px; }
 
-    /* 通常トースト */
     .toast {
       position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
       background: #222; border: 1px solid var(--gold); color: var(--white);
@@ -414,7 +557,27 @@
     <h1><span id="student-name">...</span> さんの記録</h1>
   </div>
 
-  <!-- ローディング画面 -->
+  <!-- ===== タブナビゲーション ===== -->
+  <nav class="tab-nav" id="tab-nav" style="display:none;">
+    <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">ホーム</span>
+    </button>
+    <button class="tab-btn" data-tab="trends" onclick="switchTab('trends')">
+      <span class="tab-icon">📊</span>
+      <span class="tab-label">トレンド</span>
+    </button>
+    <button class="tab-btn" data-tab="books" onclick="switchTab('books')">
+      <span class="tab-icon">📚</span>
+      <span class="tab-label">参考書</span>
+    </button>
+    <button class="tab-btn" data-tab="history" onclick="switchTab('history')">
+      <span class="tab-icon">📋</span>
+      <span class="tab-label">履歴</span>
+    </button>
+  </nav>
+
+  <!-- ローディング -->
   <div id="loading">
     <div class="loader">
       <div class="book">
@@ -427,8 +590,8 @@
     </div>
   </div>
 
-  <!-- エラー画面 -->
-  <div id="error-screen" style="display:none; min-height:60vh; display:none; justify-content:center; align-items:center; padding-top:60px;">
+  <!-- エラー -->
+  <div id="error-screen" style="display:none; min-height:60vh; justify-content:center; align-items:center; padding-top:60px;">
     <div class="error-box">
       <div class="err-title">⚠ ERROR</div>
       <div class="err-msg" id="err-message">データの取得に失敗しました。</div>
@@ -436,16 +599,13 @@
     </div>
   </div>
 
-  <!-- メインコンテンツ -->
-  <div class="content-area" id="content">
+  <!-- ============================================================== -->
+  <!-- 🏠 タブ: ホーム                                                 -->
+  <!-- ============================================================== -->
+  <div class="tab-content active" data-tab="home">
     <div class="quote-box" id="quote-text"></div>
 
-    <!-- 🆕 機能9: パーソナルメッセージ -->
-    <div class="personal-msg" id="personal-msg" style="display:none;">
-      <div class="personal-msg-icon" id="pmsg-icon">✨</div>
-      <div class="personal-msg-text" id="pmsg-text"></div>
-    </div>
-
+    <!-- カウントダウン -->
     <div class="countdown-grid" id="box-countdown">
       <div class="cd-card">
         <div class="cd-title">共通テストまで</div>
@@ -461,6 +621,7 @@
       </div>
     </div>
 
+    <!-- QR -->
     <details class="test-container" id="box-qr" open>
       <summary>📱 MY QR CODE</summary>
       <div class="qr-content">
@@ -475,7 +636,7 @@
 
     <div class="settings-trigger" onclick="openModal('settings-modal')">⚙️ 目標を自分専用に設定する</div>
 
-    <!-- 🆕 機能1: レベル＆経験値 -->
+    <!-- レベル -->
     <div class="level-card">
       <div class="level-row">
         <div>
@@ -487,6 +648,7 @@
       <div class="level-bar"><div class="level-bar-fill" id="level-bar-fill"></div></div>
     </div>
 
+    <!-- プロフィール -->
     <div class="profile-grid">
       <div class="profile-card">
         <div class="rank-title">CURRENT RANK</div>
@@ -512,12 +674,13 @@
       </div>
     </div>
 
-    <!-- 🆕 機能3: デイリーミッション -->
-    <details class="test-container" id="box-missions" open>
-      <summary>🎯 DAILY MISSIONS</summary>
+    <!-- デイリーミッション（常時展開） -->
+    <div class="section-card">
+      <div class="section-card-title">🎯 DAILY MISSIONS</div>
       <div class="mission-list" id="mission-list"></div>
-    </details>
+    </div>
 
+    <!-- 週次目標 -->
     <div class="goal-container">
       <div class="goal-header">
         <div class="goal-title" id="goal-title-text">今週の目標（--h）</div>
@@ -528,7 +691,7 @@
       </div>
     </div>
 
-    <!-- 🆕 機能7: 過去の自分との比較 -->
+    <!-- 比較 -->
     <div class="compare-grid">
       <div class="compare-card">
         <div class="compare-title">先週との比較</div>
@@ -542,9 +705,10 @@
       </div>
     </div>
 
+    <!-- 統計 -->
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-title" id="today-title">今日の学習</div>
+        <div class="stat-title">今日の学習</div>
         <div class="stat-value" id="val-today">-時間-分</div>
       </div>
       <div class="stat-card">
@@ -557,96 +721,134 @@
       </div>
     </div>
 
-    <details class="test-container" id="box-tests">
-      <summary>TEST PROGRESS</summary>
-      <div id="test-list">
-        <div style="text-align:center; color:#666; padding: 20px;">データ取得中...</div>
-      </div>
-    </details>
-
-    <!-- 🆕 機能2: アチーブメント -->
-    <details class="test-container" id="box-achievements">
-      <summary>🏅 ACHIEVEMENTS</summary>
+    <!-- アチーブメント（常時展開） -->
+    <div class="section-card">
+      <div class="section-card-title">🏅 ACHIEVEMENTS</div>
       <div class="ach-summary" id="ach-summary">獲得 <strong>0</strong> / <strong>0</strong></div>
       <div class="ach-grid" id="ach-grid"></div>
-    </details>
+    </div>
+  </div>
 
-    <!-- 🆕 機能4: ヒートマップ -->
-    <div class="heatmap-wrap" id="box-heatmap">
-      <div class="heatmap-title">🔥 STUDY HEATMAP (過去120日)</div>
-      <div style="display:flex; justify-content:center;">
-        <div class="heatmap-grid" id="heatmap-grid"></div>
+  <!-- ============================================================== -->
+  <!-- 📊 タブ: トレンド                                                -->
+  <!-- ============================================================== -->
+  <div class="tab-content" data-tab="trends">
+
+    <!-- ヒートマップ：7日 × 24時間 -->
+    <div class="heatmap-wrap">
+      <div class="section-card-title" style="margin-bottom:6px; padding-bottom:6px;">🔥 STUDY HEATMAP</div>
+      <div class="heatmap-sub">過去7日間 × 24時間：在室していた時間が光ります</div>
+      <div style="display:flex; justify-content:center; overflow-x:auto;">
+        <table class="heatmap-table" id="heatmap-table">
+          <thead><tr id="heatmap-thead"></tr></thead>
+          <tbody id="heatmap-tbody"></tbody>
+        </table>
       </div>
       <div class="heatmap-legend">
-        少 <div class="heatmap-legend-cell lv0"></div>
+        少
+        <div class="heatmap-legend-cell" style="background:#1a1a1a;"></div>
         <div class="heatmap-legend-cell lv1"></div>
         <div class="heatmap-legend-cell lv2"></div>
         <div class="heatmap-legend-cell lv3"></div>
-        <div class="heatmap-legend-cell lv4"></div> 多
+        <div class="heatmap-legend-cell lv4"></div>
+        多
       </div>
     </div>
 
-    <!-- 🆕 機能5: 時間帯プロファイル -->
-    <div class="hourly-wrap" id="box-hourly">
-      <div class="hourly-title">⏰ YOUR STUDY HOURS</div>
-      <div class="hourly-type-tag" id="hourly-type">--</div>
-      <div class="hourly-bars" id="hourly-bars"></div>
-      <div class="hourly-labels">
-        <span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>23h</span>
+    <!-- 学習推移チャート -->
+    <div class="section-card">
+      <div class="section-card-title">📈 LEARNING TRENDS</div>
+      <div class="chart-tabs">
+        <button class="chart-tab-btn active" data-chart-tab="daily" onclick="switchChartTab('daily')">日別</button>
+        <button class="chart-tab-btn" data-chart-tab="weekly" onclick="switchChartTab('weekly')">週別</button>
+        <button class="chart-tab-btn" data-chart-tab="monthly" onclick="switchChartTab('monthly')">月別</button>
+      </div>
+      <div class="chart-pane active" data-chart-pane="daily">
+        <div class="chart-title">日別の学習推移 (h)</div>
+        <canvas id="dailyChart"></canvas>
+      </div>
+      <div class="chart-pane" data-chart-pane="weekly">
+        <div class="chart-title">週別の学習推移 (h)</div>
+        <canvas id="weeklyChart"></canvas>
+      </div>
+      <div class="chart-pane" data-chart-pane="monthly">
+        <div class="chart-title">月別の学習推移 (h)</div>
+        <canvas id="monthlyChart"></canvas>
       </div>
     </div>
 
-    <div class="section-title">COMMUNITY</div>
+    <!-- コミュニティ -->
     <div class="community-grid">
-      <div class="comm-card" id="box-ranking">
+      <div class="comm-card">
         <div class="comm-title">🏆 今週のトップランカー</div>
         <ul class="comm-list" id="ranking-list">
           <li class="comm-item" style="color:#666; justify-content:center;">集計中...</li>
         </ul>
       </div>
-      <div class="comm-card" id="box-feed">
+      <div class="comm-card">
         <div class="comm-title">⚡ リアルタイム速報</div>
         <ul class="comm-list" id="feed-list">
           <li class="comm-item" style="color:#666; justify-content:center;">データ取得中...</li>
         </ul>
       </div>
     </div>
+  </div>
 
-    <!-- 🆕 機能11: ライバル -->
-    <div class="comm-card" id="box-rivals" style="opacity:0; transform:translateY(20px); transition:all 0.8s ease-out; margin-bottom: 30px;">
-      <div class="comm-title">⚔️ MY RIVALS</div>
-      <div id="rivals-content"></div>
-      <button class="rival-action-btn" onclick="openRivalModal()">⚙ ライバルを設定する</button>
-    </div>
+  <!-- ============================================================== -->
+  <!-- 📚 タブ: 参考書                                                 -->
+  <!-- ============================================================== -->
+  <div class="tab-content" data-tab="books">
+    <div class="section-card">
+      <div class="section-card-title">📚 おすすめ参考書を投稿</div>
 
-    <!-- 🆕 機能10: スタディログ -->
-    <div class="studylog-card" id="box-studylog">
-      <div class="studylog-title">📝 STUDY LOG</div>
-      <div class="studylog-form">
-        <textarea id="studylog-input" class="studylog-textarea" maxlength="200" placeholder="今日の学習報告や気持ちをひとこと（200文字まで）"></textarea>
-        <div class="studylog-form-row">
-          <span><span id="studylog-counter">0</span> / 200</span>
-          <button class="studylog-post-btn" id="studylog-post-btn" onclick="postStudyLog()">投稿する</button>
+      <div class="book-form">
+        <div class="book-form-row">
+          <input type="text" id="book-name" class="book-input" maxlength="80" placeholder="参考書名（例：青チャート 数学Ⅱ・B）">
+        </div>
+        <div class="book-form-row">
+          <div class="rating-input">
+            <span class="rating-label">おすすめ度：</span>
+            <div class="star-picker" id="star-picker">
+              <span class="star" data-val="1">★</span>
+              <span class="star" data-val="2">★</span>
+              <span class="star" data-val="3">★</span>
+              <span class="star" data-val="4">★</span>
+              <span class="star" data-val="5">★</span>
+            </div>
+            <span class="rating-display" id="rating-display">--</span>
+          </div>
+        </div>
+        <div class="book-form-row">
+          <textarea id="book-comment" class="book-textarea" maxlength="300" placeholder="どこが良かった？どんな人におすすめ？（任意・300字まで）"></textarea>
+        </div>
+        <div class="book-form-footer">
+          <span class="char-counter"><span id="book-comment-counter">0</span> / 300</span>
+          <button class="book-post-btn" id="book-post-btn" onclick="postBook()">投稿する</button>
         </div>
       </div>
-      <div class="studylog-feed" id="studylog-feed">
-        <div class="studylog-empty">読み込み中...</div>
+
+      <div class="book-feed" id="book-feed">
+        <div class="book-empty">読み込み中...</div>
       </div>
     </div>
+  </div>
 
-    <div class="section-title">LEARNING TRENDS</div>
-    <div class="chart-container" id="box-daily">
-      <div class="chart-title">日別の学習推移 (h)</div><canvas id="dailyChart"></canvas>
-    </div>
-    <div class="chart-container" id="box-weekly">
-      <div class="chart-title">週別の学習推移 (h)</div><canvas id="weeklyChart"></canvas>
-    </div>
-    <div class="chart-container" id="box-monthly">
-      <div class="chart-title">月別の学習推移 (h)</div><canvas id="monthlyChart"></canvas>
-    </div>
+  <!-- ============================================================== -->
+  <!-- 📋 タブ: 履歴                                                   -->
+  <!-- ============================================================== -->
+  <div class="tab-content" data-tab="history">
 
+    <!-- 小テスト進捗 -->
+    <details class="test-container" id="box-tests" open>
+      <summary>📘 TEST PROGRESS</summary>
+      <div id="test-list">
+        <div style="text-align:center; color:#666; padding: 20px;">データ取得中...</div>
+      </div>
+    </details>
+
+    <!-- 入退室履歴 -->
     <div class="section-title">ALL RECORDS</div>
-    <div class="history-container" id="box-history">
+    <div class="history-container">
       <table>
         <thead>
           <tr>
@@ -661,7 +863,6 @@
   <!-- ===== モーダル ===== -->
   <div class="modal-overlay" id="modal-overlay" onclick="closeAllModals()"></div>
 
-  <!-- 目標設定モーダル -->
   <div id="settings-modal" class="modal">
     <h3>MY GOAL SETTING</h3>
     <label style="font-size:12px;">目標模試名</label>
@@ -669,16 +870,6 @@
     <label style="font-size:12px;">模試日程</label>
     <input type="date" id="input-exam-date" class="modal-input">
     <button class="modal-btn" id="save-btn" onclick="saveSettings()">SAVE SETTINGS</button>
-    <button class="modal-btn modal-close-btn" onclick="closeAllModals()">閉じる</button>
-  </div>
-
-  <!-- ライバル設定モーダル -->
-  <div id="rival-modal" class="modal">
-    <h3>⚔️ SELECT YOUR RIVALS</h3>
-    <div class="rival-count-info">最大 <span>5人</span>まで選べます（現在: <span id="rival-selected-count">0</span>人）</div>
-    <input type="text" id="rival-search" class="rival-search-input" placeholder="名前で検索...">
-    <div class="rival-checklist" id="rival-checklist">読み込み中...</div>
-    <button class="modal-btn" id="rival-save-btn" onclick="saveRivals()">保存する</button>
     <button class="modal-btn modal-close-btn" onclick="closeAllModals()">閉じる</button>
   </div>
 
@@ -694,9 +885,11 @@
 
     let chartData = {};
     let chartInstances = {};
-    let currentData = null;       // 直近取得データを保持（ミッション等で参照）
-    let allStudents = [];          // ライバル選択用
-    let myRivalIds = [];           // 現在の自分のライバル
+    let chartDrawn = { daily: false, weekly: false, monthly: false };
+    let currentData = null;
+    let currentRating = 0;
+    let booksLoaded = false;
+    let heatmapLoaded = false;
 
     // =====================================================================
     // API通信
@@ -721,34 +914,26 @@
       return json;
     }
 
-    const fetchStats     = (t) => apiGet({ action: 'stats', token: t }).then(j => j.data);
-    const fetchHeatmap   = (t) => apiGet({ action: 'heatmap', token: t }).then(j => j.data);
-    const fetchHourly    = (t) => apiGet({ action: 'hourly', token: t }).then(j => j.data);
-    const fetchStudyLogs = (t) => apiGet({ action: 'studyLogs', token: t }).then(j => j.data);
-    const fetchStudentList = (t) => apiGet({ action: 'studentList', token: t }).then(j => j.data);
-    const fetchRivals    = (t) => apiGet({ action: 'rivals', token: t }).then(j => j.data);
+    const fetchStats   = (t) => apiGet({ action: 'stats', token: t }).then(j => j.data);
+    const fetchHeatmap = (t) => apiGet({ action: 'heatmap', token: t }).then(j => j.data);
+    const fetchBooks   = (t) => apiGet({ action: 'bookPosts', token: t }).then(j => j.data);
 
     const saveStudentSettings = (t, n, d) => apiPost({ action: 'saveSettings', token: t, examName: n, examDate: d }).then(j => j.message);
-    const apiPostStudyLog     = (t, m, h) => apiPost({ action: 'postStudyLog', token: t, message: m, hours: h }).then(j => j.message);
-    const apiReactStudyLog    = (t, id, e) => apiPost({ action: 'reactStudyLog', token: t, logId: id, emoji: e }).then(j => j.message);
-    const apiUpdateRivals     = (t, ids) => apiPost({ action: 'updateRivals', token: t, rivalIds: ids }).then(j => j.message);
+    const apiPostBook  = (t, n, r, c) => apiPost({ action: 'postBook', token: t, bookName: n, rating: r, comment: c }).then(j => j.message);
+    const apiReactBook = (t, id, e) => apiPost({ action: 'reactBook', token: t, postId: id, emoji: e }).then(j => j.message);
 
     // =====================================================================
     // UI制御
     // =====================================================================
-    function showLoading() {
-      document.getElementById('loading').style.display = 'flex';
-      document.getElementById('content').style.display = 'none';
-      document.getElementById('error-screen').style.display = 'none';
-    }
     function showContent() {
       document.getElementById('loading').style.display = 'none';
       document.getElementById('error-screen').style.display = 'none';
-      document.getElementById('content').style.display = 'block';
+      document.getElementById('tab-nav').style.display = 'flex';
     }
     function showError(message) {
       document.getElementById('loading').style.display = 'none';
-      document.getElementById('content').style.display = 'none';
+      document.getElementById('tab-nav').style.display = 'none';
+      document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
       const errBox = document.getElementById('error-screen');
       errBox.style.display = 'flex';
       document.getElementById('err-message').textContent = message || 'データの取得に失敗しました。';
@@ -768,11 +953,49 @@
     }
 
     // =====================================================================
+    // タブ切替
+    // =====================================================================
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+      document.querySelector(`.tab-content[data-tab="${tabId}"]`).classList.add('active');
+      document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
+
+      // タブ遷移時にスクロールを上に戻す
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // 遅延ロード処理
+      if (tabId === 'trends') {
+        if (!heatmapLoaded) loadHeatmap();
+        // currently visible chart を描画
+        const activeChart = document.querySelector('.chart-tab-btn.active').getAttribute('data-chart-tab');
+        if (chartData[activeChart] && !chartDrawn[activeChart]) {
+          drawChart(activeChart + 'Chart', chartData[activeChart].labels, chartData[activeChart].values);
+          chartDrawn[activeChart] = true;
+        }
+      } else if (tabId === 'books') {
+        if (!booksLoaded) loadBooks();
+      }
+    }
+
+    function switchChartTab(type) {
+      document.querySelectorAll('.chart-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.chart-pane').forEach(p => p.classList.remove('active'));
+      document.querySelector(`.chart-tab-btn[data-chart-tab="${type}"]`).classList.add('active');
+      document.querySelector(`.chart-pane[data-chart-pane="${type}"]`).classList.add('active');
+
+      if (chartData[type] && !chartDrawn[type]) {
+        drawChart(type + 'Chart', chartData[type].labels, chartData[type].values);
+        chartDrawn[type] = true;
+      }
+    }
+
+    // =====================================================================
     // 初期化
     // =====================================================================
     document.addEventListener('DOMContentLoaded', async () => {
       setupQRToggle();
-      setupStudyLogCounter();
+      setupBookForm();
 
       if (!studentToken) {
         showError('URLが正しくありません。管理者から配布されたURLからアクセスしてください。');
@@ -781,11 +1004,6 @@
       try {
         const data = await fetchStats(studentToken);
         showStats(data);
-
-        // 並列でサブデータを取得（画面ブロックしない）
-        loadHeatmap();
-        loadHourly();
-        loadStudyLogs();
       } catch (err) {
         console.error(err);
         showError(err.message || '通信エラーが発生しました。');
@@ -828,7 +1046,7 @@
         ? `次のランクまで: 残り ${data.rank.remainHours}h`
         : '最高ランク到達！';
 
-      // 🆕 レベル（機能1）
+      // レベル
       if (data.level) {
         document.getElementById('level-value').innerText = data.level.level;
         document.getElementById('level-exp').innerText = data.level.currentExp;
@@ -852,7 +1070,7 @@
         }, 300);
       }
 
-      // 🆕 比較（機能7）
+      // 比較
       renderCompare(data.compare);
 
       // 学習時間
@@ -870,36 +1088,34 @@
       // QR
       renderQRCode(data.id);
 
-      // 🆕 アチーブメント（機能2）
+      // アチーブメント
       renderAchievements(data);
-      // 🆕 デイリーミッション（機能3）
+      // デイリーミッション
       renderMissions(data);
-      // 🆕 パーソナルメッセージ（機能9）
-      renderPersonalMessage(data);
-      // 🆕 ライバル（機能11）
-      renderRivals(data.rivals, data.weeklyGoal);
-      // 🆕 お祝い演出（機能13）
+      // お祝い演出
       checkCelebrations(data);
 
-      // チャート
+      // チャートデータの保存（実描画は表示時に）
       chartData = {
         daily:   data.daily   || { labels: [], values: [] },
         weekly:  data.weekly  || { labels: [], values: [] },
         monthly: data.monthly || { labels: [], values: [] }
       };
+      // refresh時はchartDrawnをリセットして再描画させる
       if (isRefresh) {
-        drawChart('dailyChart',   chartData.daily.labels,   chartData.daily.values);
-        drawChart('weeklyChart',  chartData.weekly.labels,  chartData.weekly.values);
-        drawChart('monthlyChart', chartData.monthly.labels, chartData.monthly.values);
-        document.querySelectorAll('.chart-container, .comm-card, .test-container, .history-container, .heatmap-wrap, .hourly-wrap, .studylog-card')
-          .forEach(el => el.classList.add('visible'));
-      } else {
-        setupScrollAnimations();
+        chartDrawn = { daily: false, weekly: false, monthly: false };
+        // 現在トレンドタブが表示中なら今のチャートを再描画
+        const trendsActive = document.querySelector('.tab-content[data-tab="trends"]').classList.contains('active');
+        if (trendsActive) {
+          const activeChart = document.querySelector('.chart-tab-btn.active').getAttribute('data-chart-tab');
+          drawChart(activeChart + 'Chart', chartData[activeChart].labels, chartData[activeChart].values);
+          chartDrawn[activeChart] = true;
+        }
       }
     }
 
     // =====================================================================
-    // 🆕 機能7: 過去の自分との比較
+    // 比較
     // =====================================================================
     function renderCompare(cmp) {
       if (!cmp) return;
@@ -924,7 +1140,7 @@
     }
 
     // =====================================================================
-    // 🆕 機能2: アチーブメント
+    // アチーブメント
     // =====================================================================
     const ACHIEVEMENTS = [
       { id: 'first', icon: '🎉', label: '初来室', cond: d => (d.streak && d.streak.totalDays >= 1) },
@@ -953,10 +1169,8 @@
         const unlocked = !!a.cond(data);
         if (unlocked) {
           unlockedCount++;
-          // 新規アンロック検出
           if (!unlockedSet.includes(a.id)) {
             unlockedSet.push(a.id);
-            // 初回ロード時はお祝いは出さない（refreshContext で判定）
             setTimeout(() => celebrateAchievement(a), 600);
           }
         }
@@ -974,23 +1188,22 @@
     }
 
     function celebrateAchievement(a) {
-      // 初回ロード時は派手な演出は控えめに（トーストのみ）
       if (!window._sssInitDone) return;
       showCelebration(a.icon, '実績解除！', a.label);
       fireConfetti();
     }
 
     // =====================================================================
-    // 🆕 機能3: デイリーミッション
+    // デイリーミッション
     // =====================================================================
     const MISSION_POOL = [
-      { id: 'm60',   text: '今日90分以上勉強する', reward: '+1exp', check: d => parseHoursFromString(d.today) >= 1.5 },
+      { id: 'm90',   text: '今日90分以上勉強する', reward: '+1exp', check: d => parseHoursFromString(d.today) >= 1.5 },
       { id: 'm120',  text: '今日2時間以上勉強する', reward: '+2exp', check: d => parseHoursFromString(d.today) >= 2 },
       { id: 'm180',  text: '今日3時間以上勉強する', reward: '+3exp', check: d => parseHoursFromString(d.today) >= 3 },
-      { id: 'test',  text: '小テストを1つ進める', reward: '+1exp', check: d => false }, // 自己申告
+      { id: 'test',  text: '小テストを1つ進める', reward: '+1exp', check: d => false },
       { id: 'goal',  text: '週目標の進捗を伸ばす', reward: '+1exp', check: d => parseFloat(d.weeklyGoal && d.weeklyGoal.percent || 0) > parseFloat(localStorage.getItem('sss_yest_percent') || 0) },
-      { id: 'log',   text: 'スタディログを1件投稿する', reward: '+1exp', check: d => !!localStorage.getItem('sss_log_today_' + todayKey()) },
-      { id: 'cd',    text: 'カウントダウンを見て気合を入れる', reward: '+1exp', check: d => true } // 開いた時点で達成
+      { id: 'book',  text: 'おすすめ参考書を1件投稿する', reward: '+1exp', check: d => !!localStorage.getItem('sss_book_today_' + todayKey()) },
+      { id: 'cd',    text: 'カウントダウンを見て気合を入れる', reward: '+1exp', check: d => true }
     ];
 
     function todayKey() {
@@ -1005,7 +1218,6 @@
     }
 
     function renderMissions(data) {
-      // 当日のミッションをローテーション選定（日付をシードにシャッフルして3つ取る）
       const key = 'sss_missions_' + todayKey();
       let missions = JSON.parse(localStorage.getItem(key) || 'null');
       if (!missions) {
@@ -1032,7 +1244,6 @@
         `;
       }).join('');
 
-      // 全部達成済みなら静かにお祝い
       if (missions.length > 0 && missions.every(m => {
         const def = MISSION_POOL.find(x => x.id === m.id);
         return (def && def.check(data)) || m.manualDone;
@@ -1066,220 +1277,165 @@
     }
 
     // =====================================================================
-    // 🆕 機能9: パーソナルメッセージ
-    // =====================================================================
-    function renderPersonalMessage(data) {
-      const messages = [];
-
-      const todayH = parseHoursFromString(data.today);
-      const streak = data.streak && data.streak.active || 0;
-      const total = streak; // alias
-      const goalPct = data.weeklyGoal ? parseFloat(data.weeklyGoal.percent) : 0;
-
-      if (todayH >= 5) {
-        messages.push({ icon: '🔥', text: `今日は<strong>${todayH.toFixed(1)}時間</strong>！その集中力、本物。` });
-      } else if (todayH >= 3) {
-        messages.push({ icon: '💪', text: `今日は<strong>${todayH.toFixed(1)}時間</strong>クリア！ナイスペース。` });
-      } else if (todayH >= 1) {
-        messages.push({ icon: '✨', text: `今日もちゃんと机に向かえてる。あと一歩で<strong>2時間</strong>。` });
-      }
-
-      if (streak >= 30) {
-        messages.push({ icon: '👑', text: `<strong>${streak}日連続</strong>来室。もはや習慣。尊敬します。` });
-      } else if (streak >= 7) {
-        messages.push({ icon: '🌟', text: `<strong>${streak}日連続</strong>来室中。リズムができてきたね。` });
-      } else if (streak >= 3) {
-        messages.push({ icon: '🔥', text: `<strong>${streak}日連続</strong>来室！この調子で1週間目指そう。` });
-      }
-
-      if (goalPct >= 100) {
-        messages.push({ icon: '🎯', text: `今週の目標、<strong>達成！</strong> 上振れの週にしよう。` });
-      } else if (goalPct >= 80) {
-        messages.push({ icon: '🏃', text: `週目標まで<strong>あと${(100-goalPct).toFixed(0)}%</strong>。今日もう一息！` });
-      } else if (goalPct >= 50) {
-        messages.push({ icon: '⚡', text: `週目標は半分突破。ペース守ればちゃんと届く。` });
-      }
-
-      if (data.compare) {
-        const tw = parseFloat(data.compare.thisWeekHours || 0);
-        const lw = parseFloat(data.compare.lastWeekHours || 0);
-        if (tw > lw + 1) {
-          messages.push({ icon: '📈', text: `先週より<strong>${(tw-lw).toFixed(1)}時間</strong>多い！伸びてる！` });
-        }
-      }
-
-      if (data.exam && data.exam.date) {
-        const days = Math.ceil((new Date(data.exam.date) - new Date()) / 86400000);
-        if (days > 0 && days <= 7) {
-          messages.push({ icon: '⏰', text: `${data.exam.name}まで<strong>あと${days}日</strong>。仕上げにかかろう。` });
-        }
-      }
-
-      if (messages.length === 0) {
-        messages.push({ icon: '🌱', text: 'まずは1日、机に向かうところから。今日も来てくれてうれしい。' });
-      }
-
-      // 日付をシードに選ぶ（1日中同じメッセージ）
-      const seed = hashStr(todayKey() + (data.id || '')) & 0xffff;
-      const pick = messages[seed % messages.length];
-      document.getElementById('pmsg-icon').innerText = pick.icon;
-      document.getElementById('pmsg-text').innerHTML = pick.text;
-      document.getElementById('personal-msg').style.display = 'flex';
-
-      // 翌日比較のため、現在のweeklyPercentを記録
-      if (data.weeklyGoal) {
-        localStorage.setItem('sss_yest_percent', data.weeklyGoal.percent);
-      }
-    }
-
-    // =====================================================================
-    // 🆕 機能4: ヒートマップ
+    // ヒートマップ：7日 × 24時間
     // =====================================================================
     async function loadHeatmap() {
       try {
         const data = await fetchHeatmap(studentToken);
-        renderHeatmap(data.days || {});
+        renderHeatmap(data.days || []);
+        heatmapLoaded = true;
       } catch (e) {
         console.warn('heatmap load failed:', e);
+        document.getElementById('heatmap-tbody').innerHTML = '<tr><td colspan="8" style="text-align:center; color:#666; padding:20px;">読み込みに失敗しました</td></tr>';
       }
     }
 
-    function renderHeatmap(daysMap) {
-      const grid = document.getElementById('heatmap-grid');
-      grid.innerHTML = '';
+    function renderHeatmap(days) {
+      const thead = document.getElementById('heatmap-thead');
+      const tbody = document.getElementById('heatmap-tbody');
 
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      // 120日前から今日まで、各日のセルを作る
-      const cells = [];
-      for (let i = 119; i >= 0; i--) {
-        const d = new Date(today.getTime() - i * 86400000);
-        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-        const min = daysMap[key] || 0;
-        cells.push({ date: d, key, min });
-      }
+      // ヘッダー：空セル + 7日分
+      let theadHtml = '<th></th>';
+      days.forEach(d => {
+        theadHtml += `<th class="${d.isToday ? 'day-today' : ''}">${d.label}<span class="dow">${d.dow}</span></th>`;
+      });
+      thead.innerHTML = theadHtml;
 
-      // 列ごと（週ごと）に並べる：grid-auto-flow: column なので順番に詰めればOK
-      // ただし最初の列を月曜開始にするため、最初の日の曜日でオフセット
-      const firstDay = cells[0].date.getDay(); // 0=日
-      const monStart = (firstDay + 6) % 7; // 月=0
-      for (let pad = 0; pad < monStart; pad++) {
-        const ph = document.createElement('div');
-        ph.style.width = '12px';
-        ph.style.height = '12px';
-        ph.style.visibility = 'hidden';
-        grid.appendChild(ph);
-      }
-
-      for (const c of cells) {
-        const cell = document.createElement('div');
-        let level = 0;
-        if (c.min > 0)   level = 1;
-        if (c.min >= 60) level = 2;
-        if (c.min >= 180) level = 3;
-        if (c.min >= 300) level = 4;
-        cell.className = 'heatmap-cell lv' + level;
-        const dateStr = `${c.date.getMonth()+1}/${c.date.getDate()}`;
-        const hStr = c.min >= 60 ? `${(c.min/60).toFixed(1)}h` : `${Math.round(c.min)}分`;
-        cell.title = `${dateStr}: ${c.min > 0 ? hStr : '記録なし'}`;
-        grid.appendChild(cell);
-      }
-    }
-
-    // =====================================================================
-    // 🆕 機能5: 時間帯プロファイル
-    // =====================================================================
-    async function loadHourly() {
-      try {
-        const data = await fetchHourly(studentToken);
-        renderHourly(data);
-      } catch (e) {
-        console.warn('hourly load failed:', e);
-      }
-    }
-
-    function renderHourly(data) {
-      const hours = data.hours || [];
-      const peak = data.peakHour;
-      document.getElementById('hourly-type').innerText = `${data.type || '--'}（よく勉強する時間：${peak}時台）`;
-
-      const max = Math.max(...hours, 0.1);
-      const container = document.getElementById('hourly-bars');
-      container.innerHTML = '';
+      // 各時間ごとに行を作成
+      let tbodyHtml = '';
       for (let h = 0; h < 24; h++) {
-        const bar = document.createElement('div');
-        const pct = (hours[h] / max) * 100;
-        bar.className = 'hourly-bar' + (h === peak ? ' peak' : '');
-        bar.style.height = Math.max(2, pct) + '%';
-        bar.dataset.tip = `${h}時台: ${hours[h].toFixed(1)}h`;
-        container.appendChild(bar);
-      }
-    }
-
-    // =====================================================================
-    // 🆕 機能10: スタディログ
-    // =====================================================================
-    function setupStudyLogCounter() {
-      const input = document.getElementById('studylog-input');
-      const counter = document.getElementById('studylog-counter');
-      if (input && counter) {
-        input.addEventListener('input', () => {
-          counter.textContent = input.value.length;
+        const hLabel = String(h).padStart(2, '0') + ':00';
+        let row = `<tr><td class="hour-label">${hLabel}</td>`;
+        days.forEach(d => {
+          const min = d.hours[h] || 0;
+          let level = 0;
+          if (min > 0) level = 1;
+          if (min >= 15) level = 2;
+          if (min >= 30) level = 3;
+          if (min >= 45) level = 4;
+          const tip = min > 0
+            ? `${d.label}(${d.dow}) ${hLabel} 〜 ${min}分`
+            : `${d.label}(${d.dow}) ${hLabel} 在室なし`;
+          row += `<td><div class="hm-cell lv${level}" data-tip="${escapeHtml(tip)}"></div></td>`;
         });
+        row += '</tr>';
+        tbodyHtml += row;
+      }
+      tbody.innerHTML = tbodyHtml;
+    }
+
+    // =====================================================================
+    // 参考書おすすめ
+    // =====================================================================
+    function setupBookForm() {
+      // 星評価ピッカー
+      document.querySelectorAll('#star-picker .star').forEach(star => {
+        star.addEventListener('click', () => {
+          const val = parseInt(star.getAttribute('data-val'));
+          setRating(val);
+        });
+        star.addEventListener('mouseenter', () => {
+          const val = parseInt(star.getAttribute('data-val'));
+          previewRating(val);
+        });
+      });
+      document.getElementById('star-picker').addEventListener('mouseleave', () => {
+        renderStars(currentRating);
+      });
+
+      // コメント文字数カウンター
+      const ta = document.getElementById('book-comment');
+      const counter = document.getElementById('book-comment-counter');
+      if (ta && counter) {
+        ta.addEventListener('input', () => counter.textContent = ta.value.length);
       }
     }
 
-    async function loadStudyLogs() {
+    function setRating(val) {
+      currentRating = val;
+      renderStars(val);
+      document.getElementById('rating-display').textContent = val + ' / 5';
+    }
+    function previewRating(val) {
+      renderStars(val);
+      document.getElementById('rating-display').textContent = val + ' / 5';
+    }
+    function renderStars(val) {
+      document.querySelectorAll('#star-picker .star').forEach((s, idx) => {
+        s.classList.toggle('selected', idx < val);
+      });
+      if (currentRating === 0 && val === 0) {
+        document.getElementById('rating-display').textContent = '--';
+      }
+    }
+
+    async function loadBooks() {
       try {
-        const data = await fetchStudyLogs(studentToken);
-        renderStudyLogs(data.logs || []);
+        const data = await fetchBooks(studentToken);
+        renderBooks(data.posts || []);
+        booksLoaded = true;
       } catch (e) {
-        console.warn('study logs load failed:', e);
-        document.getElementById('studylog-feed').innerHTML = '<div class="studylog-empty">読み込みに失敗しました</div>';
+        console.warn('books load failed:', e);
+        document.getElementById('book-feed').innerHTML = '<div class="book-empty">読み込みに失敗しました</div>';
       }
     }
 
-    function renderStudyLogs(logs) {
-      const feed = document.getElementById('studylog-feed');
-      if (logs.length === 0) {
-        feed.innerHTML = '<div class="studylog-empty">まだ投稿がありません。最初の一言を投稿してみよう！</div>';
+    function renderBooks(posts) {
+      const feed = document.getElementById('book-feed');
+      if (!posts || posts.length === 0) {
+        feed.innerHTML = '<div class="book-empty">まだ投稿がありません。<br>あなたのお気に入りの一冊を最初に紹介してみよう！</div>';
         return;
       }
-      const emojis = ['👍', '🔥', '💪', '👏', '✨'];
-      feed.innerHTML = logs.map(log => {
-        const reactions = emojis.map(e => {
-          const count = (log.reactions && log.reactions[e]) || 0;
-          const active = (log.myReactions || []).includes(e);
-          return `<button class="reaction-btn ${active ? 'active' : ''}" onclick="reactToLog('${log.id}', '${e}', this)">${e}${count > 0 ? `<span class="count">${count}</span>` : ''}</button>`;
+      const emojis = ['👍', '🔥', '💡', '👀', '✨'];
+      feed.innerHTML = posts.map(p => {
+        const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
+        const reactionHtml = emojis.map(e => {
+          const count = (p.reactions && p.reactions[e]) || 0;
+          const active = (p.myReactions || []).includes(e);
+          return `<button class="reaction-btn ${active ? 'active' : ''}" onclick="reactToBook('${p.id}', '${e}', this)">${e}${count > 0 ? `<span class="count">${count}</span>` : ''}</button>`;
         }).join('');
+        const commentHtml = p.comment ? `<div class="book-comment">${escapeHtml(p.comment)}</div>` : '';
         return `
-          <div class="studylog-item ${log.isMine ? 'mine' : ''}">
-            <div class="studylog-meta">
-              <span class="studylog-author">${escapeHtml(log.name)}${log.isMine ? '（自分）' : ''}</span>
-              <span>${escapeHtml(log.time)}</span>
+          <div class="book-card ${p.isMine ? 'mine' : ''}">
+            <div class="book-card-header">
+              <div class="book-name">${escapeHtml(p.bookName)}</div>
+              <div class="book-rating">${stars}</div>
             </div>
-            <div class="studylog-msg">${escapeHtml(log.message)}</div>
-            <div class="studylog-reactions">${reactions}</div>
+            <div class="book-meta">
+              <span class="book-author">${escapeHtml(p.name)}${p.isMine ? '（自分）' : ''}</span>
+              <span>${escapeHtml(p.time)}</span>
+            </div>
+            ${commentHtml}
+            <div class="book-reactions">${reactionHtml}</div>
           </div>
         `;
       }).join('');
     }
 
-    async function postStudyLog() {
-      const input = document.getElementById('studylog-input');
-      const btn = document.getElementById('studylog-post-btn');
-      const text = input.value.trim();
-      if (!text) { showToast('メッセージを入力してください'); return; }
+    async function postBook() {
+      const nameInput = document.getElementById('book-name');
+      const commentInput = document.getElementById('book-comment');
+      const btn = document.getElementById('book-post-btn');
+
+      const bookName = nameInput.value.trim();
+      const comment = commentInput.value.trim();
+
+      if (!bookName) { showToast('参考書名を入力してください'); return; }
+      if (currentRating === 0) { showToast('おすすめ度（★）を選んでください'); return; }
 
       btn.disabled = true;
       btn.innerText = '送信中...';
       try {
-        await apiPostStudyLog(studentToken, text, currentData && currentData.today);
-        input.value = '';
-        document.getElementById('studylog-counter').textContent = '0';
-        localStorage.setItem('sss_log_today_' + todayKey(), '1');
+        await apiPostBook(studentToken, bookName, currentRating, comment);
+        nameInput.value = '';
+        commentInput.value = '';
+        document.getElementById('book-comment-counter').textContent = '0';
+        currentRating = 0;
+        renderStars(0);
+        document.getElementById('rating-display').textContent = '--';
+        localStorage.setItem('sss_book_today_' + todayKey(), '1');
         showToast('投稿しました！');
-        await loadStudyLogs();
+        await loadBooks();
         if (currentData) renderMissions(currentData);
       } catch (e) {
         showToast('投稿失敗：' + (e.message || 'エラー'));
@@ -1289,11 +1445,11 @@
       }
     }
 
-    async function reactToLog(logId, emoji, btnEl) {
+    async function reactToBook(postId, emoji, btnEl) {
       btnEl.disabled = true;
       try {
-        await apiReactStudyLog(studentToken, logId, emoji);
-        await loadStudyLogs();
+        await apiReactBook(studentToken, postId, emoji);
+        await loadBooks();
       } catch (e) {
         showToast('反応に失敗：' + (e.message || 'エラー'));
       } finally {
@@ -1302,119 +1458,9 @@
     }
 
     // =====================================================================
-    // 🆕 機能11: ライバル
-    // =====================================================================
-    function renderRivals(rivals, weeklyGoal) {
-      const box = document.getElementById('rivals-content');
-      if (!rivals || rivals.length === 0) {
-        box.innerHTML = `<div class="rival-empty">まだライバルを登録していません。<br>「ライバルを設定する」から最大5人選べます。<br>今週の時間で並んで競い合おう！</div>`;
-        return;
-      }
-
-      // 自分の今週時間を取得
-      const myHours = weeklyGoal ? parseFloat(weeklyGoal.currentHours) : 0;
-      const maxHours = Math.max(myHours, ...rivals.map(r => parseFloat(r.weekHours)), 0.1);
-
-      let html = `
-        <div class="rival-row" style="border-color: rgba(74, 222, 128, 0.3); background: rgba(74, 222, 128, 0.05);">
-          <span class="rival-name">⭐ 自分</span>
-          <div class="rival-bar"><div class="rival-bar-fill mine" style="width: ${(myHours/maxHours*100).toFixed(0)}%;"></div></div>
-          <span class="rival-hours">${myHours.toFixed(1)}h</span>
-        </div>
-      `;
-      rivals.forEach(r => {
-        const rh = parseFloat(r.weekHours);
-        const isAhead = rh > myHours;
-        html += `
-          <div class="rival-row">
-            <span class="rival-name">${escapeHtml(r.name)}</span>
-            <span class="rival-vs">${isAhead ? '↑' : '↓'}</span>
-            <div class="rival-bar"><div class="rival-bar-fill" style="width: ${(rh/maxHours*100).toFixed(0)}%;"></div></div>
-            <span class="rival-hours">${rh.toFixed(1)}h</span>
-          </div>
-        `;
-      });
-      box.innerHTML = html;
-    }
-
-    async function openRivalModal() {
-      openModal('rival-modal');
-      const list = document.getElementById('rival-checklist');
-      list.innerHTML = '<div style="color:#666; padding:20px; text-align:center;">読み込み中...</div>';
-
-      try {
-        if (allStudents.length === 0) {
-          const sl = await fetchStudentList(studentToken);
-          allStudents = sl.students || [];
-        }
-        const rv = await fetchRivals(studentToken);
-        myRivalIds = (rv.rivals || []).map(r => r.id);
-
-        renderRivalChecklist('');
-        document.getElementById('rival-search').oninput = (e) => renderRivalChecklist(e.target.value);
-      } catch (e) {
-        list.innerHTML = `<div style="color:#ff6b6b; padding:20px; text-align:center;">読み込み失敗：${escapeHtml(e.message)}</div>`;
-      }
-    }
-
-    function renderRivalChecklist(filterText) {
-      const list = document.getElementById('rival-checklist');
-      const filtered = allStudents.filter(s => !filterText || s.name.indexOf(filterText) >= 0);
-      if (filtered.length === 0) {
-        list.innerHTML = '<div style="color:#666; padding:20px; text-align:center;">該当する生徒がいません</div>';
-        return;
-      }
-      list.innerHTML = filtered.map(s => {
-        const checked = myRivalIds.includes(s.id);
-        return `
-          <label class="rival-check-row">
-            <input type="checkbox" data-sid="${escapeHtml(s.id)}" ${checked ? 'checked' : ''} onchange="onRivalCheck(this)">
-            <span>${escapeHtml(s.name)}</span>
-          </label>
-        `;
-      }).join('');
-      document.getElementById('rival-selected-count').textContent = myRivalIds.length;
-    }
-
-    function onRivalCheck(cb) {
-      const id = cb.getAttribute('data-sid');
-      if (cb.checked) {
-        if (myRivalIds.length >= 5) {
-          cb.checked = false;
-          showToast('ライバルは5人までです');
-          return;
-        }
-        if (!myRivalIds.includes(id)) myRivalIds.push(id);
-      } else {
-        myRivalIds = myRivalIds.filter(x => x !== id);
-      }
-      document.getElementById('rival-selected-count').textContent = myRivalIds.length;
-    }
-
-    async function saveRivals() {
-      const btn = document.getElementById('rival-save-btn');
-      btn.disabled = true;
-      btn.innerText = '保存中...';
-      try {
-        await apiUpdateRivals(studentToken, myRivalIds);
-        showToast('ライバルを更新しました！');
-        closeAllModals();
-        // 再ロード（メイン取得をやり直してライバル表示反映）
-        const data = await fetchStats(studentToken);
-        showStats(data, true);
-      } catch (e) {
-        showToast('保存失敗：' + (e.message || 'エラー'));
-      } finally {
-        btn.disabled = false;
-        btn.innerText = '保存する';
-      }
-    }
-
-    // =====================================================================
-    // 🆕 機能13: お祝い演出
+    // お祝い演出
     // =====================================================================
     function checkCelebrations(data) {
-      // 連続日数の節目
       const streak = data.streak && data.streak.active || 0;
       const milestones = [7, 30, 100];
       const flagKey = 'sss_streak_flag';
@@ -1427,11 +1473,10 @@
             showCelebration('🎊', `${m}日連続！`, '本当によく続けてる…！');
             fireConfetti();
           }, 800);
-          return; // 同時に複数出さない
+          return;
         }
       }
 
-      // 週目標達成
       if (data.weeklyGoal && parseFloat(data.weeklyGoal.percent) >= 100) {
         const wKey = 'sss_goal_week_' + currentWeekKey();
         if (!localStorage.getItem(wKey)) {
@@ -1443,20 +1488,20 @@
         }
       }
 
-      // 初期ロード完了フラグ（実績解除お祝いはこれ以降だけ出す）
+      // 翌日比較のため今日の％を保存
+      if (data.weeklyGoal) {
+        localStorage.setItem('sss_yest_percent', data.weeklyGoal.percent);
+      }
+
       setTimeout(() => { window._sssInitDone = true; }, 1500);
     }
 
     function currentWeekKey() {
       const d = new Date();
-      const dayMs = 86400000;
       const day = d.getDay();
       const diff = d.getDate() - day + (day === 0 ? -6 : 1);
       const monday = new Date(d.getFullYear(), d.getMonth(), diff);
-      return Utilities_format(monday);
-    }
-    function Utilities_format(d) {
-      return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+      return `${monday.getFullYear()}-${monday.getMonth()+1}-${monday.getDate()}`;
     }
 
     function showCelebration(icon, title, sub) {
@@ -1645,9 +1690,12 @@
       try {
         const data = await fetchStats(studentToken);
         showStats(data, true);
-        loadHeatmap();
-        loadHourly();
-        loadStudyLogs();
+        // 既にロード済みのサブタブも更新
+        heatmapLoaded = false;
+        booksLoaded = false;
+        const activeTab = document.querySelector('.tab-content.active').getAttribute('data-tab');
+        if (activeTab === 'trends') loadHeatmap();
+        if (activeTab === 'books') loadBooks();
       } catch (err) {
         console.error(err);
         alert('更新に失敗しました：' + (err.message || '通信エラー'));
@@ -1677,12 +1725,8 @@
       try {
         await saveStudentSettings(studentToken, name, date);
         closeAllModals();
-        showLoading();
         const data = await fetchStats(studentToken);
-        showStats(data);
-        loadHeatmap();
-        loadHourly();
-        loadStudyLogs();
+        showStats(data, true);
       } catch (err) {
         console.error(err);
         alert('保存に失敗しました：' + (err.message || '不明なエラー'));
@@ -1692,7 +1736,7 @@
     }
 
     // =====================================================================
-    // チャート＆スクロールアニメ
+    // チャート
     // =====================================================================
     function drawChart(canvasId, labels, values) {
       const ctx = document.getElementById(canvasId).getContext('2d');
@@ -1715,32 +1759,13 @@
         },
         options: {
           responsive: true,
-          animation: { duration: 1500, easing: 'easeOutQuart' },
+          animation: { duration: 1200, easing: 'easeOutQuart' },
           plugins: { legend: { display: false } },
           scales: {
             y: { beginAtZero: true, grid: { color: '#333' }, ticks: { color: '#a0a0a0' } },
             x: { grid: { display: false }, ticks: { color: '#a0a0a0', maxRotation: 45, minRotation: 45 } }
           }
         }
-      });
-    }
-
-    function setupScrollAnimations() {
-      const observer = new IntersectionObserver((entries, obs) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('visible');
-            if (entry.target.id === 'box-daily')   drawChart('dailyChart',   chartData.daily.labels,   chartData.daily.values);
-            if (entry.target.id === 'box-weekly')  drawChart('weeklyChart',  chartData.weekly.labels,  chartData.weekly.values);
-            if (entry.target.id === 'box-monthly') drawChart('monthlyChart', chartData.monthly.labels, chartData.monthly.values);
-            obs.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.1 });
-
-      ['box-tests', 'box-achievements', 'box-ranking', 'box-feed', 'box-rivals', 'box-studylog', 'box-heatmap', 'box-hourly', 'box-daily', 'box-weekly', 'box-monthly', 'box-history'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) observer.observe(el);
       });
     }
   </script>
