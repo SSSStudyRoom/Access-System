@@ -18,22 +18,16 @@ const IDX_PERSONAL = IDX_PROFILE;
 
 // ====================================================================
 // 🔔 Google Chat Webhook URL
-//   入退室通知用。WebhookのURLは秘密情報なのでGAS内のみで保管する
-//   （リポジトリには絶対にアップロードしないこと）
 // ====================================================================
 const GCHAT_WEBHOOK_URL = 'https://chat.googleapis.com/v1/spaces/AAQAUHWNd34/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=YEAO0z4xaLIh9y2bvuVsQqHR0ncqPk0ZdTu-nB3KOcg';
 
 // ====================================================================
 // 🔗 生徒マイページのベースURL
-//   本番URLが変わったらここだけ書き換えればOK
 // ====================================================================
 const STUDENT_DASHBOARD_BASE_URL = 'https://ahmadtanzeel.github.io/-dev-webpages-/dashboard.html?token=';
 
 // ====================================================================
 // 📘 小テスト用スプレッドシートの設定
-//   - TEST_SS_ID         : 小テスト管理用スプレッドシートのID
-//   - TEST_TEMPLATE_NAME : テンプレートシートの名称
-//   生徒名のシートが存在しない場合、このテンプレートをコピーして自動生成する
 // ====================================================================
 const TEST_SS_ID = '1uKXnpKeGCuyPpRAryFP7Ou4K4t3SgTNksZFQAhvj45E';
 const TEST_TEMPLATE_NAME = 'テンプレート';
@@ -51,6 +45,13 @@ const IDX_LOG = {
 };
 
 // ====================================================================
+// 🆕 新機能用シート名
+// ====================================================================
+const SHEET_STUDY_LOG  = '学習ログ';        // スタディログ投稿
+const SHEET_REACTIONS  = 'リアクション';    // スタディログへの👍など
+const SHEET_RIVALS     = 'ライバル登録';    // 各生徒のライバル設定
+
+// ====================================================================
 // ① アクセス振り分け処理
 // ====================================================================
 function doGet(e) {
@@ -58,13 +59,33 @@ function doGet(e) {
   const action = params.action;
   const token  = params.token;
 
-  if (action === 'stats' && token) {
-    try {
+  try {
+    if (action === 'stats' && token) {
       const data = getStudentStats(token);
       return jsonResponse({ ok: true, data: data });
-    } catch (err) {
-      return jsonResponse({ ok: false, error: String(err && err.message || err) });
     }
+    if (action === 'heatmap' && token) {
+      const data = getHeatmap(token);
+      return jsonResponse({ ok: true, data: data });
+    }
+    if (action === 'hourly' && token) {
+      const data = getHourlyProfile(token);
+      return jsonResponse({ ok: true, data: data });
+    }
+    if (action === 'studyLogs' && token) {
+      const data = getStudyLogs(token);
+      return jsonResponse({ ok: true, data: data });
+    }
+    if (action === 'studentList' && token) {
+      const data = getStudentList(token);
+      return jsonResponse({ ok: true, data: data });
+    }
+    if (action === 'rivals' && token) {
+      const data = getRivals(token);
+      return jsonResponse({ ok: true, data: data });
+    }
+  } catch (err) {
+    return jsonResponse({ ok: false, error: String(err && err.message || err) });
   }
 
   return HtmlService.createHtmlOutputFromFile('index')
@@ -85,6 +106,21 @@ function doPost(e) {
       const msg = processScan(body.id);
       return jsonResponse({ ok: true, message: msg });
     }
+    // 🆕 スタディログ投稿
+    if (action === 'postStudyLog') {
+      const msg = postStudyLog(body.token, body.message, body.hours);
+      return jsonResponse({ ok: true, message: msg });
+    }
+    // 🆕 スタディログにリアクション
+    if (action === 'reactStudyLog') {
+      const msg = reactStudyLog(body.token, body.logId, body.emoji);
+      return jsonResponse({ ok: true, message: msg });
+    }
+    // 🆕 ライバル登録/解除
+    if (action === 'updateRivals') {
+      const msg = updateRivals(body.token, body.rivalIds || []);
+      return jsonResponse({ ok: true, message: msg });
+    }
 
     return jsonResponse({ ok: false, error: 'Unknown action: ' + action });
   } catch (err) {
@@ -99,7 +135,39 @@ function jsonResponse(obj) {
 }
 
 // ====================================================================
-// ② ダッシュボード用データ集計
+// 🛠 ユーティリティ：トークン→生徒ID変換
+// ====================================================================
+function findStudentByToken(token) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const profileData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
+  for (let i = 1; i < profileData.length; i++) {
+    if (String(profileData[i][IDX_PROFILE.TOKEN]).trim() === token) {
+      return {
+        id: String(profileData[i][IDX_PROFILE.ID]).trim(),
+        name: profileData[i][IDX_PROFILE.NAME] || profileData[i][IDX_PROFILE.NICKNAME] || ''
+      };
+    }
+  }
+  return null;
+}
+
+// ====================================================================
+// 🛠 ユーティリティ：シート確保（無ければ作成）
+// ====================================================================
+function ensureSheet(sheetName, headers) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    if (headers && headers.length > 0) {
+      sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+    }
+  }
+  return sheet;
+}
+
+// ====================================================================
+// ② ダッシュボード用データ集計（★ メッセージ・ライバル比較を追加）
 // ====================================================================
 function getStudentStats(studentToken) {
   const cache = CacheService.getScriptCache();
@@ -160,11 +228,21 @@ function getStudentStats(studentToken) {
     return new Date(d.getFullYear(), d.getMonth(), diff);
   };
   const thisMondayMs = getMonday(new Date()).getTime();
+  const lastMondayMs = thisMondayMs - 7 * 24 * 3600000;
 
-  let totalMs = 0, todayMs = 0, weekMs = 0, todayCheers = 0;
+  let totalMs = 0, todayMs = 0, weekMs = 0, lastWeekMs = 0, todayCheers = 0;
   let dailyMap = {}, weeklyMap = {}, monthlyMap = {}, weeklyRankingMap = {};
   let recentActions = [], historyList = [];
   let uniqueDates = new Set();
+
+  // 🆕 ライバル比較用：他生徒の今週時間
+  let allWeeklyMap = {};
+
+  // 🆕 過去30日の自分の日別データ（GitHub風ヒートマップではないが比較用）
+  // ※ヒートマップ本体は別APIで取る
+  let last30dMs = 0;
+  let prev30dMs = 0;
+  const ms30d = 30 * 24 * 3600000;
 
   for(let i = logData.length - 1; i >= 1; i--){
     let rowId = String(logData[i][IDX_LOG.ID]).trim();
@@ -181,6 +259,18 @@ function getStudentStats(studentToken) {
           totalMs += diffMs;
           if (logDateMs === todayStart) todayMs += diffMs;
           if (logDateMs >= (todayStart - 7*24*60*60*1000)) weekMs += diffMs;
+
+          // 🆕 過去30日 vs その前の30日（傾向比較）
+          if (inTime.getTime() >= now.getTime() - ms30d) {
+            last30dMs += diffMs;
+          } else if (inTime.getTime() >= now.getTime() - 2 * ms30d) {
+            prev30dMs += diffMs;
+          }
+
+          // 🆕 先週分（月曜〜日曜）
+          if (logDateMs >= lastMondayMs && logDateMs < thisMondayMs) {
+            lastWeekMs += diffMs;
+          }
 
           let dayKey = Utilities.formatDate(inTime, "JST", "MM/dd");
           dailyMap[dayKey] = (dailyMap[dayKey] || 0) + diffMs;
@@ -206,9 +296,10 @@ function getStudentStats(studentToken) {
         }
       }
 
-      // 今週ランキング集計（全員、退室済みのみ）
+      // 今週ランキング集計＆全員の今週時間（ライバル機能用）
       if(logDateMs >= thisMondayMs && diffMs > 0) {
         weeklyRankingMap[rowId] = (weeklyRankingMap[rowId] || 0) + diffMs;
+        allWeeklyMap[rowId] = (allWeeklyMap[rowId] || 0) + diffMs;
       }
 
       if(recentActions.length < 5) {
@@ -222,22 +313,20 @@ function getStudentStats(studentToken) {
     }
   }
 
-  // ★ ランキング修正：未退室（diffMs=0）も「現在進行中の入室」として含めて、データがある人を全員カウント
-  // 上記のままだと「入室中だがまだ退室していない人」がランキングに入らないため
-  // 改善版：ranking用のmapに、退室時刻がない場合は入室時刻から現在時刻までを暫定加算
+  // 入室中（未退室）を暫定加算
   for(let i = logData.length - 1; i >= 1; i--){
     let rowId = String(logData[i][IDX_LOG.ID]).trim();
     let inTime = toDate(logData[i][IDX_LOG.IN]);
     let outTime = toDate(logData[i][IDX_LOG.OUT]);
     if (!inTime) continue;
     let logDateMs = new Date(inTime.getFullYear(), inTime.getMonth(), inTime.getDate()).getTime();
-    if (logDateMs < thisMondayMs) break;  // 今週分のみで打ち切り（高速化）
+    if (logDateMs < thisMondayMs) break;
 
     if (!outTime) {
-      // 入室中：暫定で現在時刻までを加算
       let liveMs = now.getTime() - inTime.getTime();
-      if (liveMs > 0 && liveMs < 12 * 3600000) {  // 12時間超は異常値とみなしスキップ
+      if (liveMs > 0 && liveMs < 12 * 3600000) {
         weeklyRankingMap[rowId] = (weeklyRankingMap[rowId] || 0) + liveMs;
+        allWeeklyMap[rowId] = (allWeeklyMap[rowId] || 0) + liveMs;
       }
     }
   }
@@ -249,8 +338,28 @@ function getStudentStats(studentToken) {
     .slice(0, 5);
 
   // ====================================================================
-  // 小テスト進捗の取得（シートが無ければテンプレートから自動生成）
+  // 🆕 ライバル比較データ
   // ====================================================================
+  const rivalIds = getRivalIdsFor(targetId);
+  const rivalCompare = rivalIds.map(rid => {
+    return {
+      id: rid,
+      name: nickMap[rid] || "学習者",
+      weekHours: ((allWeeklyMap[rid] || 0) / 3600000).toFixed(1)
+    };
+  });
+
+  // ====================================================================
+  // 🆕 比較データ（先週比・前月比）
+  // ====================================================================
+  const compareData = {
+    thisWeekHours: (weekMs / 3600000).toFixed(1),
+    lastWeekHours: (lastWeekMs / 3600000).toFixed(1),
+    last30dHours: (last30dMs / 3600000).toFixed(1),
+    prev30dHours: (prev30dMs / 3600000).toFixed(1)
+  };
+
+  // 小テスト
   const testProgress = getOrCreateTestProgress(targetNickname, targetId);
 
   const formatChartData = (map) => {
@@ -259,23 +368,29 @@ function getStudentStats(studentToken) {
     return { labels, values };
   };
 
+  const totalHours = totalMs / 3600000;
+
   const resultData = {
     name: targetNickname,
     id: targetId,
     today: formatTime(todayMs),
     week: formatTime(weekMs),
     total: formatTime(totalMs),
+    totalHours: totalHours,   // 🆕 レベル計算用
     daily: formatChartData(dailyMap),
     weekly: formatChartData(weeklyMap),
     monthly: formatChartData(monthlyMap),
-    rank: calculateRank(totalMs / 3600000),
+    rank: calculateRank(totalHours),
     community: { ranking: top5Ranking, feed: recentActions },
     weeklyGoal: { currentHours: (weekMs / 3600000).toFixed(1), targetHours: weeklyGoalHours, percent: Math.min(100, ((weekMs/3600000)/weeklyGoalHours)*100).toFixed(1) },
     history: historyList.slice(0, 30),
     streak: { totalDays: uniqueDates.size, active: calculateStreak(uniqueDates) },
     tests: testProgress,
     exam: customExam,
-    cheers: todayCheers
+    cheers: todayCheers,
+    rivals: rivalCompare,      // 🆕
+    compare: compareData,      // 🆕
+    level: calculateLevel(totalHours) // 🆕 レベル＆経験値
   };
 
   cache.put(studentToken, JSON.stringify(resultData), 900);
@@ -283,7 +398,350 @@ function getStudentStats(studentToken) {
 }
 
 // ====================================================================
-// ③ 設定保存
+// 🆕 ヒートマップ用データ（過去120日分の日別学習時間）
+// ====================================================================
+function getHeatmap(token) {
+  const student = findStudentByToken(token);
+  if (!student) throw new Error("無効なトークンです");
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const logData = ss.getSheetByName('管理シート').getDataRange().getValues();
+  const targetId = student.id;
+
+  const now = new Date();
+  const startMs = now.getTime() - 120 * 24 * 3600000;
+
+  const map = {}; // yyyy-MM-dd → 分
+
+  for (let i = 1; i < logData.length; i++) {
+    let rowId = String(logData[i][IDX_LOG.ID]).trim();
+    if (rowId !== targetId) continue;
+
+    let inT = logData[i][IDX_LOG.IN];
+    let outT = logData[i][IDX_LOG.OUT];
+    if (!(inT instanceof Date)) continue;
+    if (inT.getTime() < startMs) continue;
+    if (!(outT instanceof Date)) continue;
+
+    const diffMs = outT.getTime() - inT.getTime();
+    if (diffMs <= 0) continue;
+
+    const key = Utilities.formatDate(inT, "JST", "yyyy-MM-dd");
+    map[key] = (map[key] || 0) + diffMs / 60000;
+  }
+
+  return { days: map };
+}
+
+// ====================================================================
+// 🆕 時間帯別プロファイル（0〜23時の自分の学習分布）
+// ====================================================================
+function getHourlyProfile(token) {
+  const student = findStudentByToken(token);
+  if (!student) throw new Error("無効なトークンです");
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const logData = ss.getSheetByName('管理シート').getDataRange().getValues();
+  const targetId = student.id;
+
+  const hours = new Array(24).fill(0); // 各時間帯の累計学習分
+
+  for (let i = 1; i < logData.length; i++) {
+    let rowId = String(logData[i][IDX_LOG.ID]).trim();
+    if (rowId !== targetId) continue;
+
+    let inT = logData[i][IDX_LOG.IN];
+    let outT = logData[i][IDX_LOG.OUT];
+    if (!(inT instanceof Date) || !(outT instanceof Date)) continue;
+
+    let cur = new Date(inT.getTime());
+    const end = new Date(outT.getTime());
+    if (end <= cur) continue;
+
+    // 1時間ブロックごとに分配
+    while (cur < end) {
+      const h = cur.getHours();
+      const nextHour = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate(), h + 1, 0, 0);
+      const sliceEnd = nextHour < end ? nextHour : end;
+      const minutes = (sliceEnd.getTime() - cur.getTime()) / 60000;
+      hours[h] += minutes;
+      cur = sliceEnd;
+    }
+  }
+
+  // ピーク時間
+  let peakHour = 0;
+  for (let h = 1; h < 24; h++) {
+    if (hours[h] > hours[peakHour]) peakHour = h;
+  }
+
+  // 朝(5-11)/昼(11-17)/夜(17-24)/深夜(0-5) の集計でタイプ判定
+  const groups = { morning: 0, afternoon: 0, evening: 0, midnight: 0 };
+  for (let h = 0; h < 24; h++) {
+    if (h >= 5 && h < 11) groups.morning += hours[h];
+    else if (h >= 11 && h < 17) groups.afternoon += hours[h];
+    else if (h >= 17 && h < 24) groups.evening += hours[h];
+    else groups.midnight += hours[h];
+  }
+
+  let type = '夜型';
+  let max = groups.evening;
+  if (groups.morning > max) { max = groups.morning; type = '朝型'; }
+  if (groups.afternoon > max) { max = groups.afternoon; type = '昼型'; }
+  if (groups.midnight > max) { max = groups.midnight; type = '深夜型'; }
+
+  return {
+    hours: hours.map(m => +(m / 60).toFixed(2)), // 0時〜23時の各時間（時間単位）
+    peakHour: peakHour,
+    type: type
+  };
+}
+
+// ====================================================================
+// 🆕 スタディログ：取得（最新50件）
+// ====================================================================
+function getStudyLogs(token) {
+  const student = findStudentByToken(token);
+  if (!student) throw new Error("無効なトークンです");
+
+  ensureSheet(SHEET_STUDY_LOG, ['ID', '投稿日時', '生徒ID', 'メッセージ', '学習時間']);
+  ensureSheet(SHEET_REACTIONS, ['ログID', '生徒ID', '絵文字', '日時']);
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const logSheet = ss.getSheetByName(SHEET_STUDY_LOG);
+  const reactionSheet = ss.getSheetByName(SHEET_REACTIONS);
+
+  // 名前マップ
+  const profileData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
+  const nickMap = {};
+  for (let i = 1; i < profileData.length; i++) {
+    nickMap[String(profileData[i][IDX_PROFILE.ID]).trim()] = profileData[i][IDX_PROFILE.NAME] || profileData[i][IDX_PROFILE.NICKNAME] || '学習者';
+  }
+
+  const logData = logSheet.getDataRange().getValues();
+  const reactionData = reactionSheet.getDataRange().getValues();
+
+  // リアクション集計
+  const reactionMap = {}; // logId → { emoji → count }
+  const myReactions = {}; // logId → [emojis]
+  for (let i = 1; i < reactionData.length; i++) {
+    const logId = String(reactionData[i][0]).trim();
+    const userId = String(reactionData[i][1]).trim();
+    const emoji = String(reactionData[i][2]).trim();
+    if (!logId || !emoji) continue;
+    if (!reactionMap[logId]) reactionMap[logId] = {};
+    reactionMap[logId][emoji] = (reactionMap[logId][emoji] || 0) + 1;
+    if (userId === student.id) {
+      if (!myReactions[logId]) myReactions[logId] = [];
+      myReactions[logId].push(emoji);
+    }
+  }
+
+  const logs = [];
+  for (let i = logData.length - 1; i >= 1 && logs.length < 50; i--) {
+    const logId = String(logData[i][0]).trim();
+    const postedAt = logData[i][1];
+    const studentId = String(logData[i][2]).trim();
+    const message = String(logData[i][3] || '').trim();
+    const hours = logData[i][4];
+
+    if (!logId || !postedAt) continue;
+
+    logs.push({
+      id: logId,
+      time: postedAt instanceof Date ? Utilities.formatDate(postedAt, "JST", "MM/dd HH:mm") : String(postedAt),
+      name: nickMap[studentId] || '学習者',
+      isMine: studentId === student.id,
+      message: message,
+      hours: hours ? String(hours) : '',
+      reactions: reactionMap[logId] || {},
+      myReactions: myReactions[logId] || []
+    });
+  }
+
+  return { logs };
+}
+
+// ====================================================================
+// 🆕 スタディログ：投稿
+// ====================================================================
+function postStudyLog(token, message, hours) {
+  const student = findStudentByToken(token);
+  if (!student) throw new Error("無効なトークンです");
+
+  message = String(message || '').trim();
+  if (!message) throw new Error("メッセージを入力してください");
+  if (message.length > 200) throw new Error("メッセージは200文字以内にしてください");
+
+  // 簡易NGワード（必要に応じて拡張）
+  const ngWords = ['死ね', 'バカ', 'うざい', 'きもい'];
+  for (let w of ngWords) {
+    if (message.indexOf(w) >= 0) throw new Error("不適切な表現が含まれています");
+  }
+
+  const sheet = ensureSheet(SHEET_STUDY_LOG, ['ID', '投稿日時', '生徒ID', 'メッセージ', '学習時間']);
+  const logId = 'L' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+  sheet.appendRow([logId, new Date(), student.id, message, hours || '']);
+
+  return "投稿しました";
+}
+
+// ====================================================================
+// 🆕 スタディログ：リアクション（トグル：あれば削除、なければ追加）
+// ====================================================================
+function reactStudyLog(token, logId, emoji) {
+  const student = findStudentByToken(token);
+  if (!student) throw new Error("無効なトークンです");
+
+  logId = String(logId || '').trim();
+  emoji = String(emoji || '').trim();
+  if (!logId || !emoji) throw new Error("パラメータが不正です");
+
+  const allowed = ['👍', '🔥', '💪', '👏', '✨'];
+  if (allowed.indexOf(emoji) < 0) throw new Error("使えない絵文字です");
+
+  const sheet = ensureSheet(SHEET_REACTIONS, ['ログID', '生徒ID', '絵文字', '日時']);
+  const data = sheet.getDataRange().getValues();
+
+  // 既存チェック
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === logId &&
+        String(data[i][1]).trim() === student.id &&
+        String(data[i][2]).trim() === emoji) {
+      // トグル削除
+      sheet.deleteRow(i + 1);
+      return "removed";
+    }
+  }
+
+  sheet.appendRow([logId, student.id, emoji, new Date()]);
+  return "added";
+}
+
+// ====================================================================
+// 🆕 ライバル登録用：生徒一覧（自分以外）を返す
+// ====================================================================
+function getStudentList(token) {
+  const student = findStudentByToken(token);
+  if (!student) throw new Error("無効なトークンです");
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const profileData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
+
+  const list = [];
+  for (let i = 1; i < profileData.length; i++) {
+    const id = String(profileData[i][IDX_PROFILE.ID]).trim();
+    if (!id || id === student.id) continue;
+    const name = profileData[i][IDX_PROFILE.NAME] || profileData[i][IDX_PROFILE.NICKNAME] || id;
+    list.push({ id, name });
+  }
+  list.sort((a, b) => String(a.name).localeCompare(String(b.name), 'ja'));
+
+  return { students: list };
+}
+
+// ====================================================================
+// 🆕 ライバル登録：取得
+// ====================================================================
+function getRivals(token) {
+  const student = findStudentByToken(token);
+  if (!student) throw new Error("無効なトークンです");
+
+  const rivalIds = getRivalIdsFor(student.id);
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const profileData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
+  const nickMap = {};
+  for (let i = 1; i < profileData.length; i++) {
+    nickMap[String(profileData[i][IDX_PROFILE.ID]).trim()] = profileData[i][IDX_PROFILE.NAME] || profileData[i][IDX_PROFILE.NICKNAME] || '学習者';
+  }
+
+  return {
+    rivals: rivalIds.map(id => ({ id, name: nickMap[id] || '学習者' }))
+  };
+}
+
+// 内部ヘルパー：指定生徒のライバルID配列
+function getRivalIdsFor(studentId) {
+  ensureSheet(SHEET_RIVALS, ['生徒ID', 'ライバルIDリスト(カンマ区切り)']);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const data = ss.getSheetByName(SHEET_RIVALS).getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === studentId) {
+      const raw = String(data[i][1] || '').trim();
+      if (!raw) return [];
+      return raw.split(',').map(s => s.trim()).filter(s => s).slice(0, 5);
+    }
+  }
+  return [];
+}
+
+// ====================================================================
+// 🆕 ライバル登録：更新（最大5人）
+// ====================================================================
+function updateRivals(token, rivalIds) {
+  const student = findStudentByToken(token);
+  if (!student) throw new Error("無効なトークンです");
+
+  if (!Array.isArray(rivalIds)) rivalIds = [];
+  // 自分自身は除外＆重複排除＆最大5人
+  const cleaned = [];
+  const seen = {};
+  for (let rid of rivalIds) {
+    rid = String(rid).trim();
+    if (!rid || rid === student.id || seen[rid]) continue;
+    seen[rid] = true;
+    cleaned.push(rid);
+    if (cleaned.length >= 5) break;
+  }
+
+  const sheet = ensureSheet(SHEET_RIVALS, ['生徒ID', 'ライバルIDリスト(カンマ区切り)']);
+  const data = sheet.getDataRange().getValues();
+  let targetRow = -1;
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === student.id) {
+      targetRow = i + 1;
+      break;
+    }
+  }
+  if (targetRow === -1) targetRow = sheet.getLastRow() + 1;
+
+  sheet.getRange(targetRow, 1).setValue(student.id);
+  sheet.getRange(targetRow, 2).setValue(cleaned.join(','));
+
+  // 自分のキャッシュをクリア
+  CacheService.getScriptCache().remove(token);
+
+  return "ライバルを更新しました";
+}
+
+// ====================================================================
+// 🆕 レベル＆経験値計算
+//   レベルNから次レベルまでの必要時間 = 5 + N * 2 時間
+//   Lv1: 累計0-7h / Lv2: 7-16h / Lv3: 16-27h ...
+// ====================================================================
+function calculateLevel(totalHours) {
+  let level = 1;
+  let needed = 5 + level * 2; // Lv1→Lv2は7h
+  let acc = 0;
+
+  while (totalHours - acc >= needed) {
+    acc += needed;
+    level++;
+    needed = 5 + level * 2;
+  }
+
+  const currentExp = totalHours - acc;
+  return {
+    level: level,
+    currentExp: +currentExp.toFixed(1),
+    expForNext: +needed.toFixed(1),
+    percent: Math.min(100, +(currentExp / needed * 100).toFixed(1))
+  };
+}
+
+// ====================================================================
+// ③ 設定保存（変更なし）
 // ====================================================================
 function saveStudentSettings(token, examName, examDate) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -321,7 +779,7 @@ function saveStudentSettings(token, examName, examDate) {
 }
 
 // ====================================================================
-// ④ 受付打刻処理（★ 保護者メール通知機能つき ★）
+// ④ 受付打刻処理（変更なし）
 // ====================================================================
 function processScan(studentId) {
   if (!studentId) return "エラー：IDが読み込めませんでした";
@@ -333,35 +791,29 @@ function processScan(studentId) {
 
   const sheetMaxRow = sheet.getLastRow();
 
-  // ★ 「B列(ID)に実データがある最終行」を求める
-  //    F列などに数式が入っていて getLastRow() が水増しされていても
-  //    実データの末尾を正確に把握できる。
-  let actualLastDataRow = 1; // ヘッダー行のみの状態
+  let actualLastDataRow = 1;
   if (sheetMaxRow >= 2) {
     const bColumn = sheet.getRange(2, 2, sheetMaxRow - 1, 1).getValues();
     for (let i = bColumn.length - 1; i >= 0; i--) {
       const v = bColumn[i][0];
       if (v !== "" && v !== null && v !== undefined) {
-        actualLastDataRow = i + 2; // bColumn の i=0 はシートの2行目
+        actualLastDataRow = i + 2;
         break;
       }
     }
   }
 
-  // ★ 直近100件だけを後ろから取得（actualLastDataRow基準）
-  // 100件で見つからなければ300件、900件と段階的に拡張する保険つき
   let existingRowIndex = -1;
-  let existingInTime = null;  // 退室時にメールへ含める「本日の学習時間」計算用
+  let existingInTime = null;
   let searchSize = Math.min(100, Math.max(0, actualLastDataRow - 1));
   let attempt = 0;
-  let maxAttempts = 3; // 100, 300, 900 件まで遡る
+  let maxAttempts = 3;
 
   while (existingRowIndex === -1 && attempt < maxAttempts && searchSize > 0) {
     let startRow = Math.max(2, actualLastDataRow - searchSize + 1);
     let numRows = actualLastDataRow - startRow + 1;
     if (numRows <= 0) break;
 
-    // A〜E列のみ取得（F列のエール数は不要）
     const data = sheet.getRange(startRow, 1, numRows, 5).getValues();
 
     for (let i = data.length - 1; i >= 0; i--) {
@@ -370,20 +822,19 @@ function processScan(studentId) {
       if (rowDateStr !== todayStr) continue;
       if (String(data[i][IDX_LOG.ID]).trim() !== cleanTargetId) continue;
       if (data[i][IDX_LOG.OUT] === "" || data[i][IDX_LOG.OUT] === null) {
-        existingRowIndex = startRow + i; // 実際の行番号
-        existingInTime = data[i][IDX_LOG.IN]; // 入室時刻を保持
+        existingRowIndex = startRow + i;
+        existingInTime = data[i][IDX_LOG.IN];
         break;
       }
     }
 
     attempt++;
-    searchSize *= 3; // 100 → 300 → 900件
+    searchSize *= 3;
   }
 
   let actionType = "";
   let studyMs = 0;
   if (existingRowIndex > 0) {
-    // 退室処理
     sheet.getRange(existingRowIndex, IDX_LOG.OUT + 1).setValue(now);
     actionType = "退室";
     if (existingInTime instanceof Date) {
@@ -391,20 +842,12 @@ function processScan(studentId) {
       if (studyMs < 0) studyMs = 0;
     }
   } else {
-    // ★ 入室処理：実データ最終行の直下に追記
-    //    (getLastRow() ではなく actualLastDataRow を使うのがポイント)
-    //    C列に自動フォーミュラ等が入っている可能性があるため、C列は絶対に触らない
     const targetRow = actualLastDataRow + 1;
-    sheet.getRange(targetRow, 1, 1, 2).setValues([[now, cleanTargetId]]); // A列とB列を一括
-    sheet.getRange(targetRow, 4).setValue(now);                            // D列のみ
+    sheet.getRange(targetRow, 1, 1, 2).setValues([[now, cleanTargetId]]);
+    sheet.getRange(targetRow, 4).setValue(now);
     actionType = "入室";
   }
 
-  // ====================================================================
-  // 【優先度1】画面応答用の情報を確定する
-  //   ここまでで打刻処理は完了。クライアントへの応答メッセージはここで決定される。
-  //   以降の通知処理（メール・Webhook）は、もし失敗しても画面応答には一切影響しない。
-  // ====================================================================
   const pData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
   let studentName = "学習者";
   let studentToken = null;
@@ -422,16 +865,10 @@ function processScan(studentId) {
     }
   }
 
-  // 応答メッセージはここで確定（以降の処理が失敗しても変わらない）
   const responseMessage = `${studentName} さんが ${actionType} しました！`;
 
-  // キャッシュクリア（軽量処理なのでここに置く）
   if (studentToken) CacheService.getScriptCache().remove(studentToken);
 
-  // ====================================================================
-  // 【優先度2】保護者メール通知
-  //   失敗しても画面応答には影響しないように try-catch で完全分離
-  // ====================================================================
   if (parentEmail) {
     try {
       notifyParent(studentName, parentEmail, actionType, now, studyMs);
@@ -440,10 +877,6 @@ function processScan(studentId) {
     }
   }
 
-  // ====================================================================
-  // 【優先度3】Google Chat Webhook通知
-  //   メールより遅延の影響は小さい。失敗時もログのみで応答に影響させない
-  // ====================================================================
   try {
     notifyGoogleChat(studentName, actionType, now, studyMs);
   } catch (e) {
@@ -454,7 +887,7 @@ function processScan(studentId) {
 }
 
 // ====================================================================
-// ④-2 保護者向けメール送信
+// ④-2 保護者向けメール送信（変更なし）
 // ====================================================================
 function notifyParent(studentName, parentEmail, actionType, datetime, studyMs) {
   const timeStr = Utilities.formatDate(datetime, "JST", "yyyy年MM月dd日 HH時mm分");
@@ -467,7 +900,6 @@ function notifyParent(studentName, parentEmail, actionType, datetime, studyMs) {
     `  日時：${timeStr}\n` +
     `  行動：${actionType}\n`;
 
-  // 退室時のみ「本日の学習時間」を追記
   if (actionType === "退室" && studyMs > 0) {
     body += `  本日の学習時間：${formatTime(studyMs)}\n`;
   }
@@ -493,7 +925,7 @@ function notifyParent(studentName, parentEmail, actionType, datetime, studyMs) {
 }
 
 // ====================================================================
-// ④-3 Google Chat通知（Webhook経由）
+// ④-3 Google Chat通知（変更なし）
 // ====================================================================
 function notifyGoogleChat(studentName, actionType, datetime, studyMs) {
   if (!GCHAT_WEBHOOK_URL) return;
@@ -523,8 +955,7 @@ function notifyGoogleChat(studentName, actionType, datetime, studyMs) {
 }
 
 // ====================================================================
-// ⑥ 生徒マイページURLのメール下書き一括作成
-//    管理者向けUI（draftDialog.html）から呼ばれる
+// ⑥ 生徒マイページURLのメール下書き一括作成（変更なし）
 // ====================================================================
 function createDraftsByIds(idsString) {
   if (!idsString || !String(idsString).trim()) {
@@ -532,7 +963,7 @@ function createDraftsByIds(idsString) {
   }
 
   const ids = String(idsString)
-    .split(/[,、\s]+/)              // カンマ/読点/空白すべてに対応
+    .split(/[,、\s]+/)
     .map(s => s.trim())
     .filter(s => s);
 
@@ -543,7 +974,6 @@ function createDraftsByIds(idsString) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const profileData = ss.getSheetByName('公開プロフィール').getDataRange().getValues();
 
-  // ID → プロフィール情報のマップを構築
   const profileMap = {};
   for (let i = 1; i < profileData.length; i++) {
     const id = String(profileData[i][IDX_PROFILE.ID]).trim();
@@ -570,7 +1000,6 @@ function createDraftsByIds(idsString) {
       return;
     }
 
-    // 送信先：必ず生徒メアド（B列）。保護者には送らない。
     const to = profile.studentEmail;
     if (!to || to.indexOf('@') < 0) {
       errorList.push(`✗ ${id} (${profile.name})：生徒メアド(B列)が未設定`);
@@ -625,9 +1054,7 @@ function createDraftsByIds(idsString) {
 }
 
 // ====================================================================
-// ⑦ 小テスト進捗の取得（シートが無ければテンプレートから自動生成）
-//    優先順：①生徒名のシート → ②学習者IDのシート（旧形式互換）
-//    どちらも無ければ → テンプレートをコピーして生徒名のシートを新規作成
+// ⑦ 小テスト進捗の取得（変更なし）
 // ====================================================================
 function getOrCreateTestProgress(studentName, studentId) {
   const testProgress = [];
@@ -635,21 +1062,18 @@ function getOrCreateTestProgress(studentName, studentId) {
   try {
     const testSs = SpreadsheetApp.openById(TEST_SS_ID);
 
-    // 【ステップ1】既存シートを探す
     let testSheet = testSs.getSheetByName(studentName);
     if (!testSheet) {
-      testSheet = testSs.getSheetByName(studentId); // 旧形式（学習者ID）の互換
+      testSheet = testSs.getSheetByName(studentId);
     }
 
-    // 【ステップ2】どちらも無ければテンプレートから自動生成
     if (!testSheet) {
       const templateSheet = testSs.getSheetByName(TEST_TEMPLATE_NAME);
       if (!templateSheet) {
         console.error(`テンプレートシート「${TEST_TEMPLATE_NAME}」が見つかりません`);
-        return testProgress; // 空配列を返す
+        return testProgress;
       }
 
-      // 同時アクセスでの競合を防ぐためロック取得（最大10秒待機）
       const lock = LockService.getScriptLock();
       const acquired = lock.tryLock(10000);
       if (!acquired) {
@@ -658,10 +1082,8 @@ function getOrCreateTestProgress(studentName, studentId) {
       }
 
       try {
-        // ロック取得後、再度シート存在を確認（他リクエストが先に作成済の可能性）
         testSheet = testSs.getSheetByName(studentName);
         if (!testSheet) {
-          // テンプレートをコピーして生徒名にリネーム
           const copied = templateSheet.copyTo(testSs);
           copied.setName(studentName);
           testSheet = copied;
@@ -675,7 +1097,6 @@ function getOrCreateTestProgress(studentName, studentId) {
       }
     }
 
-    // 【ステップ3】シートからデータを抽出
     if (testSheet) {
       const testData = testSheet.getDataRange().getValues();
       for (let i = 1; i < testData.length; i++) {
@@ -709,7 +1130,7 @@ function getOrCreateTestProgress(studentName, studentId) {
 }
 
 // ====================================================================
-// 補助関数群
+// 補助関数群（変更なし）
 // ====================================================================
 function formatTime(ms) { return `${Math.floor(ms/3600000)}時間${Math.floor((ms%3600000)/60000)}分`; }
 
@@ -743,9 +1164,6 @@ function showDraftDialog() {
   );
 }
 
-// ====================================================================
-// ⑤ 旧エール送信（廃止済み・互換用に残置）
-// ====================================================================
 function sendCheer(targetStudentId) {
   return "エール機能は廃止されました";
 }
@@ -801,36 +1219,21 @@ function debugWeeklyRanking() {
   }
 
   console.log('今週のレコード件数:', weekRecords.length);
-  console.log('今週のレコード詳細:');
   weekRecords.forEach(r => console.log(`  ${r.name}(${r.id}): ${r.in} → ${r.out} (${r.hours}h)`));
 
   console.log('\n今週ランキング集計結果:');
   Object.keys(weeklyMap).forEach(id => {
     console.log(`  ${nickMap[id]}: ${(weeklyMap[id]/3600000).toFixed(2)}h`);
   });
-
-  if (weekRecords.length === 0) {
-    console.log('⚠ 今週のレコードがありません。日付の判定がズレている可能性があります。');
-  }
-  if (Object.keys(weeklyMap).length === 0) {
-    console.log('⚠ ランキングが空です。退室済みの記録が今週分にない可能性があります。');
-  }
 }
 
-// ====================================================================
-// 🔧 デバッグ用：processScanの速度テスト
-// ====================================================================
 function testProcessScanSpeed() {
   const start = new Date().getTime();
-  const result = processScan('テスト用の実在する学習者ID');  // ここを実IDに書き換えて実行
+  const result = processScan('テスト用の実在する学習者ID');
   const elapsed = new Date().getTime() - start;
   console.log(`処理時間: ${elapsed}ms / 結果: ${result}`);
 }
 
-// ====================================================================
-// 🔧 デバッグ用：「公開プロフィール」シートの列構成を確認
-//    シート列とコード側のIDX_PROFILE定数が一致しているか確認用
-// ====================================================================
 function debugProfileColumns() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('公開プロフィール');
   if (!sheet) { console.log('シート「公開プロフィール」が見つかりません'); return; }
@@ -852,21 +1255,12 @@ function debugProfileColumns() {
   });
 }
 
-// ====================================================================
-// 🔧 デバッグ用：保護者メール送信テスト
-//    test@example.com の部分を自分のメアドに変更して実行
-// ====================================================================
 function testEmailSend() {
-  const testEmail = 'test@example.com';  // ★自分のメアドに変更
+  const testEmail = 'test@example.com';
   notifyParent('テスト 太郎', testEmail, '退室', new Date(), 3 * 3600000 + 25 * 60000);
   console.log(`テストメールを ${testEmail} に送信しました`);
 }
 
-// ====================================================================
-// 🔧 デバッグ用：小テストシート自動生成のテスト
-//   実在しない名前で getOrCreateTestProgress を呼び、テンプレートから
-//   新規シートが作られることを確認する
-// ====================================================================
 function testCreateTestSheet() {
   const testName = 'テスト用_' + Utilities.formatDate(new Date(), 'JST', 'MMddHHmm');
   console.log(`テスト名「${testName}」でシート生成を試行します...`);
@@ -874,13 +1268,21 @@ function testCreateTestSheet() {
   const result = getOrCreateTestProgress(testName, 'TEST_ID_999');
   console.log('取得結果:', JSON.stringify(result, null, 2));
 
-  // 生成確認
   const testSs = SpreadsheetApp.openById(TEST_SS_ID);
   const newSheet = testSs.getSheetByName(testName);
   if (newSheet) {
     console.log(`✓ シート「${testName}」が正常に作成されました（行数: ${newSheet.getLastRow()}）`);
-    console.log('  → 動作確認後、不要なら手動で削除してください');
   } else {
-    console.log(`✗ シートが作成されませんでした。テンプレート「${TEST_TEMPLATE_NAME}」が存在するか確認してください`);
+    console.log(`✗ シートが作成されませんでした`);
   }
+}
+
+// ====================================================================
+// 🔧 デバッグ用：新機能用シートの初期化（手動実行用）
+// ====================================================================
+function initNewFeatureSheets() {
+  ensureSheet(SHEET_STUDY_LOG, ['ID', '投稿日時', '生徒ID', 'メッセージ', '学習時間']);
+  ensureSheet(SHEET_REACTIONS, ['ログID', '生徒ID', '絵文字', '日時']);
+  ensureSheet(SHEET_RIVALS, ['生徒ID', 'ライバルIDリスト(カンマ区切り)']);
+  console.log('✓ 新機能用シートを初期化しました');
 }
