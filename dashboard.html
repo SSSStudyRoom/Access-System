@@ -3509,10 +3509,10 @@
   const TARGET_NATIONAL = '2027/02/25';
 
   //Github移行時は以下の行のコメントアウトを外すこと
-  //const studentToken = new URLSearchParams(location.search).get('token');
+  const studentToken = new URLSearchParams(location.search).get('token');
 
   //Github移行時は以下の行をコメントアウトすること
-  const studentToken = <?=token ?>;
+  //const studentToken = <?=token ?>;
 
   let chartData = {};
   let chartInstances = {};

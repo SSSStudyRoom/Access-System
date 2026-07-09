@@ -88,11 +88,11 @@ function doGet(e) {
           break;
         }
         //以下テスト環境でのダッシュボード表示用
-        case 'dashboard': {
+        /*case 'dashboard': {
           const dashboad = HtmlService.createTemplateFromFile('dashboard');
           dashboad.token = token;
           return dashboad.evaluate();
-        }
+        }*/
         //ここまで
       }
       return jsonResponse({ ok: true, data: data });
