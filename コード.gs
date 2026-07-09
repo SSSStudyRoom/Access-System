@@ -51,25 +51,63 @@ const SHEET_BOOK_POSTS = '参考書投稿';
 const SHEET_BOOK_REACTIONS = '参考書リアクション';
 
 // ====================================================================
+// カレンダー取得用シート
+// ====================================================================
+const CALENDAR_CONFIG = {
+  SPREADSHEET_ID: '1HWZDOIJaQB0S3K4a9hXomJZFqmdznmKywQ2Sc_ON1Fo',
+  SHEET_PROFILE: '公開プロフィール',
+  COL_CALENDAR_ID: 9,
+};
+
+// ====================================================================
 // ① アクセス振り分け処理
 // ====================================================================
 function doGet(e) {
   const params = e.parameter || {};
   const action = params.action;
-  const token  = params.token;
+  const token = params.token;
 
   try {
-    if (action === 'stats' && token) {
-      const data = getStudentStats(token);
+    if (token) {
+      let data;
+      switch (action) {
+        case 'stats': {
+          data = getStudentStats(token);
+          break;
+        }
+        case 'heatmap': {
+          data = getHeatmap(token);
+          break;
+        }
+        case 'bookPosts': {
+          data = getBookPosts(token);
+          break;
+        }
+        case 'getCalendarEvents': {
+          data = getCalendarEventsForStudent(token, params.year, params.month);
+          break;
+        }
+        //以下テスト環境でのダッシュボード表示用
+        case 'dashboard': {
+          const dashboad = HtmlService.createTemplateFromFile('dashboard');
+          dashboad.token = token;
+          return dashboad.evaluate();
+        }
+        //ここまで
+      }
       return jsonResponse({ ok: true, data: data });
-    }
-    if (action === 'heatmap' && token) {
-      const data = getHeatmap(token);
-      return jsonResponse({ ok: true, data: data });
-    }
-    if (action === 'bookPosts' && token) {
-      const data = getBookPosts(token);
-      return jsonResponse({ ok: true, data: data });
+      /*if (action === 'stats' && token) {
+        const data = getStudentStats(token);
+        return jsonResponse({ ok: true, data: data });
+      }
+      if (action === 'heatmap' && token) {
+        const data = getHeatmap(token);
+        return jsonResponse({ ok: true, data: data });
+      }
+      if (action === 'bookPosts' && token) {
+        const data = getBookPosts(token);
+        return jsonResponse({ ok: true, data: data });
+      }*/
     }
   } catch (err) {
     return jsonResponse({ ok: false, error: String(err && err.message || err) });
@@ -222,21 +260,21 @@ function getStudentStats(studentToken) {
   let prev30dMs = 0;
   const ms30d = 30 * 24 * 3600000;
 
-  for(let i = logData.length - 1; i >= 1; i--){
+  for (let i = logData.length - 1; i >= 1; i--) {
     let rowId = String(logData[i][IDX_LOG.ID]).trim();
     let inTime = toDate(logData[i][IDX_LOG.IN]);
     let outTime = toDate(logData[i][IDX_LOG.OUT]);
 
-    if(inTime) {
+    if (inTime) {
       let logDateMs = new Date(inTime.getFullYear(), inTime.getMonth(), inTime.getDate()).getTime();
       let diffMs = (outTime) ? outTime.getTime() - inTime.getTime() : 0;
       if (diffMs < 0) diffMs = 0;
 
-      if(rowId === targetId) {
-        if(diffMs > 0) {
+      if (rowId === targetId) {
+        if (diffMs > 0) {
           totalMs += diffMs;
           if (logDateMs === todayStart) todayMs += diffMs;
-          if (logDateMs >= (todayStart - 7*24*60*60*1000)) weekMs += diffMs;
+          if (logDateMs >= (todayStart - 7 * 24 * 60 * 60 * 1000)) weekMs += diffMs;
 
           if (inTime.getTime() >= now.getTime() - ms30d) {
             last30dMs += diffMs;
@@ -273,11 +311,11 @@ function getStudentStats(studentToken) {
       }
 
       // 今週ランキング集計
-      if(logDateMs >= thisMondayMs && diffMs > 0) {
+      if (logDateMs >= thisMondayMs && diffMs > 0) {
         weeklyRankingMap[rowId] = (weeklyRankingMap[rowId] || 0) + diffMs;
       }
 
-      if(recentActions.length < 5) {
+      if (recentActions.length < 5) {
         recentActions.push({
           id: rowId,
           name: nickMap[rowId] || "学習者",
@@ -289,7 +327,7 @@ function getStudentStats(studentToken) {
   }
 
   // 入室中（未退室）を暫定加算
-  for(let i = logData.length - 1; i >= 1; i--){
+  for (let i = logData.length - 1; i >= 1; i--) {
     let rowId = String(logData[i][IDX_LOG.ID]).trim();
     let inTime = toDate(logData[i][IDX_LOG.IN]);
     let outTime = toDate(logData[i][IDX_LOG.OUT]);
@@ -324,7 +362,7 @@ function getStudentStats(studentToken) {
 
   const formatChartData = (map) => {
     let labels = Object.keys(map).sort();
-    let values = labels.map(k => (map[k]/3600000).toFixed(1));
+    let values = labels.map(k => (map[k] / 3600000).toFixed(1));
     return { labels, values };
   };
 
@@ -342,7 +380,7 @@ function getStudentStats(studentToken) {
     monthly: formatChartData(monthlyMap),
     rank: calculateRank(totalHours),
     community: { ranking: top5Ranking, feed: recentActions },
-    weeklyGoal: { currentHours: (weekMs / 3600000).toFixed(1), targetHours: weeklyGoalHours, percent: Math.min(100, ((weekMs/3600000)/weeklyGoalHours)*100).toFixed(1) },
+    weeklyGoal: { currentHours: (weekMs / 3600000).toFixed(1), targetHours: weeklyGoalHours, percent: Math.min(100, ((weekMs / 3600000) / weeklyGoalHours) * 100).toFixed(1) },
     history: historyList.slice(0, 30),
     streak: { totalDays: uniqueDates.size, active: calculateStreak(uniqueDates) },
     tests: testProgress,
@@ -555,8 +593,8 @@ function reactBookPost(token, postId, emoji) {
   // 既存チェック（トグル削除）
   for (let i = 1; i < data.length; i++) {
     if (String(data[i][0]).trim() === postId &&
-        String(data[i][1]).trim() === student.id &&
-        String(data[i][2]).trim() === emoji) {
+      String(data[i][1]).trim() === student.id &&
+      String(data[i][2]).trim() === emoji) {
       sheet.deleteRow(i + 1);
       return "removed";
     }
@@ -830,10 +868,10 @@ function createDraftsByIds(idsString) {
     const id = String(profileData[i][IDX_PROFILE.ID]).trim();
     if (!id) continue;
     profileMap[id] = {
-      name:         profileData[i][IDX_PROFILE.NAME] || profileData[i][IDX_PROFILE.NICKNAME] || id,
-      parentEmail:  String(profileData[i][IDX_PROFILE.PARENT_EMAIL] || '').trim(),
+      name: profileData[i][IDX_PROFILE.NAME] || profileData[i][IDX_PROFILE.NICKNAME] || id,
+      parentEmail: String(profileData[i][IDX_PROFILE.PARENT_EMAIL] || '').trim(),
       studentEmail: String(profileData[i][IDX_PROFILE.STUDENT_EMAIL] || '').trim(),
-      token:        String(profileData[i][IDX_PROFILE.TOKEN] || '').trim()
+      token: String(profileData[i][IDX_PROFILE.TOKEN] || '').trim()
     };
   }
 
@@ -983,23 +1021,23 @@ function getOrCreateTestProgress(studentName, studentId) {
 // ====================================================================
 // 補助関数群
 // ====================================================================
-function formatTime(ms) { return `${Math.floor(ms/3600000)}時間${Math.floor((ms%3600000)/60000)}分`; }
+function formatTime(ms) { return `${Math.floor(ms / 3600000)}時間${Math.floor((ms % 3600000) / 60000)}分`; }
 
 function calculateRank(hours) {
   if (hours >= 300) return { current: "SSS MASTER", remainHours: 0 };
   if (hours >= 150) return { current: "PLATINUM", remainHours: (300 - hours).toFixed(1) };
-  if (hours >= 50)  return { current: "GOLD", remainHours: (150 - hours).toFixed(1) };
-  if (hours >= 10)  return { current: "SILVER", remainHours: (50 - hours).toFixed(1) };
+  if (hours >= 50) return { current: "GOLD", remainHours: (150 - hours).toFixed(1) };
+  if (hours >= 10) return { current: "SILVER", remainHours: (50 - hours).toFixed(1) };
   return { current: "BRONZE", remainHours: (10 - hours).toFixed(1) };
 }
 
 function calculateStreak(uniqueDates) {
   let sorted = Array.from(uniqueDates).sort().reverse();
   let streak = 0, check = new Date();
-  check.setHours(0,0,0,0);
-  for(let i=0; i<sorted.length; i++) {
-    let d = new Date(sorted[i]); d.setHours(0,0,0,0);
-    if((check - d) / (1000*60*60*24) <= 1) { streak++; check = d; } else break;
+  check.setHours(0, 0, 0, 0);
+  for (let i = 0; i < sorted.length; i++) {
+    let d = new Date(sorted[i]); d.setHours(0, 0, 0, 0);
+    if ((check - d) / (1000 * 60 * 60 * 24) <= 1) { streak++; check = d; } else break;
   }
   return streak;
 }
@@ -1074,7 +1112,7 @@ function debugWeeklyRanking() {
 
   console.log('\n今週ランキング集計結果:');
   Object.keys(weeklyMap).forEach(id => {
-    console.log(`  ${nickMap[id]}: ${(weeklyMap[id]/3600000).toFixed(2)}h`);
+    console.log(`  ${nickMap[id]}: ${(weeklyMap[id] / 3600000).toFixed(2)}h`);
   });
 }
 
@@ -1106,4 +1144,39 @@ function initBookFeatureSheets() {
   ensureSheet(SHEET_BOOK_POSTS, ['ID', '投稿日時', '生徒ID', '書名', '評価', 'コメント']);
   ensureSheet(SHEET_BOOK_REACTIONS, ['投稿ID', '生徒ID', '絵文字', '日時']);
   console.log('✓ 参考書機能用シートを初期化しました');
+}
+
+// ====================================================================
+// カレンダー参照
+// ====================================================================
+function getCalendarEventsForStudent(token, year, month) {
+  const ss = SpreadsheetApp.openById(CALENDAR_CONFIG.SPREADSHEET_ID);
+  const profiles = ss.getSheetByName(CALENDAR_CONFIG.SHEET_PROFILE)
+    .getDataRange().getValues().slice(1);
+
+  const student = profiles.find(row => String(row[IDX_PROFILE.TOKEN - 1]).trim() === token);
+  if (!student) return { error: 'unauthorized' };
+
+  const calId = String(student[CALENDAR_CONFIG.COL_CALENDAR_ID - 1]).trim();
+  if (!calId) return { events: [] };
+
+  const y = parseInt(year);
+  const m = parseInt(month) - 1;
+  const startDate = new Date(y, m, 1);
+  const endDate = new Date(y, m + 1, 0, 23, 59, 59);
+
+  let calendar;
+  try { calendar = CalendarApp.getCalendarById(calId); } catch (e) {
+    return { events: [] };
+  }
+  if (!calendar) return { events: [] };
+
+  const events = calendar.getEvents(startDate, endDate).map(ev => ({
+    title: ev.getTitle(),
+    start: Utilities.formatDate(ev.getStartTime(), 'Asia/Tokyo', "yyyy-MM-dd'T'HH:mm:ss"),
+    end: Utilities.formatDate(ev.getEndTime(), 'Asia/Tokyo', "yyyy-MM-dd'T'HH:mm:ss"),
+    allDay: ev.isAllDayEvent(),
+  }));
+
+  return { events };
 }

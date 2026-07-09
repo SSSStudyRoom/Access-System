@@ -13,45 +13,52 @@
   <meta name="apple-mobile-web-app-title" content="SSS Edu">
 
   <link rel="apple-touch-icon" href="Company(1).png">
-  <link rel="manifest" href='data:application/manifest+json,{"name":"SSS Education","short_name":"SSS Education","display":"standalone","background_color":"#0a0e1a","theme_color":"#c8ff00","icons":[{"src":"./icon.png","sizes":"192x192","type":"image/png"}]}'>
+  <link rel="manifest"
+    href='data:application/manifest+json,{"name":"SSS Education","short_name":"SSS Education","display":"standalone","background_color":"#0a0e1a","theme_color":"#c8ff00","icons":[{"src":"./icon.png","sizes":"192x192","type":"image/png"}]}'>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&family=DotGothic16&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;600;800&family=DotGothic16&display=swap"
+    rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="qrcode.min.js"></script>
   <style>
     :root {
-      --bg-0:        #0a0e1a;
-      --bg-1:        #0f1424;
-      --bg-2:        #161c30;
-      --bg-3:        #1c2440;
-      --line:        #232b48;
-      --line-soft:   #1a2138;
-      --neon-lime:   #c8ff00;
-      --neon-cyan:   #00f0ff;
-      --neon-magenta:#ff2bd6;
-      --neon-amber:  #ffb13b;
-      --neon-red:    #ff3b6b;
-      --neon-green:  #2dffb3;
-      --text-1:      #e8edf8;
-      --text-2:      #8b95b8;
-      --text-3:      #4b557a;
-      --mono:        "Space Mono", ui-monospace, monospace;
-      --display:     "Outfit", sans-serif;
-      --kana:        "DotGothic16", monospace;
+      --bg-0: #0a0e1a;
+      --bg-1: #0f1424;
+      --bg-2: #161c30;
+      --bg-3: #1c2440;
+      --line: #232b48;
+      --line-soft: #1a2138;
+      --neon-lime: #c8ff00;
+      --neon-cyan: #00f0ff;
+      --neon-magenta: #ff2bd6;
+      --neon-amber: #ffb13b;
+      --neon-red: #ff3b6b;
+      --neon-green: #2dffb3;
+      --text-1: #e8edf8;
+      --text-2: #8b95b8;
+      --text-3: #4b557a;
+      --mono: "Space Mono", ui-monospace, monospace;
+      --display: "Outfit", sans-serif;
+      --kana: "DotGothic16", monospace;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
-    html, body {
+    html,
+    body {
       background: var(--bg-0);
       color: var(--text-1);
       font-family: var(--display);
       font-weight: 300;
       letter-spacing: 0.01em;
-      margin: 0; padding: 0;
+      margin: 0;
+      padding: 0;
       min-height: 100vh;
       overflow-x: hidden;
     }
@@ -59,24 +66,30 @@
     /* グリッド背景 */
     body::before {
       content: "";
-      position: fixed; inset: 0;
-      background:
-        linear-gradient(rgba(35,43,72,0.4) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(35,43,72,0.4) 1px, transparent 1px);
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(35, 43, 72, 0.4) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(35, 43, 72, 0.4) 1px, transparent 1px);
       background-size: 40px 40px;
-      pointer-events: none; z-index: 0;
+      pointer-events: none;
+      z-index: 0;
       mask-image: radial-gradient(ellipse at top, #000 30%, transparent 80%);
     }
+
     /* ノイズテクスチャ */
     body::after {
       content: "";
-      position: fixed; inset: 0;
-      pointer-events: none; z-index: 1; opacity: 0.03;
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.03;
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
     }
 
     .layout {
-      position: relative; z-index: 2;
+      position: relative;
+      z-index: 2;
       max-width: 760px;
       margin: 0 auto;
       padding: 20px 16px 80px;
@@ -98,16 +111,24 @@
       padding-left: 16px;
       padding-right: 16px;
     }
+
     .station-header::after {
       content: "";
-      position: absolute; bottom: -1px; left: 16px;
-      height: 1px; width: 120px;
+      position: absolute;
+      bottom: -1px;
+      left: 16px;
+      height: 1px;
+      width: 120px;
       background: var(--neon-lime);
       box-shadow: 0 0 12px var(--neon-lime);
     }
+
     .brand-row {
-      display: flex; align-items: flex-start; justify-content: space-between;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
     }
+
     .brand {
       font-family: var(--mono);
       font-size: 10px;
@@ -115,7 +136,12 @@
       color: var(--text-2);
       line-height: 1.4;
     }
-    .brand .station-num { color: var(--neon-lime); font-weight: 700; }
+
+    .brand .station-num {
+      color: var(--neon-lime);
+      font-weight: 700;
+    }
+
     .brand h1 {
       font-family: var(--display);
       font-weight: 800;
@@ -123,13 +149,17 @@
       letter-spacing: -0.01em;
       color: var(--text-1);
       margin: 4px 0 0 0;
-      display: flex; align-items: baseline; gap: 8px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
       flex-wrap: wrap;
     }
+
     .brand h1 .name-target {
       color: var(--neon-lime);
-      text-shadow: 0 0 12px rgba(200,255,0,0.3);
+      text-shadow: 0 0 12px rgba(200, 255, 0, 0.3);
     }
+
     .brand h1 .kana {
       font-family: var(--kana);
       font-size: 11px;
@@ -141,18 +171,44 @@
       background: var(--bg-2);
       border: 1px solid var(--line);
       color: var(--neon-cyan);
-      width: 36px; height: 36px;
+      width: 36px;
+      height: 36px;
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.2s;
       padding: 0;
       flex-shrink: 0;
     }
-    .refresh-btn:hover { border-color: var(--neon-cyan); box-shadow: 0 0 8px rgba(0,240,255,0.3); }
-    .refresh-btn:active { transform: scale(0.92); }
-    .refresh-btn:disabled { opacity: 0.5; cursor: wait; }
-    .refresh-btn.spinning svg { animation: spin 0.8s linear infinite; }
-    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .refresh-btn:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+    }
+
+    .refresh-btn:active {
+      transform: scale(0.92);
+    }
+
+    .refresh-btn:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    .refresh-btn.spinning svg {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
 
     /* ===== タブナビ ===== */
     .tab-nav {
@@ -166,6 +222,7 @@
       margin: 0 -16px 20px;
       padding: 0;
     }
+
     .tab-btn {
       flex: 1;
       background: transparent;
@@ -178,34 +235,77 @@
       transition: color 0.2s ease;
       font-family: var(--mono);
     }
-    .tab-btn:last-child { border-right: none; }
-    .tab-btn:hover { color: var(--text-1); }
-    .tab-btn.active { color: var(--neon-lime); }
+
+    .tab-btn:last-child {
+      border-right: none;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-1);
+    }
+
+    .tab-btn.active {
+      color: var(--neon-lime);
+    }
+
     .tab-btn.active::after {
       content: '';
       position: absolute;
-      bottom: -1px; left: 12%; right: 12%;
+      bottom: -1px;
+      left: 12%;
+      right: 12%;
       height: 2px;
       background: var(--neon-lime);
       box-shadow: 0 0 10px var(--neon-lime);
     }
-    .tab-icon { display: block; font-size: 16px; margin-bottom: 2px; line-height: 1; }
-    .tab-label { display: block; font-size: 9px; letter-spacing: 0.2em; }
+
+    .tab-icon {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 2px;
+      line-height: 1;
+    }
+
+    .tab-label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+    }
 
     /* ===== タブコンテンツ ===== */
-    .tab-content { display: none; animation: fadeInUp 0.4s ease-out; }
-    .tab-content.active { display: block; }
+    .tab-content {
+      display: none;
+      animation: fadeInUp 0.4s ease-out;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
     @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     /* ===== セクション共通 ===== */
-    .section { margin-bottom: 28px; }
+    .section {
+      margin-bottom: 28px;
+    }
+
     .section-header {
-      display: flex; align-items: baseline; gap: 12px;
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
       margin-bottom: 14px;
     }
+
     .section-header h3 {
       font-family: var(--display);
       font-weight: 800;
@@ -213,6 +313,7 @@
       letter-spacing: -0.01em;
       margin: 0;
     }
+
     .section-header .tag {
       font-family: var(--mono);
       font-size: 9px;
@@ -220,6 +321,310 @@
       color: var(--text-3);
       text-transform: uppercase;
     }
+
+    .section-header .underline {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--neon-lime), transparent);
+    }
+
+    :root {
+      --bg-0: #0a0e1a;
+      --bg-1: #0f1424;
+      --bg-2: #161c30;
+      --bg-3: #1c2440;
+      --line: #232b48;
+      --line-soft: #1a2138;
+      --neon-lime: #c8ff00;
+      --neon-cyan: #00f0ff;
+      --neon-magenta: #ff2bd6;
+      --neon-amber: #ffb13b;
+      --neon-red: #ff3b6b;
+      --neon-green: #2dffb3;
+      --text-1: #e8edf8;
+      --text-2: #8b95b8;
+      --text-3: #4b557a;
+      --mono: "Space Mono", ui-monospace, monospace;
+      --display: "Outfit", sans-serif;
+      --kana: "DotGothic16", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      background: var(--bg-0);
+      color: var(--text-1);
+      font-family: var(--display);
+      font-weight: 300;
+      letter-spacing: 0.01em;
+      margin: 0;
+      padding: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* グリッド背景 */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(rgba(35, 43, 72, 0.4) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(35, 43, 72, 0.4) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+      mask-image: radial-gradient(ellipse at top, #000 30%, transparent 80%);
+    }
+
+    /* ノイズテクスチャ */
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='n'><feTurbulence baseFrequency='0.9' numOctaves='2'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    }
+
+    .layout {
+      position: relative;
+      z-index: 2;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 20px 16px 80px;
+    }
+
+    /* ===== ヘッダー ===== */
+    .station-header {
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 0;
+      position: sticky;
+      top: 0;
+      background: rgba(10, 14, 26, 0.92);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      padding-top: 18px;
+      margin-left: -16px;
+      margin-right: -16px;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    .station-header::after {
+      content: "";
+      position: absolute;
+      bottom: -1px;
+      left: 16px;
+      height: 1px;
+      width: 120px;
+      background: var(--neon-lime);
+      box-shadow: 0 0 12px var(--neon-lime);
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+
+    .brand {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      color: var(--text-2);
+      line-height: 1.4;
+    }
+
+    .brand .station-num {
+      color: var(--neon-lime);
+      font-weight: 700;
+    }
+
+    .brand h1 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.01em;
+      color: var(--text-1);
+      margin: 4px 0 0 0;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 .name-target {
+      color: var(--neon-lime);
+      text-shadow: 0 0 12px rgba(200, 255, 0, 0.3);
+    }
+
+    .brand h1 .kana {
+      font-family: var(--kana);
+      font-size: 11px;
+      color: var(--neon-cyan);
+      font-weight: 400;
+    }
+
+    .refresh-btn {
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      color: var(--neon-cyan);
+      width: 36px;
+      height: 36px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      padding: 0;
+      flex-shrink: 0;
+    }
+
+    .refresh-btn:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+    }
+
+    .refresh-btn:active {
+      transform: scale(0.92);
+    }
+
+    .refresh-btn:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    .refresh-btn.spinning svg {
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ===== タブナビ ===== */
+    .tab-nav {
+      position: sticky;
+      top: 80px;
+      background: rgba(10, 14, 26, 0.95);
+      backdrop-filter: blur(10px);
+      z-index: 99;
+      display: flex;
+      border-bottom: 1px solid var(--line);
+      margin: 0 -16px 20px;
+      padding: 0;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--line-soft);
+      color: var(--text-2);
+      padding: 12px 4px 11px;
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s ease;
+      font-family: var(--mono);
+    }
+
+    .tab-btn:last-child {
+      border-right: none;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-1);
+    }
+
+    .tab-btn.active {
+      color: var(--neon-lime);
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 12%;
+      right: 12%;
+      height: 2px;
+      background: var(--neon-lime);
+      box-shadow: 0 0 10px var(--neon-lime);
+    }
+
+    .tab-icon {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 2px;
+      line-height: 1;
+    }
+
+    .tab-label {
+      display: block;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+    }
+
+    /* ===== タブコンテンツ ===== */
+    .tab-content {
+      display: none;
+      animation: fadeInUp 0.4s ease-out;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ===== セクション共通 ===== */
+    .section {
+      margin-bottom: 28px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .section-header h3 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 16px;
+      letter-spacing: -0.01em;
+      margin: 0;
+    }
+
+    .section-header .tag {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.25em;
+      color: var(--text-3);
+      text-transform: uppercase;
+    }
+
     .section-header .underline {
       flex: 1;
       height: 1px;
@@ -235,6 +640,7 @@
       position: relative;
       box-shadow: 0 0 20px rgba(255, 43, 214, 0.1);
     }
+
     .highlight .hl-label {
       font-family: var(--mono);
       font-size: 9px;
@@ -243,6 +649,7 @@
       text-transform: uppercase;
       margin-bottom: 10px;
     }
+
     .highlight .hl-quote {
       font-family: var(--display);
       font-size: 14px;
@@ -258,6 +665,7 @@
       gap: 10px;
       margin-bottom: 24px;
     }
+
     .cd-card {
       background: var(--bg-1);
       border: 1px solid var(--line);
@@ -265,17 +673,30 @@
       position: relative;
       overflow: hidden;
     }
+
     .cd-card::after {
       content: "";
       position: absolute;
-      bottom: 0; left: 0; right: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
       height: 2px;
       background: var(--accent, var(--neon-red));
       opacity: 0.7;
     }
-    .cd-card[data-type="common"]   { --accent: var(--neon-red); }
-    .cd-card[data-type="national"] { --accent: var(--neon-amber); }
-    .cd-card[data-type="custom"]   { --accent: var(--neon-cyan); }
+
+    .cd-card[data-type="common"] {
+      --accent: var(--neon-red);
+    }
+
+    .cd-card[data-type="national"] {
+      --accent: var(--neon-amber);
+    }
+
+    .cd-card[data-type="custom"] {
+      --accent: var(--neon-cyan);
+    }
+
     .cd-title {
       font-family: var(--mono);
       font-size: 9px;
@@ -284,6 +705,7 @@
       text-transform: uppercase;
       margin-bottom: 8px;
     }
+
     .cd-days {
       font-family: var(--display);
       font-weight: 800;
@@ -292,6 +714,7 @@
       color: var(--text-1);
       letter-spacing: -0.02em;
     }
+
     .cd-days span {
       font-family: var(--mono);
       font-size: 11px;
@@ -301,9 +724,18 @@
     }
 
     /* ===== ローディング ===== */
-    #loading { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; min-height: 80vh; }
+    #loading {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      min-height: 80vh;
+    }
+
     .loader-ring {
-      width: 60px; height: 60px;
+      width: 60px;
+      height: 60px;
       border: 2px solid var(--line);
       border-top-color: var(--neon-lime);
       border-right-color: var(--neon-cyan);
@@ -311,6 +743,7 @@
       animation: spin 1s linear infinite;
       box-shadow: 0 0 20px rgba(200, 255, 0, 0.2);
     }
+
     .loading-text {
       margin-top: 24px;
       font-family: var(--mono);
@@ -318,6 +751,7 @@
       letter-spacing: 0.4em;
       color: var(--neon-lime);
     }
+
     .loading-sub {
       margin-top: 10px;
       font-family: var(--mono);
@@ -327,11 +761,47 @@
     }
 
     /* ===== エラー ===== */
-    .error-box { background: var(--bg-1); border: 1px solid var(--neon-red); color: var(--neon-red); padding: 20px; text-align: center; max-width: 400px; margin: 60px auto; }
-    .error-box .err-title { font-size: 14px; letter-spacing: 0.3em; margin-bottom: 10px; font-weight: bold; font-family: var(--mono); }
-    .error-box .err-msg { font-size: 12px; color: var(--text-2); margin-bottom: 15px; line-height: 1.6; font-family: var(--display); }
-    .error-box .err-retry { background: transparent; border: 1px solid var(--neon-lime); color: var(--neon-lime); padding: 8px 20px; cursor: pointer; font-size: 11px; letter-spacing: 0.2em; font-family: var(--mono); }
-    .error-box .err-retry:hover { background: var(--neon-lime); color: var(--bg-0); }
+    .error-box {
+      background: var(--bg-1);
+      border: 1px solid var(--neon-red);
+      color: var(--neon-red);
+      padding: 20px;
+      text-align: center;
+      max-width: 400px;
+      margin: 60px auto;
+    }
+
+    .error-box .err-title {
+      font-size: 14px;
+      letter-spacing: 0.3em;
+      margin-bottom: 10px;
+      font-weight: bold;
+      font-family: var(--mono);
+    }
+
+    .error-box .err-msg {
+      font-size: 12px;
+      color: var(--text-2);
+      margin-bottom: 15px;
+      line-height: 1.6;
+      font-family: var(--display);
+    }
+
+    .error-box .err-retry {
+      background: transparent;
+      border: 1px solid var(--neon-lime);
+      color: var(--neon-lime);
+      padding: 8px 20px;
+      cursor: pointer;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      font-family: var(--mono);
+    }
+
+    .error-box .err-retry:hover {
+      background: var(--neon-lime);
+      color: var(--bg-0);
+    }
 
     /* ===== QR ===== */
     details.box-qr {
@@ -340,6 +810,7 @@
       padding: 18px;
       margin-bottom: 20px;
     }
+
     details.box-qr summary {
       outline: none;
       cursor: pointer;
@@ -354,19 +825,63 @@
       justify-content: space-between;
       align-items: center;
     }
-    details.box-qr summary::-webkit-details-marker { display: none; }
+
+    details.box-qr summary::-webkit-details-marker {
+      display: none;
+    }
+
     details.box-qr summary::after {
       content: '▼ OPEN';
       font-size: 9px;
       color: var(--text-3);
     }
-    details.box-qr[open] summary::after { content: '▲ CLOSE'; }
-    .qr-content { display: flex; flex-direction: column; align-items: center; padding: 16px 0 4px; }
-    .qr-note { color: var(--text-2); font-size: 11px; letter-spacing: 0.1em; margin: 0 0 16px; text-align: center; font-family: var(--mono); }
-    .qr-frame { background: var(--text-1); padding: 14px; box-shadow: 0 0 30px rgba(0, 240, 255, 0.15); margin-bottom: 16px; }
-    .qr-frame canvas { display: block; }
-    .qr-id-label { font-family: var(--mono); font-size: 9px; color: var(--text-3); letter-spacing: 0.3em; margin: 0 0 4px; }
-    .qr-id { font-family: var(--mono); font-size: 16px; color: var(--neon-cyan); letter-spacing: 0.2em; margin: 0; }
+
+    details.box-qr[open] summary::after {
+      content: '▲ CLOSE';
+    }
+
+    .qr-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 0 4px;
+    }
+
+    .qr-note {
+      color: var(--text-2);
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      margin: 0 0 16px;
+      text-align: center;
+      font-family: var(--mono);
+    }
+
+    .qr-frame {
+      background: var(--text-1);
+      padding: 14px;
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.15);
+      margin-bottom: 16px;
+    }
+
+    .qr-frame canvas {
+      display: block;
+    }
+
+    .qr-id-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-3);
+      letter-spacing: 0.3em;
+      margin: 0 0 4px;
+    }
+
+    .qr-id {
+      font-family: var(--mono);
+      font-size: 16px;
+      color: var(--neon-cyan);
+      letter-spacing: 0.2em;
+      margin: 0;
+    }
 
     .settings-trigger {
       font-family: var(--mono);
@@ -381,7 +896,11 @@
       border: 1px dashed var(--line);
       transition: all 0.2s;
     }
-    .settings-trigger:hover { color: var(--neon-cyan); border-color: var(--neon-cyan); }
+
+    .settings-trigger:hover {
+      color: var(--neon-cyan);
+      border-color: var(--neon-cyan);
+    }
 
     /* ===== LEVEL / RANK HERO ===== */
     .hero-grid {
@@ -390,6 +909,7 @@
       gap: 12px;
       margin-bottom: 20px;
     }
+
     .level-box {
       background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
       border: 1px solid var(--line);
@@ -397,24 +917,30 @@
       position: relative;
       overflow: hidden;
     }
+
     .level-box::before {
       content: "LVL";
       position: absolute;
-      top: 14px; right: 14px;
+      top: 14px;
+      right: 14px;
       font-family: var(--mono);
       font-size: 9px;
       letter-spacing: 0.3em;
       color: var(--text-3);
     }
+
     .level-box::after {
       content: "";
       position: absolute;
-      top: 0; right: 0;
-      width: 100px; height: 100px;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
       background: repeating-linear-gradient(45deg, transparent, transparent 8px,
-        rgba(200, 255, 0, 0.05) 8px, rgba(200, 255, 0, 0.05) 16px);
+          rgba(200, 255, 0, 0.05) 8px, rgba(200, 255, 0, 0.05) 16px);
       pointer-events: none;
     }
+
     .level-num {
       font-family: var(--display);
       font-weight: 800;
@@ -426,6 +952,7 @@
       position: relative;
       z-index: 1;
     }
+
     .level-num::before {
       content: 'Lv';
       font-size: 14px;
@@ -433,6 +960,7 @@
       margin-right: 4px;
       font-weight: 300;
     }
+
     .xp-meter {
       width: 100%;
       height: 5px;
@@ -442,6 +970,7 @@
       position: relative;
       z-index: 1;
     }
+
     .xp-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--neon-cyan), var(--neon-lime));
@@ -449,6 +978,7 @@
       transition: width 1.5s cubic-bezier(0.16, 1, 0.3, 1);
       box-shadow: 0 0 8px var(--neon-lime);
     }
+
     .xp-stats {
       display: flex;
       justify-content: space-between;
@@ -459,7 +989,10 @@
       position: relative;
       z-index: 1;
     }
-    .xp-stats .next { color: var(--neon-cyan); }
+
+    .xp-stats .next {
+      color: var(--neon-cyan);
+    }
 
     .rank-box {
       background: var(--bg-1);
@@ -470,6 +1003,7 @@
       flex-direction: column;
       justify-content: space-between;
     }
+
     .rank-label {
       font-family: var(--mono);
       font-size: 9px;
@@ -477,6 +1011,7 @@
       color: var(--text-3);
       text-transform: uppercase;
     }
+
     .rank-badge {
       font-family: var(--display);
       font-weight: 800;
@@ -485,11 +1020,32 @@
       margin: 8px 0;
       line-height: 1;
     }
-    .rank-badge.BRONZE   { color: #cd7f32; text-shadow: 0 0 8px rgba(205, 127, 50, 0.3); }
-    .rank-badge.SILVER   { color: #c0c0c0; text-shadow: 0 0 8px rgba(192, 192, 192, 0.3); }
-    .rank-badge.GOLD     { color: var(--neon-amber); text-shadow: 0 0 12px rgba(255, 177, 59, 0.4); }
-    .rank-badge.PLATINUM { color: var(--neon-cyan);  text-shadow: 0 0 12px rgba(0, 240, 255, 0.4); }
-    .rank-badge.SSSMASTER{ color: var(--neon-magenta); text-shadow: 0 0 14px rgba(255, 43, 214, 0.5); }
+
+    .rank-badge.BRONZE {
+      color: #cd7f32;
+      text-shadow: 0 0 8px rgba(205, 127, 50, 0.3);
+    }
+
+    .rank-badge.SILVER {
+      color: #c0c0c0;
+      text-shadow: 0 0 8px rgba(192, 192, 192, 0.3);
+    }
+
+    .rank-badge.GOLD {
+      color: var(--neon-amber);
+      text-shadow: 0 0 12px rgba(255, 177, 59, 0.4);
+    }
+
+    .rank-badge.PLATINUM {
+      color: var(--neon-cyan);
+      text-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
+    }
+
+    .rank-badge.SSSMASTER {
+      color: var(--neon-magenta);
+      text-shadow: 0 0 14px rgba(255, 43, 214, 0.5);
+    }
+
     .rank-next {
       font-family: var(--mono);
       font-size: 10px;
@@ -506,12 +1062,15 @@
       grid-template-columns: 1fr 1fr;
       gap: 16px;
     }
+
     .att-cell {
       text-align: center;
     }
+
     .att-cell.divider {
       border-right: 1px dashed var(--line);
     }
+
     .att-cell-label {
       font-family: var(--mono);
       font-size: 9px;
@@ -520,6 +1079,7 @@
       text-transform: uppercase;
       margin-bottom: 8px;
     }
+
     .att-cell-value {
       font-family: var(--display);
       font-weight: 800;
@@ -527,8 +1087,17 @@
       line-height: 1;
       letter-spacing: -0.03em;
     }
-    .att-cell-value.total { color: var(--neon-lime); text-shadow: 0 0 14px rgba(200,255,0,0.3); }
-    .att-cell-value.active { color: var(--neon-red); text-shadow: 0 0 14px rgba(255,59,107,0.3); }
+
+    .att-cell-value.total {
+      color: var(--neon-lime);
+      text-shadow: 0 0 14px rgba(200, 255, 0, 0.3);
+    }
+
+    .att-cell-value.active {
+      color: var(--neon-red);
+      text-shadow: 0 0 14px rgba(255, 59, 107, 0.3);
+    }
+
     .att-cell-unit {
       font-family: var(--mono);
       font-size: 10px;
@@ -543,6 +1112,7 @@
       gap: 10px;
       margin-bottom: 24px;
     }
+
     .kpi {
       background: var(--bg-1);
       border: 1px solid var(--line);
@@ -550,17 +1120,30 @@
       position: relative;
       overflow: hidden;
     }
+
     .kpi::after {
       content: "";
       position: absolute;
-      bottom: 0; left: 0; right: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
       height: 2px;
       background: var(--accent, var(--neon-lime));
       opacity: 0.6;
     }
-    .kpi[data-accent="cyan"] { --accent: var(--neon-cyan); }
-    .kpi[data-accent="lime"] { --accent: var(--neon-lime); }
-    .kpi[data-accent="amber"] { --accent: var(--neon-amber); }
+
+    .kpi[data-accent="cyan"] {
+      --accent: var(--neon-cyan);
+    }
+
+    .kpi[data-accent="lime"] {
+      --accent: var(--neon-lime);
+    }
+
+    .kpi[data-accent="amber"] {
+      --accent: var(--neon-amber);
+    }
+
     .kpi-label {
       font-family: var(--mono);
       font-size: 9px;
@@ -569,6 +1152,7 @@
       text-transform: uppercase;
       margin-bottom: 8px;
     }
+
     .kpi-value {
       font-family: var(--display);
       font-weight: 800;
@@ -585,45 +1169,66 @@
       padding: 18px;
       margin-bottom: 20px;
     }
-    .mission-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+
+    .mission-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
     .mission-item {
-      display: flex; align-items: center; gap: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
       padding: 11px 12px;
       background: var(--bg-2);
       border: 1px solid var(--line-soft);
       transition: all 0.2s;
       cursor: pointer;
     }
-    .mission-item:hover { border-color: var(--neon-lime); }
+
+    .mission-item:hover {
+      border-color: var(--neon-lime);
+    }
+
     .mission-item.done {
       background: rgba(45, 255, 179, 0.04);
       border-color: rgba(45, 255, 179, 0.4);
     }
+
     .mission-checkbox {
-      width: 20px; height: 20px;
+      width: 20px;
+      height: 20px;
       border: 1.5px solid var(--text-3);
       flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.2s;
       font-size: 12px;
       font-weight: 700;
     }
+
     .mission-item.done .mission-checkbox {
       background: var(--neon-green);
       border-color: var(--neon-green);
       color: var(--bg-0);
       box-shadow: 0 0 10px rgba(45, 255, 179, 0.4);
     }
+
     .mission-text {
       flex: 1;
       font-size: 12px;
       color: var(--text-1);
       font-family: var(--display);
     }
+
     .mission-item.done .mission-text {
       text-decoration: line-through;
       color: var(--text-3);
     }
+
     .mission-reward {
       font-family: var(--mono);
       font-size: 10px;
@@ -638,12 +1243,14 @@
       padding: 18px;
       margin-bottom: 20px;
     }
+
     .goal-row {
       display: flex;
       justify-content: space-between;
       align-items: baseline;
       margin-bottom: 12px;
     }
+
     .goal-title {
       font-family: var(--mono);
       font-size: 10px;
@@ -651,18 +1258,25 @@
       color: var(--neon-amber);
       text-transform: uppercase;
     }
+
     .goal-text {
       font-family: var(--mono);
       font-size: 12px;
       color: var(--text-1);
     }
-    .goal-text .pct { color: var(--neon-lime); font-weight: 700; }
+
+    .goal-text .pct {
+      color: var(--neon-lime);
+      font-weight: 700;
+    }
+
     .goal-bar {
       width: 100%;
       height: 8px;
       background: var(--bg-0);
       overflow: hidden;
     }
+
     .goal-fill {
       height: 100%;
       background: linear-gradient(90deg, var(--neon-amber), var(--neon-lime));
@@ -678,12 +1292,14 @@
       gap: 10px;
       margin-bottom: 24px;
     }
+
     .compare-card {
       background: var(--bg-1);
       border: 1px solid var(--line);
       padding: 14px;
       text-align: center;
     }
+
     .compare-title {
       font-family: var(--mono);
       font-size: 9px;
@@ -692,6 +1308,7 @@
       text-transform: uppercase;
       margin-bottom: 8px;
     }
+
     .compare-value {
       font-family: var(--display);
       font-weight: 800;
@@ -700,6 +1317,7 @@
       letter-spacing: -0.02em;
       line-height: 1;
     }
+
     .compare-diff {
       font-family: var(--mono);
       font-size: 10px;
@@ -707,9 +1325,24 @@
       padding: 3px 8px;
       display: inline-block;
     }
-    .compare-diff.up   { color: var(--neon-green); border: 1px solid rgba(45, 255, 179, 0.4); background: rgba(45, 255, 179, 0.05); }
-    .compare-diff.down { color: var(--neon-red);   border: 1px solid rgba(255, 59, 107, 0.4); background: rgba(255, 59, 107, 0.05); }
-    .compare-diff.flat { color: var(--text-3);     border: 1px solid var(--line); background: var(--bg-2); }
+
+    .compare-diff.up {
+      color: var(--neon-green);
+      border: 1px solid rgba(45, 255, 179, 0.4);
+      background: rgba(45, 255, 179, 0.05);
+    }
+
+    .compare-diff.down {
+      color: var(--neon-red);
+      border: 1px solid rgba(255, 59, 107, 0.4);
+      background: rgba(255, 59, 107, 0.05);
+    }
+
+    .compare-diff.flat {
+      color: var(--text-3);
+      border: 1px solid var(--line);
+      background: var(--bg-2);
+    }
 
     /* ===== アチーブメント ===== */
     .ach-card {
@@ -718,6 +1351,7 @@
       padding: 18px;
       margin-bottom: 20px;
     }
+
     .ach-summary {
       font-family: var(--mono);
       font-size: 10px;
@@ -727,16 +1361,19 @@
       margin: 12px 0 16px;
       text-transform: uppercase;
     }
+
     .ach-summary strong {
       color: var(--neon-lime);
       font-size: 14px;
       font-weight: 700;
     }
+
     .ach-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
       gap: 10px;
     }
+
     .ach-item {
       aspect-ratio: 1;
       background: var(--bg-2);
@@ -751,16 +1388,32 @@
       transition: all 0.2s;
       position: relative;
     }
-    .ach-item.locked { opacity: 0.3; }
-    .ach-item.unlocked { border-color: var(--neon-lime); box-shadow: 0 0 10px rgba(200, 255, 0, 0.12); }
-    .ach-item.unlocked:hover { transform: translateY(-2px); box-shadow: 0 0 16px rgba(200, 255, 0, 0.25); }
+
+    .ach-item.locked {
+      opacity: 0.3;
+    }
+
+    .ach-item.unlocked {
+      border-color: var(--neon-lime);
+      box-shadow: 0 0 10px rgba(200, 255, 0, 0.12);
+    }
+
+    .ach-item.unlocked:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 16px rgba(200, 255, 0, 0.25);
+    }
+
     .ach-icon {
       font-size: 24px;
       line-height: 1;
       margin-bottom: 4px;
       filter: drop-shadow(0 0 6px var(--neon-lime));
     }
-    .ach-item.locked .ach-icon { filter: grayscale(100%) brightness(0.5); }
+
+    .ach-item.locked .ach-icon {
+      filter: grayscale(100%) brightness(0.5);
+    }
+
     .ach-label {
       font-family: var(--mono);
       font-size: 8px;
@@ -768,10 +1421,15 @@
       color: var(--text-3);
       line-height: 1.2;
     }
-    .ach-item.unlocked .ach-label { color: var(--neon-lime); }
+
+    .ach-item.unlocked .ach-label {
+      color: var(--neon-lime);
+    }
+
     .ach-tooltip {
       position: absolute;
-      bottom: 105%; left: 50%;
+      bottom: 105%;
+      left: 50%;
       transform: translateX(-50%);
       background: var(--bg-0);
       border: 1px solid var(--neon-lime);
@@ -785,7 +1443,10 @@
       transition: opacity 0.2s;
       z-index: 10;
     }
-    .ach-item:hover .ach-tooltip { opacity: 1; }
+
+    .ach-item:hover .ach-tooltip {
+      opacity: 1;
+    }
 
     /* ===== ヒートマップ：7日 × 24時間（草カレンダー風） ===== */
     .heatmap-wrap {
@@ -795,6 +1456,7 @@
       margin-bottom: 24px;
       overflow-x: auto;
     }
+
     .heatmap-sub {
       font-family: var(--mono);
       font-size: 10px;
@@ -803,11 +1465,13 @@
       text-align: center;
       margin-bottom: 14px;
     }
+
     .heatmap-table {
       margin: 0 auto;
       border-collapse: separate;
       border-spacing: 3px;
     }
+
     .heatmap-table th {
       font-family: var(--mono);
       font-size: 9px;
@@ -816,15 +1480,18 @@
       font-weight: 400;
       letter-spacing: 0.05em;
     }
+
     .heatmap-table th.day-today {
       color: var(--neon-lime);
       font-weight: 700;
     }
+
     .heatmap-table th .dow {
       display: block;
       font-size: 8px;
       opacity: 0.7;
     }
+
     .heatmap-table td.hour-label {
       font-family: var(--mono);
       font-size: 8px;
@@ -833,6 +1500,7 @@
       text-align: right;
       vertical-align: middle;
     }
+
     .hm-cell {
       width: 34px;
       height: 11px;
@@ -842,22 +1510,35 @@
       position: relative;
       border-radius: 1px;
     }
-    .hm-cell.lv1 { background: rgba(0, 240, 255, 0.20); }
-    .hm-cell.lv2 { background: rgba(0, 240, 255, 0.45); }
-    .hm-cell.lv3 { background: rgba(200, 255, 0, 0.55); }
+
+    .hm-cell.lv1 {
+      background: rgba(0, 240, 255, 0.20);
+    }
+
+    .hm-cell.lv2 {
+      background: rgba(0, 240, 255, 0.45);
+    }
+
+    .hm-cell.lv3 {
+      background: rgba(200, 255, 0, 0.55);
+    }
+
     .hm-cell.lv4 {
       background: var(--neon-lime);
       box-shadow: 0 0 6px var(--neon-lime);
     }
+
     .hm-cell:hover {
       outline: 1px solid var(--text-1);
       transform: scale(1.4);
       z-index: 5;
     }
+
     .hm-cell:hover::after {
       content: attr(data-tip);
       position: absolute;
-      bottom: 130%; left: 50%;
+      bottom: 130%;
+      left: 50%;
       transform: translateX(-50%);
       background: var(--bg-0);
       border: 1px solid var(--neon-cyan);
@@ -868,8 +1549,11 @@
       color: var(--text-1);
       z-index: 10;
     }
+
     .heatmap-legend {
-      display: flex; align-items: center; justify-content: flex-end;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
       gap: 4px;
       font-family: var(--mono);
       font-size: 9px;
@@ -877,7 +1561,12 @@
       margin-top: 14px;
       letter-spacing: 0.15em;
     }
-    .heatmap-legend-cell { width: 11px; height: 11px; border-radius: 1px; }
+
+    .heatmap-legend-cell {
+      width: 11px;
+      height: 11px;
+      border-radius: 1px;
+    }
 
     /* ===== チャート ===== */
     .chart-wrap {
@@ -886,12 +1575,14 @@
       padding: 18px;
       margin-bottom: 24px;
     }
+
     .chart-tabs {
       display: flex;
       gap: 4px;
       margin-bottom: 16px;
       justify-content: center;
     }
+
     .chart-tab-btn {
       font-family: var(--mono);
       font-size: 10px;
@@ -904,7 +1595,12 @@
       text-transform: uppercase;
       transition: all 0.2s;
     }
-    .chart-tab-btn:hover { color: var(--text-1); border-color: var(--text-2); }
+
+    .chart-tab-btn:hover {
+      color: var(--text-1);
+      border-color: var(--text-2);
+    }
+
     .chart-tab-btn.active {
       background: var(--neon-lime);
       color: var(--bg-0);
@@ -912,8 +1608,15 @@
       box-shadow: 0 0 12px rgba(200, 255, 0, 0.3);
       font-weight: 700;
     }
-    .chart-pane { display: none; }
-    .chart-pane.active { display: block; }
+
+    .chart-pane {
+      display: none;
+    }
+
+    .chart-pane.active {
+      display: block;
+    }
+
     .chart-title {
       font-family: var(--mono);
       font-size: 10px;
@@ -931,18 +1634,24 @@
       gap: 12px;
       margin-bottom: 24px;
     }
+
     @media (min-width: 600px) {
-      .community-grid { grid-template-columns: 1fr 1fr; }
+      .community-grid {
+        grid-template-columns: 1fr 1fr;
+      }
     }
+
     .comm-card {
       background: var(--bg-1);
       border: 1px solid var(--line);
       padding: 18px;
     }
+
     .comm-card.fanclub {
       border-color: var(--neon-magenta);
       box-shadow: 0 0 16px rgba(255, 43, 214, 0.08) inset;
     }
+
     .comm-title {
       font-family: var(--mono);
       font-size: 10px;
@@ -953,9 +1662,21 @@
       padding-bottom: 10px;
       border-bottom: 1px dashed var(--line);
     }
-    .comm-card.fanclub .comm-title { color: var(--neon-magenta); }
-    .comm-card.feed .comm-title { color: var(--neon-cyan); }
-    .comm-list { list-style: none; padding: 0; margin: 0; }
+
+    .comm-card.fanclub .comm-title {
+      color: var(--neon-magenta);
+    }
+
+    .comm-card.feed .comm-title {
+      color: var(--neon-cyan);
+    }
+
+    .comm-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
     .comm-item {
       display: flex;
       justify-content: space-between;
@@ -964,23 +1685,48 @@
       border-bottom: 1px dashed var(--line-soft);
       font-size: 12px;
     }
-    .comm-item:last-child { border-bottom: none; }
-    .rank-name { color: var(--text-1); display: flex; align-items: center; gap: 6px; font-family: var(--display); }
+
+    .comm-item:last-child {
+      border-bottom: none;
+    }
+
+    .rank-name {
+      color: var(--text-1);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--display);
+    }
+
     .rank-score {
       color: var(--neon-amber);
       font-family: var(--mono);
       font-size: 11px;
       font-weight: 700;
     }
-    .rank-icon { font-size: 14px; }
+
+    .rank-icon {
+      font-size: 14px;
+    }
+
     .feed-time {
       font-family: var(--mono);
       font-size: 10px;
       letter-spacing: 0.1em;
     }
-    .feed-time.in { color: var(--neon-lime); }
-    .feed-time.out { color: var(--text-2); }
-    .feed-name { color: var(--text-1); font-family: var(--display); }
+
+    .feed-time.in {
+      color: var(--neon-lime);
+    }
+
+    .feed-time.out {
+      color: var(--text-2);
+    }
+
+    .feed-name {
+      color: var(--text-1);
+      font-family: var(--display);
+    }
 
     /* ===== 参考書 ===== */
     .book-form {
@@ -989,9 +1735,17 @@
       padding: 18px;
       margin-bottom: 20px;
     }
-    .book-form-row { margin-bottom: 12px; }
-    .book-form-row:last-child { margin-bottom: 0; }
-    .book-input, .book-textarea {
+
+    .book-form-row {
+      margin-bottom: 12px;
+    }
+
+    .book-form-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .book-input,
+    .book-textarea {
       width: 100%;
       background: var(--bg-0);
       border: 1px solid var(--line);
@@ -1001,17 +1755,32 @@
       font-size: 13px;
       transition: border-color 0.2s;
     }
-    .book-input::placeholder, .book-textarea::placeholder { color: var(--text-3); }
-    .book-input:focus, .book-textarea:focus {
+
+    .book-input::placeholder,
+    .book-textarea::placeholder {
+      color: var(--text-3);
+    }
+
+    .book-input:focus,
+    .book-textarea:focus {
       outline: none;
       border-color: var(--neon-cyan);
       box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
     }
-    .book-textarea { min-height: 60px; resize: vertical; font-family: var(--display); }
+
+    .book-textarea {
+      min-height: 60px;
+      resize: vertical;
+      font-family: var(--display);
+    }
+
     .rating-input {
-      display: flex; align-items: center; gap: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       padding: 4px 0;
     }
+
     .rating-label {
       font-family: var(--mono);
       font-size: 10px;
@@ -1019,7 +1788,12 @@
       color: var(--text-3);
       text-transform: uppercase;
     }
-    .star-picker { display: flex; gap: 4px; }
+
+    .star-picker {
+      display: flex;
+      gap: 4px;
+    }
+
     .star-picker .star {
       font-size: 24px;
       color: var(--bg-3);
@@ -1028,11 +1802,16 @@
       user-select: none;
       line-height: 1;
     }
+
     .star-picker .star.selected {
       color: var(--neon-amber);
       text-shadow: 0 0 8px rgba(255, 177, 59, 0.5);
     }
-    .star-picker .star:hover { transform: scale(1.2); }
+
+    .star-picker .star:hover {
+      transform: scale(1.2);
+    }
+
     .rating-display {
       font-family: var(--mono);
       font-size: 11px;
@@ -1040,16 +1819,19 @@
       font-weight: 700;
       min-width: 40px;
     }
+
     .book-form-footer {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+
     .char-counter {
       font-family: var(--mono);
       font-size: 10px;
       color: var(--text-3);
     }
+
     .book-post-btn {
       background: var(--neon-lime);
       color: var(--bg-0);
@@ -1063,12 +1845,22 @@
       text-transform: uppercase;
       transition: all 0.2s;
     }
+
     .book-post-btn:hover:not(:disabled) {
       box-shadow: 0 0 14px rgba(200, 255, 0, 0.5);
     }
-    .book-post-btn:disabled { opacity: 0.5; cursor: wait; }
 
-    .book-feed { display: flex; flex-direction: column; gap: 12px; }
+    .book-post-btn:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
+    .book-feed {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
     .book-card {
       background: var(--bg-1);
       border: 1px solid var(--line);
@@ -1076,14 +1868,17 @@
       transition: border-color 0.2s;
       position: relative;
     }
+
     .book-card.mine {
       border-color: var(--neon-lime);
       background: rgba(200, 255, 0, 0.03);
     }
+
     .book-card.mine::before {
       content: 'MINE';
       position: absolute;
-      top: -1px; right: -1px;
+      top: -1px;
+      right: -1px;
       background: var(--neon-lime);
       color: var(--bg-0);
       padding: 2px 6px;
@@ -1092,6 +1887,7 @@
       letter-spacing: 0.2em;
       font-weight: 700;
     }
+
     .book-card-header {
       display: flex;
       justify-content: space-between;
@@ -1099,6 +1895,7 @@
       gap: 10px;
       margin-bottom: 8px;
     }
+
     .book-name {
       font-family: var(--display);
       font-weight: 600;
@@ -1107,6 +1904,7 @@
       flex: 1;
       line-height: 1.4;
     }
+
     .book-rating {
       font-size: 13px;
       color: var(--neon-amber);
@@ -1114,6 +1912,7 @@
       letter-spacing: 1px;
       filter: drop-shadow(0 0 4px rgba(255, 177, 59, 0.3));
     }
+
     .book-meta {
       display: flex;
       justify-content: space-between;
@@ -1123,8 +1922,15 @@
       margin-bottom: 8px;
       letter-spacing: 0.05em;
     }
-    .book-author { color: var(--neon-cyan); }
-    .book-card.mine .book-author { color: var(--neon-lime); }
+
+    .book-author {
+      color: var(--neon-cyan);
+    }
+
+    .book-card.mine .book-author {
+      color: var(--neon-lime);
+    }
+
     .book-comment {
       font-family: var(--display);
       font-size: 13px;
@@ -1134,7 +1940,13 @@
       word-wrap: break-word;
       margin-bottom: 10px;
     }
-    .book-reactions { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .book-reactions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
     .reaction-btn {
       background: var(--bg-2);
       border: 1px solid var(--line);
@@ -1148,18 +1960,27 @@
       align-items: center;
       gap: 4px;
     }
-    .reaction-btn:hover:not(:disabled) { border-color: var(--neon-magenta); }
+
+    .reaction-btn:hover:not(:disabled) {
+      border-color: var(--neon-magenta);
+    }
+
     .reaction-btn.active {
       background: rgba(255, 43, 214, 0.1);
       border-color: var(--neon-magenta);
       box-shadow: 0 0 8px rgba(255, 43, 214, 0.2);
     }
+
     .reaction-btn .count {
       font-size: 10px;
       color: var(--text-3);
       font-weight: 700;
     }
-    .reaction-btn.active .count { color: var(--neon-magenta); }
+
+    .reaction-btn.active .count {
+      color: var(--neon-magenta);
+    }
+
     .book-empty {
       text-align: center;
       color: var(--text-3);
@@ -1177,6 +1998,7 @@
       padding: 18px;
       margin-bottom: 20px;
     }
+
     details.test-container summary {
       outline: none;
       cursor: pointer;
@@ -1193,22 +2015,37 @@
       align-items: center;
       font-weight: 700;
     }
-    details.test-container summary::-webkit-details-marker { display: none; }
+
+    details.test-container summary::-webkit-details-marker {
+      display: none;
+    }
+
     details.test-container summary::after {
       content: '▼ OPEN';
       font-size: 9px;
       color: var(--text-3);
       font-weight: 400;
     }
-    details.test-container[open] summary::after { content: '▲ CLOSE'; }
-    .test-item { margin-bottom: 22px; }
-    .test-item:last-child { margin-bottom: 0; }
+
+    details.test-container[open] summary::after {
+      content: '▲ CLOSE';
+    }
+
+    .test-item {
+      margin-bottom: 22px;
+    }
+
+    .test-item:last-child {
+      margin-bottom: 0;
+    }
+
     .test-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
     }
+
     .test-name {
       font-family: var(--display);
       font-weight: 600;
@@ -1218,19 +2055,28 @@
       align-items: center;
       gap: 6px;
     }
+
     .test-count {
       font-family: var(--mono);
       color: var(--text-2);
       font-size: 12px;
     }
+
     .test-count span {
       color: var(--neon-lime);
       font-weight: 700;
       font-size: 14px;
     }
-    .grid-container { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .grid-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
     .grid-box {
-      width: 28px; height: 28px;
+      width: 28px;
+      height: 28px;
       border: 1px solid var(--line);
       background: var(--bg-2);
       display: flex;
@@ -1238,13 +2084,25 @@
       align-items: center;
       transition: all 0.3s ease;
     }
-    .stamp-icon { width: 80%; height: 80%; object-fit: contain; transition: all 0.3s; }
-    .grid-box:not(.completed) .stamp-icon { opacity: 0.12; filter: grayscale(100%); }
+
+    .stamp-icon {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      transition: all 0.3s;
+    }
+
+    .grid-box:not(.completed) .stamp-icon {
+      opacity: 0.12;
+      filter: grayscale(100%);
+    }
+
     .grid-box.completed {
       border-color: var(--neon-lime);
       background: rgba(200, 255, 0, 0.05);
       box-shadow: 0 0 8px rgba(200, 255, 0, 0.2);
     }
+
     .grid-box.completed .stamp-icon {
       opacity: 1;
       filter: drop-shadow(0 0 4px rgba(200, 255, 0, 0.8));
@@ -1257,11 +2115,13 @@
       padding: 18px;
       overflow-x: auto;
     }
+
     table.history {
       width: 100%;
       border-collapse: collapse;
       min-width: 300px;
     }
+
     table.history th {
       font-family: var(--mono);
       color: var(--neon-cyan);
@@ -1273,6 +2133,7 @@
       letter-spacing: 0.25em;
       text-transform: uppercase;
     }
+
     table.history td {
       font-family: var(--mono);
       border-bottom: 1px dashed var(--line);
@@ -1286,16 +2147,20 @@
     .modal-overlay {
       display: none;
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       background: rgba(10, 14, 26, 0.88);
       backdrop-filter: blur(4px);
       z-index: 999;
     }
+
     .modal {
       display: none;
       position: fixed;
-      top: 50%; left: 50%;
+      top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
       background: var(--bg-1);
       border: 1px solid var(--neon-cyan);
@@ -1307,6 +2172,7 @@
       max-height: 85vh;
       overflow-y: auto;
     }
+
     .modal h3 {
       font-family: var(--display);
       font-weight: 800;
@@ -1315,6 +2181,7 @@
       font-size: 16px;
       letter-spacing: 0.05em;
     }
+
     .modal label {
       font-family: var(--mono);
       font-size: 10px;
@@ -1322,6 +2189,7 @@
       color: var(--text-3);
       text-transform: uppercase;
     }
+
     .modal-input {
       width: 100%;
       background: var(--bg-0);
@@ -1331,10 +2199,12 @@
       margin: 6px 0 14px;
       font-family: var(--display);
     }
+
     .modal-input:focus {
       outline: none;
       border-color: var(--neon-cyan);
     }
+
     .modal-btn {
       background: var(--neon-cyan);
       color: var(--bg-0);
@@ -1349,36 +2219,59 @@
       text-transform: uppercase;
       margin-top: 6px;
     }
-    .modal-btn:disabled { opacity: 0.5; cursor: wait; }
+
+    .modal-btn:disabled {
+      opacity: 0.5;
+      cursor: wait;
+    }
+
     .modal-close-btn {
       background: transparent;
       color: var(--text-2);
       border: 1px solid var(--line);
     }
-    .modal-close-btn:hover { color: var(--text-1); border-color: var(--text-2); }
+
+    .modal-close-btn:hover {
+      color: var(--text-1);
+      border-color: var(--text-2);
+    }
 
     /* ===== 紙吹雪・お祝い ===== */
     .confetti-container {
       position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
       z-index: 9999;
       overflow: hidden;
     }
+
     .confetti {
       position: absolute;
-      width: 8px; height: 14px;
+      width: 8px;
+      height: 14px;
       opacity: 0.9;
       animation: confetti-fall linear forwards;
     }
+
     @keyframes confetti-fall {
-      0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
-      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+      0% {
+        transform: translateY(-20px) rotate(0deg);
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(110vh) rotate(720deg);
+        opacity: 0;
+      }
     }
+
     .celebration-toast {
       position: fixed;
-      top: 30%; left: 50%;
+      top: 30%;
+      left: 50%;
       transform: translate(-50%, -50%) scale(0.5);
       background: var(--bg-1);
       border: 2px solid var(--neon-lime);
@@ -1390,11 +2283,17 @@
       pointer-events: none;
       transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
+
     .celebration-toast.show {
       opacity: 1;
       transform: translate(-50%, -50%) scale(1);
     }
-    .celebration-icon { font-size: 50px; margin-bottom: 10px; }
+
+    .celebration-icon {
+      font-size: 50px;
+      margin-bottom: 10px;
+    }
+
     .celebration-title {
       font-family: var(--display);
       font-weight: 800;
@@ -1404,6 +2303,7 @@
       margin-bottom: 6px;
       text-shadow: 0 0 12px rgba(200, 255, 0, 0.5);
     }
+
     .celebration-sub {
       font-family: var(--mono);
       font-size: 11px;
@@ -1413,7 +2313,8 @@
 
     .toast {
       position: fixed;
-      bottom: 30px; left: 50%;
+      bottom: 30px;
+      left: 50%;
       transform: translateX(-50%) translateY(20px);
       background: var(--bg-1);
       border: 1px solid var(--neon-cyan);
@@ -1427,6 +2328,7 @@
       letter-spacing: 0.1em;
       box-shadow: 0 4px 20px rgba(0, 240, 255, 0.2);
     }
+
     .toast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
@@ -1448,18 +2350,28 @@
       flex-wrap: wrap;
       gap: 8px;
     }
+
     .station-footer .pulse {
       display: inline-block;
-      width: 6px; height: 6px;
+      width: 6px;
+      height: 6px;
       background: var(--neon-lime);
       border-radius: 50%;
       box-shadow: 0 0 8px var(--neon-lime);
       margin-right: 8px;
       animation: pulse 2s infinite;
     }
+
     @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.3; }
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.3;
+      }
     }
 
     /* ===== フェードイン ===== */
@@ -1468,402 +2380,1139 @@
       transform: translateY(12px);
       animation: fadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .tab-content.active .fade-in:nth-child(1) { animation-delay: 0.05s; }
-    .tab-content.active .fade-in:nth-child(2) { animation-delay: 0.1s; }
-    .tab-content.active .fade-in:nth-child(3) { animation-delay: 0.15s; }
-    .tab-content.active .fade-in:nth-child(4) { animation-delay: 0.2s; }
-    .tab-content.active .fade-in:nth-child(5) { animation-delay: 0.25s; }
-    .tab-content.active .fade-in:nth-child(6) { animation-delay: 0.3s; }
-    .tab-content.active .fade-in:nth-child(7) { animation-delay: 0.35s; }
-    .tab-content.active .fade-in:nth-child(8) { animation-delay: 0.4s; }
-    .tab-content.active .fade-in:nth-child(n+9) { animation-delay: 0.45s; }
-    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    .tab-content.active .fade-in:nth-child(1) {
+      animation-delay: 0.05s;
+    }
+
+    .tab-content.active .fade-in:nth-child(2) {
+      animation-delay: 0.1s;
+    }
+
+    .tab-content.active .fade-in:nth-child(3) {
+      animation-delay: 0.15s;
+    }
+
+    .tab-content.active .fade-in:nth-child(4) {
+      animation-delay: 0.2s;
+    }
+
+    .tab-content.active .fade-in:nth-child(5) {
+      animation-delay: 0.25s;
+    }
+
+    .tab-content.active .fade-in:nth-child(6) {
+      animation-delay: 0.3s;
+    }
+
+    .tab-content.active .fade-in:nth-child(7) {
+      animation-delay: 0.35s;
+    }
+
+    .tab-content.active .fade-in:nth-child(8) {
+      animation-delay: 0.4s;
+    }
+
+    .tab-content.active .fade-in:nth-child(n+9) {
+      animation-delay: 0.45s;
+    }
+
+    @keyframes fadeUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .sss-cal-section {
+      background: var(--bg-1);
+      border: 1px solid var(--line);
+      padding: 18px;
+      margin-bottom: 24px;
+    }
+
+    .sss-cal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .sss-cal-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sss-cal-nav-btn {
+      width: 28px;
+      height: 28px;
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      color: var(--neon-cyan);
+      font-size: 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      padding: 0;
+    }
+
+    .sss-cal-nav-btn:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+    }
+
+    .sss-cal-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: var(--text-1);
+      min-width: 150px;
+      text-align: center;
+    }
+
+    .sss-cal-view-toggle {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--line);
+    }
+
+    .sss-view-btn {
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--line);
+      color: var(--text-2);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      padding: 5px 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .sss-view-btn:last-child {
+      border-right: none;
+    }
+
+    .sss-view-btn:hover {
+      color: var(--text-1);
+    }
+
+    .sss-view-btn.active {
+      background: var(--neon-lime);
+      color: var(--bg-0);
+      font-weight: 700;
+      box-shadow: 0 0 10px rgba(200, 255, 0, 0.3);
+    }
+
+    /* 曜日ヘッダー */
+    .sss-cal-day-headers {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+      margin-bottom: 3px;
+    }
+
+    .sss-cal-day-label {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      color: var(--text-3);
+      text-align: center;
+      padding: 4px 0;
+    }
+
+    .sss-cal-day-label.sat {
+      color: var(--neon-cyan);
+    }
+
+    .sss-cal-day-label.sun {
+      color: var(--neon-red);
+    }
+
+    /* 週表示グリッド */
+    .sss-week-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+
+    .sss-week-cell {
+      min-height: 72px;
+      background: var(--bg-2);
+      border: 1px solid var(--line-soft);
+      padding: 6px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      transition: border-color 0.2s;
+    }
+
+    .sss-week-cell.today {
+      border-color: var(--neon-lime);
+      background: rgba(200, 255, 0, 0.04);
+    }
+
+    .sss-week-date {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-2);
+      margin-bottom: 2px;
+    }
+
+    .sss-week-cell.today .sss-week-date {
+      color: var(--neon-lime);
+      font-weight: 700;
+    }
+
+    .sss-week-cell.sat .sss-week-date {
+      color: var(--neon-cyan);
+    }
+
+    .sss-week-cell.sun .sss-week-date {
+      color: var(--neon-red);
+    }
+
+    /* 月表示グリッド */
+    .sss-month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 3px;
+    }
+
+    .sss-month-cell {
+      min-height: 52px;
+      background: var(--bg-2);
+      border: 1px solid var(--line-soft);
+      padding: 4px 3px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: border-color 0.2s;
+    }
+
+    .sss-month-cell.today {
+      border-color: var(--neon-lime);
+      background: rgba(200, 255, 0, 0.04);
+    }
+
+    .sss-month-cell.other-month {
+      opacity: 0.25;
+      background: transparent;
+    }
+
+    .sss-month-date {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-2);
+    }
+
+    .sss-month-cell.today .sss-month-date {
+      color: var(--neon-lime);
+      font-weight: 700;
+    }
+
+    .sss-month-cell.sat .sss-month-date {
+      color: var(--neon-cyan);
+    }
+
+    .sss-month-cell.sun .sss-month-date {
+      color: var(--neon-red);
+    }
+
+    /* イベントチップ */
+    .sss-event-chip {
+      background: rgba(200, 255, 0, 0.12);
+      border: 1px solid rgba(200, 255, 0, 0.3);
+      color: var(--neon-lime);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      padding: 2px 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: default;
+      transition: all 0.15s;
+    }
+
+    .sss-event-chip:hover {
+      background: rgba(200, 255, 0, 0.2);
+      box-shadow: 0 0 6px rgba(200, 255, 0, 0.2);
+    }
+
+    .sss-event-chip.more {
+      background: rgba(139, 149, 184, 0.1);
+      border-color: var(--line);
+      color: var(--text-3);
+    }
+
+    .sss-no-event {
+      font-family: var(--mono);
+      font-size: 9px;
+      color: var(--text-3);
+      text-align: center;
+      margin-top: 6px;
+      opacity: 0.4;
+    }
+
+    .sss-cal-loading {
+      text-align: center;
+      padding: 32px 0;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: var(--text-3);
+    }
+
+    .sse-trigger-btn {
+      background: var(--bg-2);
+      border: 1px solid var(--neon-lime);
+      color: var(--neon-lime);
+      padding: 10px 18px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .sse-trigger-btn:hover {
+      background: rgba(200, 255, 0, 0.08);
+      box-shadow: 0 0 12px rgba(200, 255, 0, 0.2);
+    }
+
+    .sse-modal {
+      width: 92%;
+      max-width: 460px;
+    }
+
+    .sse-modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sse-modal-header h3 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 16px;
+      color: var(--neon-cyan);
+      margin: 0;
+      text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+    }
+
+    .sse-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-2);
+      font-size: 18px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0 4px;
+      font-family: var(--mono);
+    }
+
+    .sse-modal-close:hover {
+      color: var(--neon-red);
+    }
+
+    .sse-field {
+      margin-bottom: 14px;
+    }
+
+    .sse-field:last-child {
+      margin-bottom: 0;
+    }
+
+    .sse-field-label {
+      display: block;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: var(--text-3);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .sse-field-label .req {
+      color: var(--neon-red);
+      margin-left: 4px;
+    }
+
+    .sse-row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .sse-modal input[type="date"],
+    .sse-modal input[type="time"],
+    .sse-modal input[type="text"] {
+      width: 100%;
+      background: var(--bg-0);
+      border: 1px solid var(--line);
+      color: var(--text-1);
+      padding: 9px 10px;
+      font-family: var(--display);
+      font-size: 13px;
+      outline: none;
+      -webkit-appearance: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .sse-modal input:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.2);
+    }
+
+    .sse-modal input[type="date"]::-webkit-calendar-picker-indicator,
+    .sse-modal input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(60%) sepia(70%) saturate(2000%) hue-rotate(150deg);
+      cursor: pointer;
+    }
+
+    .sse-divider {
+      border-top: 1px dashed var(--line);
+      margin: 16px 0;
+    }
+
+    .sse-repeat-options {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .sse-repeat-btn {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.1em;
+      padding: 6px 11px;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-2);
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.2s;
+    }
+
+    .sse-repeat-btn:hover {
+      color: var(--text-1);
+      border-color: var(--text-2);
+    }
+
+    .sse-repeat-btn.active {
+      background: var(--neon-lime);
+      color: var(--bg-0);
+      border-color: var(--neon-lime);
+      font-weight: 700;
+    }
+
+    .sse-day-picker {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .sse-day-btn {
+      width: 30px;
+      height: 30px;
+      background: var(--bg-2);
+      border: 1px solid var(--line);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .sse-day-btn:hover {
+      border-color: var(--neon-cyan);
+    }
+
+    .sse-day-btn.active {
+      background: var(--neon-cyan);
+      color: var(--bg-0);
+      border-color: var(--neon-cyan);
+    }
+
+    .sse-day-btn.sat:not(.active) {
+      color: var(--neon-cyan);
+    }
+
+    .sse-day-btn.sun:not(.active) {
+      color: var(--neon-red);
+    }
+
+    .sse-btn-add {
+      width: 100%;
+      background: transparent;
+      border: 1px dashed var(--neon-lime);
+      color: var(--neon-lime);
+      padding: 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 4px;
+    }
+
+    .sse-btn-add:hover {
+      background: rgba(200, 255, 0, 0.08);
+    }
+
+    .sse-err {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--neon-red);
+      margin-top: 8px;
+      display: none;
+    }
+
+    .sse-list-title {
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: var(--neon-cyan);
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .sse-list-title strong {
+      color: var(--neon-lime);
+    }
+
+    .sse-items {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      max-height: 160px;
+      overflow-y: auto;
+      margin-bottom: 12px;
+    }
+
+    .sse-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-2);
+      border: 1px solid var(--line-soft);
+      padding: 8px 10px;
+      font-size: 11px;
+    }
+
+    .sse-item .d {
+      font-family: var(--mono);
+      color: var(--neon-lime);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .sse-item .t {
+      font-family: var(--mono);
+      color: var(--text-1);
+      white-space: nowrap;
+    }
+
+    .sse-item .m {
+      color: var(--text-2);
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sse-item .x {
+      background: none;
+      border: none;
+      color: var(--neon-red);
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      padding: 0 2px;
+    }
+
+    .sse-empty {
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.15em;
+      color: var(--text-3);
+      padding: 14px 0;
+    }
+
+    .sse-submit {
+      width: 100%;
+      background: var(--neon-lime);
+      color: var(--bg-0);
+      border: none;
+      padding: 12px;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      display: none;
+    }
+
+    .sse-submit:hover {
+      box-shadow: 0 0 16px rgba(200, 255, 0, 0.4);
+    }
+
+    .sse-done {
+      display: none;
+      text-align: center;
+      padding: 20px 4px;
+    }
+
+    .sse-done-icon {
+      width: 46px;
+      height: 46px;
+      margin: 0 auto 14px;
+      border: 2px solid var(--neon-lime);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      color: var(--neon-lime);
+    }
+
+    .sse-done h4 {
+      font-family: var(--display);
+      font-weight: 800;
+      font-size: 15px;
+      color: var(--neon-lime);
+      margin: 0 0 8px;
+    }
+
+    .sse-done p {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-2);
+      line-height: 1.7;
+      margin: 0;
+    }
   </style>
 </head>
 
 <body>
+  <div class="layout">
 
-<div class="layout">
-
-  <!-- ========== HEADER ========== -->
-  <header class="station-header">
-    <div class="brand-row">
-      <div class="brand">
-        <div>STATION <span class="station-num">/ ZERO</span> ─ MY DASHBOARD</div>
-        <h1><span class="name-target" id="student-name">─</span> <span class="kana">の記録</span></h1>
-      </div>
-      <button id="refresh-btn" class="refresh-btn" onclick="refreshData()" aria-label="更新" title="データを更新">
+    <!-- ========== HEADER ========== -->
+    <header class="station-header">
+      <div class="brand-row">
+        <div class="brand">
+          <div>STATION <span class="station-num">/ ZERO</span> ─ MY DASHBOARD</div>
+          <h1><span class="name-target" id="student-name">─</span> <span class="kana">の記録</span></h1>
+        </div>
+        <button id="refresh-btn" class="refresh-btn" onclick="refreshData()" aria-label="更新" title="データを更新">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 4 23 10 17 10"></polyline>
           <polyline points="1 20 1 14 7 14"></polyline>
           <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
         </svg>
       </button>
-    </div>
-  </header>
+      </div>
+    </header>
 
-  <!-- ========== タブナビ ========== -->
-  <nav class="tab-nav" id="tab-nav" style="display:none;">
-    <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">
+    <!-- ========== タブナビ ========== -->
+    <nav class="tab-nav" id="tab-nav" style="display:none;">
+      <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">
       <span class="tab-icon">▣</span><span class="tab-label">HOME</span>
     </button>
-    <button class="tab-btn" data-tab="trends" onclick="switchTab('trends')">
+      <button class="tab-btn" data-tab="trends" onclick="switchTab('trends')">
       <span class="tab-icon">◢</span><span class="tab-label">TRENDS</span>
     </button>
-    <button class="tab-btn" data-tab="books" onclick="switchTab('books')">
+      <button class="tab-btn" data-tab="books" onclick="switchTab('books')">
       <span class="tab-icon">◈</span><span class="tab-label">BOOKS</span>
     </button>
-    <button class="tab-btn" data-tab="history" onclick="switchTab('history')">
+      <button class="tab-btn" data-tab="history" onclick="switchTab('history')">
       <span class="tab-icon">◰</span><span class="tab-label">LOG</span>
     </button>
-  </nav>
+    </nav>
 
-  <!-- ========== ローディング ========== -->
-  <div id="loading">
-    <div class="loader-ring"></div>
-    <div class="loading-text">LOADING</div>
-    <div class="loading-sub">SYSTEM IS GATHERING DATA...</div>
-  </div>
-
-  <!-- ========== エラー ========== -->
-  <div id="error-screen" style="display:none;">
-    <div class="error-box">
-      <div class="err-title">▲ ERROR</div>
-      <div class="err-msg" id="err-message">データの取得に失敗しました。</div>
-      <button class="err-retry" onclick="location.reload()">再読み込み</button>
-    </div>
-  </div>
-
-  <!-- ============================================================== -->
-  <!-- 🏠 HOME                                                         -->
-  <!-- ============================================================== -->
-  <div class="tab-content active" data-tab="home">
-
-    <div class="highlight fade-in">
-      <div class="hl-label">★ QUOTE OF THE DAY</div>
-      <div class="hl-quote" id="quote-text">─</div>
+    <!-- ========== ローディング ========== -->
+    <div id="loading">
+      <div class="loader-ring"></div>
+      <div class="loading-text">LOADING</div>
+      <div class="loading-sub">SYSTEM IS GATHERING DATA...</div>
     </div>
 
-    <!-- カウントダウン -->
-    <div class="countdown-grid fade-in">
-      <div class="cd-card" data-type="common">
-        <div class="cd-title">共通テスト</div>
-        <div class="cd-days" id="cd-common">--<span>DAYS</span></div>
-      </div>
-      <div class="cd-card" data-type="national">
-        <div class="cd-title">国立二次</div>
-        <div class="cd-days" id="cd-national">--<span>DAYS</span></div>
-      </div>
-      <div class="cd-card" data-type="custom" id="cd-custom-card" style="display:none;">
-        <div class="cd-title" id="cd-custom-title">目標模試</div>
-        <div class="cd-days" id="cd-custom">--<span>DAYS</span></div>
+    <!-- ========== エラー ========== -->
+    <div id="error-screen" style="display:none;">
+      <div class="error-box">
+        <div class="err-title">▲ ERROR</div>
+        <div class="err-msg" id="err-message">データの取得に失敗しました。</div>
+        <button class="err-retry" onclick="location.reload()">再読み込み</button>
       </div>
     </div>
 
-    <!-- QR -->
-    <details class="box-qr fade-in" id="box-qr" open>
-      <summary>▣ MY QR CODE</summary>
-      <div class="qr-content">
-        <p class="qr-note">受付のiPadにこの画面をかざしてください</p>
-        <div class="qr-frame">
-          <canvas id="qr-canvas"></canvas>
+    <!-- ============================================================== -->
+    <!-- 🏠 HOME                                                         -->
+    <!-- ============================================================== -->
+    <div class="tab-content active" data-tab="home">
+
+      <div class="highlight fade-in">
+        <div class="hl-label">★ QUOTE OF THE DAY</div>
+        <div class="hl-quote" id="quote-text">─</div>
+      </div>
+
+      <!-- カウントダウン -->
+      <div class="countdown-grid fade-in">
+        <div class="cd-card" data-type="common">
+          <div class="cd-title">共通テスト</div>
+          <div class="cd-days" id="cd-common">--<span>DAYS</span></div>
         </div>
-        <p class="qr-id-label">OPERATOR ID</p>
-        <p class="qr-id" id="qr-id-text">---</p>
-      </div>
-    </details>
-
-    <div class="settings-trigger fade-in" onclick="openModal('settings-modal')">⚙ 目標模試を自分専用に設定する</div>
-
-    <!-- レベル + ランク -->
-    <div class="hero-grid fade-in">
-      <div class="level-box">
-        <div class="level-num" id="level-value">1</div>
-        <div class="xp-meter"><div class="xp-fill" id="level-bar-fill"></div></div>
-        <div class="xp-stats">
-          <span id="level-exp">0 h</span>
-          <span class="next" id="level-next">→ NEXT 7h</span>
+        <div class="cd-card" data-type="national">
+          <div class="cd-title">国立二次</div>
+          <div class="cd-days" id="cd-national">--<span>DAYS</span></div>
         </div>
-      </div>
-      <div class="rank-box">
-        <div class="rank-label">CURRENT RANK</div>
-        <div id="rank-badge" class="rank-badge">---</div>
-        <div id="rank-next" class="rank-next">---</div>
-      </div>
-    </div>
-
-    <!-- 出席 -->
-    <div class="attendance-card fade-in">
-      <div class="att-cell divider">
-        <div class="att-cell-label">TOTAL DAYS</div>
-        <div>
-          <span class="att-cell-value total" id="streak-total">0</span>
-          <span class="att-cell-unit">日</span>
+        <div class="cd-card" data-type="custom" id="cd-custom-card" style="display:none;">
+          <div class="cd-title" id="cd-custom-title">目標模試</div>
+          <div class="cd-days" id="cd-custom">--<span>DAYS</span></div>
         </div>
       </div>
-      <div class="att-cell">
-        <div class="att-cell-label">CURRENT STREAK</div>
-        <div>
-          <span class="att-cell-value active" id="streak-active">0</span>
-          <span class="att-cell-unit">日</span>
-        </div>
-      </div>
-    </div>
 
-    <!-- デイリーミッション -->
-    <div class="mission-card fade-in">
-      <div class="section-header" style="margin-bottom:0;">
-        <h3>DAILY MISSIONS</h3>
-        <span class="tag">/ 今日の任務</span>
-        <div class="underline"></div>
-      </div>
-      <div class="mission-list" id="mission-list"></div>
-    </div>
-
-    <!-- 週次目標 -->
-    <div class="goal-card fade-in">
-      <div class="goal-row">
-        <div class="goal-title" id="goal-title-text">WEEKLY GOAL (--h)</div>
-        <div class="goal-text"><span id="goal-current">0</span>h ─ <span class="pct"><span id="goal-percent">0</span>%</span></div>
-      </div>
-      <div class="goal-bar"><div class="goal-fill" id="progress-bar"></div></div>
-    </div>
-
-    <!-- 比較 -->
-    <div class="compare-grid fade-in">
-      <div class="compare-card">
-        <div class="compare-title">vs LAST WEEK</div>
-        <div class="compare-value" id="cmp-week-val">--h</div>
-        <div class="compare-diff flat" id="cmp-week-diff">--</div>
-      </div>
-      <div class="compare-card">
-        <div class="compare-title">LAST 30d vs PREV</div>
-        <div class="compare-value" id="cmp-month-val">--h</div>
-        <div class="compare-diff flat" id="cmp-month-diff">--</div>
-      </div>
-    </div>
-
-    <!-- 統計KPI -->
-    <div class="kpi-row fade-in">
-      <div class="kpi" data-accent="lime">
-        <div class="kpi-label">TODAY</div>
-        <div class="kpi-value" id="val-today">--</div>
-      </div>
-      <div class="kpi" data-accent="cyan">
-        <div class="kpi-label">LAST 7 DAYS</div>
-        <div class="kpi-value" id="val-week">--</div>
-      </div>
-      <div class="kpi" data-accent="amber">
-        <div class="kpi-label">ALL TIME</div>
-        <div class="kpi-value" id="val-total">--</div>
-      </div>
-    </div>
-
-    <!-- アチーブメント -->
-    <div class="ach-card fade-in">
-      <div class="section-header" style="margin-bottom:0;">
-        <h3>ACHIEVEMENTS</h3>
-        <span class="tag">/ 称号と勲章</span>
-        <div class="underline"></div>
-      </div>
-      <div class="ach-summary" id="ach-summary">UNLOCKED <strong>0</strong> / <strong>0</strong></div>
-      <div class="ach-grid" id="ach-grid"></div>
-    </div>
-  </div>
-
-  <!-- ============================================================== -->
-  <!-- 📊 TRENDS                                                       -->
-  <!-- ============================================================== -->
-  <div class="tab-content" data-tab="trends">
-
-    <!-- ヒートマップ -->
-    <div class="section fade-in">
-      <div class="section-header">
-        <h3>ACTIVITY MAP</h3>
-        <span class="tag">/ 過去7日 × 24時間</span>
-        <div class="underline"></div>
-      </div>
-      <div class="heatmap-wrap">
-        <div class="heatmap-sub">在室していた時間が光ります</div>
-        <div style="display:flex; justify-content:center; overflow-x:auto;">
-          <table class="heatmap-table" id="heatmap-table">
-            <thead><tr id="heatmap-thead"></tr></thead>
-            <tbody id="heatmap-tbody"></tbody>
-          </table>
-        </div>
-        <div class="heatmap-legend">
-          LESS
-          <div class="heatmap-legend-cell" style="background:var(--bg-2);"></div>
-          <div class="heatmap-legend-cell lv1"></div>
-          <div class="heatmap-legend-cell lv2"></div>
-          <div class="heatmap-legend-cell lv3"></div>
-          <div class="heatmap-legend-cell lv4"></div>
-          MORE
-        </div>
-      </div>
-    </div>
-
-    <!-- 学習推移チャート -->
-    <div class="section fade-in">
-      <div class="section-header">
-        <h3>OPERATION GRAPH</h3>
-        <span class="tag">/ 勤務時間の推移</span>
-        <div class="underline"></div>
-      </div>
-      <div class="chart-wrap">
-        <div class="chart-tabs">
-          <button class="chart-tab-btn active" data-chart-tab="daily" onclick="switchChartTab('daily')">DAY</button>
-          <button class="chart-tab-btn" data-chart-tab="weekly" onclick="switchChartTab('weekly')">WEEK</button>
-          <button class="chart-tab-btn" data-chart-tab="monthly" onclick="switchChartTab('monthly')">MONTH</button>
-        </div>
-        <div class="chart-pane active" data-chart-pane="daily">
-          <div class="chart-title">DAILY (h)</div>
-          <canvas id="dailyChart"></canvas>
-        </div>
-        <div class="chart-pane" data-chart-pane="weekly">
-          <div class="chart-title">WEEKLY (h)</div>
-          <canvas id="weeklyChart"></canvas>
-        </div>
-        <div class="chart-pane" data-chart-pane="monthly">
-          <div class="chart-title">MONTHLY (h)</div>
-          <canvas id="monthlyChart"></canvas>
-        </div>
-      </div>
-    </div>
-
-    <!-- コミュニティ -->
-    <div class="section fade-in">
-      <div class="section-header">
-        <h3>COMMUNITY</h3>
-        <span class="tag">/ 仲間の動き</span>
-        <div class="underline"></div>
-      </div>
-      <div class="community-grid">
-        <div class="comm-card fanclub">
-          <div class="comm-title">▸ 今週のトップ</div>
-          <ul class="comm-list" id="ranking-list">
-            <li class="comm-item" style="color:#666; justify-content:center;">集計中...</li>
-          </ul>
-        </div>
-        <div class="comm-card feed">
-          <div class="comm-title">▸ リアルタイム速報</div>
-          <ul class="comm-list" id="feed-list">
-            <li class="comm-item" style="color:#666; justify-content:center;">取得中...</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================== -->
-  <!-- 📚 BOOKS                                                        -->
-  <!-- ============================================================== -->
-  <div class="tab-content" data-tab="books">
-
-    <div class="section fade-in">
-      <div class="section-header">
-        <h3>BOOK SIGNALS</h3>
-        <span class="tag">/ おすすめ参考書</span>
-        <div class="underline"></div>
-      </div>
-
-      <div class="book-form">
-        <div class="book-form-row">
-          <input type="text" id="book-name" class="book-input" maxlength="80" placeholder="参考書名（例：青チャート 数学Ⅱ・B）">
-        </div>
-        <div class="book-form-row">
-          <div class="rating-input">
-            <span class="rating-label">RATING</span>
-            <div class="star-picker" id="star-picker">
-              <span class="star" data-val="1">★</span>
-              <span class="star" data-val="2">★</span>
-              <span class="star" data-val="3">★</span>
-              <span class="star" data-val="4">★</span>
-              <span class="star" data-val="5">★</span>
-            </div>
-            <span class="rating-display" id="rating-display">--</span>
+      <!-- QR -->
+      <details class="box-qr fade-in" id="box-qr" open>
+        <summary>▣ MY QR CODE</summary>
+        <div class="qr-content">
+          <p class="qr-note">受付のiPadにこの画面をかざしてください</p>
+          <div class="qr-frame">
+            <canvas id="qr-canvas"></canvas>
           </div>
-        </div>
-        <div class="book-form-row">
-          <textarea id="book-comment" class="book-textarea" maxlength="300" placeholder="どこが良かった？どんな人におすすめ？（任意・300字まで）"></textarea>
-        </div>
-        <div class="book-form-footer">
-          <span class="char-counter"><span id="book-comment-counter">0</span> / 300</span>
-          <button class="book-post-btn" id="book-post-btn" onclick="postBook()">SUBMIT</button>
-        </div>
-      </div>
-
-      <div class="book-feed" id="book-feed">
-        <div class="book-empty">─ LOADING ─</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============================================================== -->
-  <!-- 📋 LOG                                                          -->
-  <!-- ============================================================== -->
-  <div class="tab-content" data-tab="history">
-
-    <div class="section fade-in">
-      <div class="section-header">
-        <h3>TEST PROGRESS</h3>
-        <span class="tag">/ 小テスト進捗</span>
-        <div class="underline"></div>
-      </div>
-      <details class="test-container" id="box-tests" open>
-        <summary>▸ TEST STATUS</summary>
-        <div id="test-list">
-          <div style="text-align:center; color:var(--text-3); padding: 20px; font-family: var(--mono); font-size: 11px;">─ LOADING ─</div>
+          <p class="qr-id-label">OPERATOR ID</p>
+          <p class="qr-id" id="qr-id-text">---</p>
         </div>
       </details>
+
+      <div class="settings-trigger fade-in" onclick="openModal('settings-modal')">⚙ 目標模試を自分専用に設定する</div>
+
+      <!-- レベル + ランク -->
+      <div class="hero-grid fade-in">
+        <div class="level-box">
+          <div class="level-num" id="level-value">1</div>
+          <div class="xp-meter">
+            <div class="xp-fill" id="level-bar-fill"></div>
+          </div>
+          <div class="xp-stats">
+            <span id="level-exp">0 h</span>
+            <span class="next" id="level-next">→ NEXT 7h</span>
+          </div>
+        </div>
+        <div class="rank-box">
+          <div class="rank-label">CURRENT RANK</div>
+          <div id="rank-badge" class="rank-badge">---</div>
+          <div id="rank-next" class="rank-next">---</div>
+        </div>
+      </div>
+
+      <!-- 出席 -->
+      <div class="attendance-card fade-in">
+        <div class="att-cell divider">
+          <div class="att-cell-label">TOTAL DAYS</div>
+          <div>
+            <span class="att-cell-value total" id="streak-total">0</span>
+            <span class="att-cell-unit">日</span>
+          </div>
+        </div>
+        <div class="att-cell">
+          <div class="att-cell-label">CURRENT STREAK</div>
+          <div>
+            <span class="att-cell-value active" id="streak-active">0</span>
+            <span class="att-cell-unit">日</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- デイリーミッション -->
+      <div class="mission-card fade-in">
+        <div class="section-header" style="margin-bottom:0;">
+          <h3>DAILY MISSIONS</h3>
+          <span class="tag">/ 今日の任務</span>
+          <div class="underline"></div>
+        </div>
+        <div class="mission-list" id="mission-list"></div>
+      </div>
+
+      <!-- 週次目標 -->
+      <div class="goal-card fade-in">
+        <div class="goal-row">
+          <div class="goal-title" id="goal-title-text">WEEKLY GOAL (--h)</div>
+          <div class="goal-text"><span id="goal-current">0</span>h ─
+            <span class="pct"><span id="goal-percent">0</span>%</span>
+          </div>
+        </div>
+        <div class="goal-bar">
+          <div class="goal-fill" id="progress-bar"></div>
+        </div>
+      </div>
+
+      <!-- 比較 -->
+      <div class="compare-grid fade-in">
+        <div class="compare-card">
+          <div class="compare-title">vs LAST WEEK</div>
+          <div class="compare-value" id="cmp-week-val">--h</div>
+          <div class="compare-diff flat" id="cmp-week-diff">--</div>
+        </div>
+        <div class="compare-card">
+          <div class="compare-title">LAST 30d vs PREV</div>
+          <div class="compare-value" id="cmp-month-val">--h</div>
+          <div class="compare-diff flat" id="cmp-month-diff">--</div>
+        </div>
+      </div>
+
+      <!-- 統計KPI -->
+      <div class="kpi-row fade-in">
+        <div class="kpi" data-accent="lime">
+          <div class="kpi-label">TODAY</div>
+          <div class="kpi-value" id="val-today">--</div>
+        </div>
+        <div class="kpi" data-accent="cyan">
+          <div class="kpi-label">LAST 7 DAYS</div>
+          <div class="kpi-value" id="val-week">--</div>
+        </div>
+        <div class="kpi" data-accent="amber">
+          <div class="kpi-label">ALL TIME</div>
+          <div class="kpi-value" id="val-total">--</div>
+        </div>
+      </div>
+
+      <!-- カレンダー予定入力モーダル HTML（カレンダーウィジェットの近くに） -->
+      <button class="sse-trigger-btn" id="sse-open-btn">+ 予定を追加</button>
+
+      <!-- カレンダー -->
+      <section class="sss-cal-section fade-in">
+        <div class="sss-cal-header">
+          <div class="sss-cal-nav">
+            <button class="sss-cal-nav-btn" id="sss-cal-prev">&#8249;</button>
+            <span class="sss-cal-title" id="sss-cal-title">LOADING...</span>
+            <button class="sss-cal-nav-btn" id="sss-cal-next">&#8250;</button>
+          </div>
+          <div class="sss-cal-view-toggle">
+            <button class="sss-view-btn active" id="sss-btn-week">WEEK</button>
+            <button class="sss-view-btn" id="sss-btn-month">MONTH</button>
+          </div>
+        </div>
+        <div class="sss-cal-day-headers" id="sss-cal-day-headers"></div>
+        <div id="sss-cal-body">
+          <div class="sss-cal-loading">// LOADING SCHEDULE DATA...</div>
+        </div>
+      </section>
+
+      <!-- アチーブメント -->
+      <div class="ach-card fade-in">
+        <div class="section-header" style="margin-bottom:0;">
+          <h3>ACHIEVEMENTS</h3>
+          <span class="tag">/ 称号と勲章</span>
+          <div class="underline"></div>
+        </div>
+        <div class="ach-summary" id="ach-summary">UNLOCKED <strong>0</strong> / <strong>0</strong></div>
+        <div class="ach-grid" id="ach-grid"></div>
+      </div>
     </div>
 
-    <div class="section fade-in">
-      <div class="section-header">
-        <h3>OPERATION LOG</h3>
-        <span class="tag">/ 入退室記録</span>
-        <div class="underline"></div>
+    <!-- ============================================================== -->
+    <!-- 📊 TRENDS                                                       -->
+    <!-- ============================================================== -->
+    <div class="tab-content" data-tab="trends">
+
+      <!-- ヒートマップ -->
+      <div class="section fade-in">
+        <div class="section-header">
+          <h3>ACTIVITY MAP</h3>
+          <span class="tag">/ 過去7日 × 24時間</span>
+          <div class="underline"></div>
+        </div>
+        <div class="heatmap-wrap">
+          <div class="heatmap-sub">在室していた時間が光ります</div>
+          <div style="display:flex; justify-content:center; overflow-x:auto;">
+            <table class="heatmap-table" id="heatmap-table">
+              <thead>
+                <tr id="heatmap-thead"></tr>
+              </thead>
+              <tbody id="heatmap-tbody"></tbody>
+            </table>
+          </div>
+          <div class="heatmap-legend">
+            LESS
+            <div class="heatmap-legend-cell" style="background:var(--bg-2);"></div>
+            <div class="heatmap-legend-cell lv1"></div>
+            <div class="heatmap-legend-cell lv2"></div>
+            <div class="heatmap-legend-cell lv3"></div>
+            <div class="heatmap-legend-cell lv4"></div>
+            MORE
+          </div>
+        </div>
       </div>
-      <div class="history-container">
-        <table class="history">
-          <thead>
-            <tr><th>DATE</th><th>IN</th><th>OUT</th><th>DURATION</th></tr>
-          </thead>
-          <tbody id="history-body"></tbody>
-        </table>
+
+      <!-- 学習推移チャート -->
+      <div class="section fade-in">
+        <div class="section-header">
+          <h3>OPERATION GRAPH</h3>
+          <span class="tag">/ 勤務時間の推移</span>
+          <div class="underline"></div>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-tabs">
+            <button class="chart-tab-btn active" data-chart-tab="daily" onclick="switchChartTab('daily')">DAY</button>
+            <button class="chart-tab-btn" data-chart-tab="weekly" onclick="switchChartTab('weekly')">WEEK</button>
+            <button class="chart-tab-btn" data-chart-tab="monthly" onclick="switchChartTab('monthly')">MONTH</button>
+          </div>
+          <div class="chart-pane active" data-chart-pane="daily">
+            <div class="chart-title">DAILY (h)</div>
+            <canvas id="dailyChart"></canvas>
+          </div>
+          <div class="chart-pane" data-chart-pane="weekly">
+            <div class="chart-title">WEEKLY (h)</div>
+            <canvas id="weeklyChart"></canvas>
+          </div>
+          <div class="chart-pane" data-chart-pane="monthly">
+            <div class="chart-title">MONTHLY (h)</div>
+            <canvas id="monthlyChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- コミュニティ -->
+      <div class="section fade-in">
+        <div class="section-header">
+          <h3>COMMUNITY</h3>
+          <span class="tag">/ 仲間の動き</span>
+          <div class="underline"></div>
+        </div>
+        <div class="community-grid">
+          <div class="comm-card fanclub">
+            <div class="comm-title">▸ 今週のトップ</div>
+            <ul class="comm-list" id="ranking-list">
+              <li class="comm-item" style="color:#666; justify-content:center;">集計中...</li>
+            </ul>
+          </div>
+          <div class="comm-card feed">
+            <div class="comm-title">▸ リアルタイム速報</div>
+            <ul class="comm-list" id="feed-list">
+              <li class="comm-item" style="color:#666; justify-content:center;">取得中...</li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- ============================================================== -->
+    <!-- 📚 BOOKS                                                        -->
+    <!-- ============================================================== -->
+    <div class="tab-content" data-tab="books">
+
+      <div class="section fade-in">
+        <div class="section-header">
+          <h3>BOOK SIGNALS</h3>
+          <span class="tag">/ おすすめ参考書</span>
+          <div class="underline"></div>
+        </div>
+
+        <div class="book-form">
+          <div class="book-form-row">
+            <input type="text" id="book-name" class="book-input" maxlength="80" placeholder="参考書名（例：青チャート 数学Ⅱ・B）">
+          </div>
+          <div class="book-form-row">
+            <div class="rating-input">
+              <span class="rating-label">RATING</span>
+              <div class="star-picker" id="star-picker">
+                <span class="star" data-val="1">★</span>
+                <span class="star" data-val="2">★</span>
+                <span class="star" data-val="3">★</span>
+                <span class="star" data-val="4">★</span>
+                <span class="star" data-val="5">★</span>
+              </div>
+              <span class="rating-display" id="rating-display">--</span>
+            </div>
+          </div>
+          <div class="book-form-row">
+            <textarea id="book-comment" class="book-textarea" maxlength="300" placeholder="どこが良かった？どんな人におすすめ？（任意・300字まで）"></textarea>
+          </div>
+          <div class="book-form-footer">
+            <span class="char-counter"><span id="book-comment-counter">0</span> / 300</span>
+            <button class="book-post-btn" id="book-post-btn" onclick="postBook()">SUBMIT</button>
+          </div>
+        </div>
+
+        <div class="book-feed" id="book-feed">
+          <div class="book-empty">─ LOADING ─</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- 📋 LOG                                                          -->
+    <!-- ============================================================== -->
+    <div class="tab-content" data-tab="history">
+
+      <div class="section fade-in">
+        <div class="section-header">
+          <h3>TEST PROGRESS</h3>
+          <span class="tag">/ 小テスト進捗</span>
+          <div class="underline"></div>
+        </div>
+        <details class="test-container" id="box-tests" open>
+          <summary>▸ TEST STATUS</summary>
+          <div id="test-list">
+            <div
+              style="text-align:center; color:var(--text-3); padding: 20px; font-family: var(--mono); font-size: 11px;">
+              ─ LOADING ─</div>
+          </div>
+        </details>
+      </div>
+
+      <div class="section fade-in">
+        <div class="section-header">
+          <h3>OPERATION LOG</h3>
+          <span class="tag">/ 入退室記録</span>
+          <div class="underline"></div>
+        </div>
+        <div class="history-container">
+          <table class="history">
+            <thead>
+              <tr>
+                <th>DATE</th>
+                <th>IN</th>
+                <th>OUT</th>
+                <th>DURATION</th>
+              </tr>
+            </thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="station-footer">
+      <div><span class="pulse"></span>SYSTEM ONLINE</div>
+      <div>SSS EDUCATION ─ V2.0</div>
+    </footer>
   </div>
 
-  <!-- ===== FOOTER ===== -->
-  <footer class="station-footer">
-    <div><span class="pulse"></span>SYSTEM ONLINE</div>
-    <div>SSS EDUCATION ─ V2.0</div>
-  </footer>
-</div>
+  <!-- ===== モーダル ===== -->
+  <div class="modal-overlay" id="modal-overlay" onclick="closeAllModals()"></div>
 
-<!-- ===== モーダル ===== -->
-<div class="modal-overlay" id="modal-overlay" onclick="closeAllModals()"></div>
+  <div id="settings-modal" class="modal">
+    <h3>MY GOAL SETTING</h3>
+    <label>目標模試名</label>
+    <input type="text" id="input-exam-name" class="modal-input" placeholder="例：全統共通テスト模試">
+    <label>模試日程</label>
+    <input type="date" id="input-exam-date" class="modal-input">
+    <button class="modal-btn" id="save-btn" onclick="saveSettings()">SAVE SETTINGS</button>
+    <button class="modal-btn modal-close-btn" onclick="closeAllModals()">CLOSE</button>
+  </div>
 
-<div id="settings-modal" class="modal">
-  <h3>MY GOAL SETTING</h3>
-  <label>目標模試名</label>
-  <input type="text" id="input-exam-name" class="modal-input" placeholder="例：全統共通テスト模試">
-  <label>模試日程</label>
-  <input type="date" id="input-exam-date" class="modal-input">
-  <button class="modal-btn" id="save-btn" onclick="saveSettings()">SAVE SETTINGS</button>
-  <button class="modal-btn modal-close-btn" onclick="closeAllModals()">CLOSE</button>
-</div>
+  <div class="modal-overlay" id="sse-overlay"></div>
+  <div class="modal sse-modal" id="sse-modal">
 
-<script>
-  // =====================================================================
+    <div id="sse-form-view">
+      <div class="sse-modal-header">
+        <h3>Schedule entry</h3>
+        <button class="sse-modal-close" id="sse-close-btn" aria-label="閉じる">×</button>
+      </div>
+
+      <div class="sse-field">
+        <label class="sse-field-label" for="sse-date">日付<span class="req">*</span></label>
+        <input type="date" id="sse-date">
+      </div>
+      <div class="sse-row2 sse-field">
+        <div>
+          <label class="sse-field-label" for="sse-start">開始時刻<span class="req">*</span></label>
+          <input type="time" id="sse-start" value="10:00">
+        </div>
+        <div>
+          <label class="sse-field-label" for="sse-end">終了時刻<span class="req">*</span></label>
+          <input type="time" id="sse-end" value="12:00">
+        </div>
+      </div>
+      <div class="sse-field">
+        <label class="sse-field-label" for="sse-memo">メモ（任意）</label>
+        <input type="text" id="sse-memo" placeholder="例：数学・英語の演習">
+      </div>
+
+      <div class="sse-divider"></div>
+
+      <div class="sse-field">
+        <label class="sse-field-label">繰り返し</label>
+        <div class="sse-repeat-options">
+          <button class="sse-repeat-btn active" data-repeat="none" onclick="sseSetRepeat('none')">なし</button>
+          <button class="sse-repeat-btn" data-repeat="weekly" onclick="sseSetRepeat('weekly')">毎週(4週)</button>
+          <button class="sse-repeat-btn" data-repeat="custom" onclick="sseSetRepeat('custom')">曜日指定(2週)</button>
+        </div>
+        <div class="sse-day-picker" id="sse-day-picker" style="display:none;">
+          <button class="sse-day-btn" data-day="1" onclick="sseToggleDay(1)">月</button>
+          <button class="sse-day-btn" data-day="2" onclick="sseToggleDay(2)">火</button>
+          <button class="sse-day-btn" data-day="3" onclick="sseToggleDay(3)">水</button>
+          <button class="sse-day-btn" data-day="4" onclick="sseToggleDay(4)">木</button>
+          <button class="sse-day-btn" data-day="5" onclick="sseToggleDay(5)">金</button>
+          <button class="sse-day-btn sat" data-day="6" onclick="sseToggleDay(6)">土</button>
+          <button class="sse-day-btn sun" data-day="0" onclick="sseToggleDay(0)">日</button>
+        </div>
+      </div>
+
+      <p class="sse-err" id="sse-err"></p>
+      <button class="sse-btn-add" onclick="sseAddSchedule()">+ この予定を追加する</button>
+
+      <div class="sse-divider"></div>
+
+      <div class="sse-list-title">
+        <span>追加済みの予定</span>
+        <span><strong id="sse-count">0</strong> 件</span>
+      </div>
+      <div class="sse-items" id="sse-items">
+        <div class="sse-empty">// NO ENTRIES //</div>
+      </div>
+
+      <button class="sse-submit" id="sse-submit-btn" onclick="sseSubmitAll()">
+      Googleカレンダーに登録する
+    </button>
+    </div>
+
+    <div class="sse-done" id="sse-done-view">
+      <div class="sse-done-icon">✓</div>
+      <h4>登録完了</h4>
+      <p>自習室の予定がGoogleカレンダーに<br>追加されました。</p>
+      <button class="sse-btn-add" style="margin-top:18px;" onclick="sseReset()">続けて入力する</button>
+    </div>
+
+  </div>
+
+  <script>
+    // =====================================================================
   // 設定
   // =====================================================================
   const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyclB58dLRD1kawXot4nE9cW0Lq3tMnnFPZ_29NbOhp9StL693615lPrVW_palugJp9_A/exec';
   const TARGET_COMMON   = '2027/01/16';
   const TARGET_NATIONAL = '2027/02/25';
 
-  const studentToken = new URLSearchParams(location.search).get('token');
+  //Github移行時は以下の行のコメントアウトを外すこと
+  //const studentToken = new URLSearchParams(location.search).get('token');
+
+  //Github移行時は以下の行をコメントアウトすること
+  const studentToken = <?=token ?>;
 
   let chartData = {};
   let chartInstances = {};
@@ -2747,7 +4396,157 @@
       }
     });
   }
-</script>
+(function () {
+  const DAY_LABELS = ['日','月','火','水','木','金','土'];
+  let currentView = 'week';
+  let currentDate = new Date();
+  let eventsCache = {};
 
+  async function fetchEvents(year, month) {
+    const key = `${year}-${String(month).padStart(2,'0')}`;
+    if (eventsCache[key]) return eventsCache[key];
+    try {
+      const url = `${API_ENDPOINT}?action=getCalendarEvents&token=${studentToken}&year=${year}&month=${month}`;
+      const res  = await fetch(url);
+      const json = await res.json();
+      eventsCache[key] = (json.ok && json.data && json.data.events) ? json.data.events : [];
+    } catch(e) {
+      eventsCache[key] = [];
+    }
+    return eventsCache[key];
+  }
+
+  function isSameDay(a, b) {
+    return a.getFullYear()===b.getFullYear() && a.getMonth()===b.getMonth() && a.getDate()===b.getDate();
+  }
+  function isToday(d) { return isSameDay(d, new Date()); }
+  function getEventsForDay(events, day) {
+    return events.filter(e => isSameDay(new Date(e.start), day));
+  }
+  function weekStart(d) {
+    const r = new Date(d);
+    r.setDate(r.getDate() - r.getDay());
+    r.setHours(0,0,0,0);
+    return r;
+  }
+  function formatTime(iso) {
+    const d = new Date(iso);
+    return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  function renderDayHeaders() {
+    const el = document.getElementById('sss-cal-day-headers');
+    el.innerHTML = DAY_LABELS.map((l,i) => {
+      const cls = i===6 ? 'sat' : i===0 ? 'sun' : '';
+      return `<div class="sss-cal-day-label ${cls}">${l}</div>`;
+    }).join('');
+  }
+
+  async function renderWeek() {
+    const body  = document.getElementById('sss-cal-body');
+    const title = document.getElementById('sss-cal-title');
+    body.innerHTML = '<div class="sss-cal-loading">// LOADING...</div>';
+
+    const ws   = weekStart(currentDate);
+    const days = Array.from({length:7}, (_,i) => { const d=new Date(ws); d.setDate(ws.getDate()+i); return d; });
+    title.textContent = `${days[0].getMonth()+1}/${days[0].getDate()} — ${days[6].getMonth()+1}/${days[6].getDate()}`;
+
+    const months = [...new Set(days.map(d => `${d.getFullYear()}_${d.getMonth()+1}`))];
+    const allEvents = [];
+    for (const m of months) {
+      const [y, mo] = m.split('_');
+      allEvents.push(...await fetchEvents(y, mo));
+    }
+
+    let html = '<div class="sss-week-grid">';
+    days.forEach((d, i) => {
+      const dow = i===6?' sat':i===0?' sun':'';
+      const todayCls = isToday(d) ? ' today' : '';
+      const dayEvents = getEventsForDay(allEvents, d);
+      const chips = dayEvents.length > 0
+        ? dayEvents.map(e => `<div class="sss-event-chip" title="${e.title}">${e.allDay ? 'ALL DAY' : formatTime(e.start)} ${e.title}</div>`).join('')
+        : `<div class="sss-no-event">--</div>`;
+      html += `<div class="sss-week-cell${dow}${todayCls}">
+        <div class="sss-week-date">${d.getDate()}</div>
+        ${chips}
+      </div>`;
+    });
+    html += '</div>';
+    body.innerHTML = html;
+  }
+
+  async function renderMonth() {
+    const body  = document.getElementById('sss-cal-body');
+    const title = document.getElementById('sss-cal-title');
+    body.innerHTML = '<div class="sss-cal-loading">// LOADING...</div>';
+
+    const year  = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    title.textContent = `${year}.${String(month+1).padStart(2,'0')}`;
+
+    const events = await fetchEvents(year, month+1);
+    const firstDay = new Date(year, month, 1);
+    const gridStart = new Date(firstDay);
+    const backDays = firstDay.getDay();
+    gridStart.setDate(firstDay.getDate() - backDays);
+
+    let html = '<div class="sss-month-grid">';
+    for (let i=0; i<42; i++) {
+      const d = new Date(gridStart);
+      d.setDate(gridStart.getDate() + i);
+      const isThisMonth = d.getMonth() === month;
+      const dow = (d.getDay()+6)%7;
+      const satCls = dow===5 ? ' sat' : '';
+      const sunCls = dow===6 ? ' sun' : '';
+      const todayCls = isToday(d) ? ' today' : '';
+      const otherCls = !isThisMonth ? ' other-month' : '';
+      const dayEvents = isThisMonth ? getEventsForDay(events, d) : [];
+      const chips = dayEvents.slice(0,2).map(e =>
+        `<div class="sss-event-chip">${e.allDay ? '●' : formatTime(e.start)}</div>`).join('');
+      const more = dayEvents.length > 2
+        ? `<div class="sss-event-chip more">+${dayEvents.length-2}</div>` : '';
+      html += `<div class="sss-month-cell${satCls}${sunCls}${todayCls}${otherCls}">
+        <div class="sss-month-date">${d.getDate()}</div>
+        ${chips}${more}
+      </div>`;
+    }
+    html += '</div>';
+    body.innerHTML = html;
+  }
+
+  function render() {
+    renderDayHeaders();
+    if (currentView === 'week') renderWeek();
+    else renderMonth();
+  }
+
+  document.getElementById('sss-btn-week').addEventListener('click', () => {
+    currentView = 'week';
+    document.getElementById('sss-btn-week').classList.add('active');
+    document.getElementById('sss-btn-month').classList.remove('active');
+    render();
+  });
+  document.getElementById('sss-btn-month').addEventListener('click', () => {
+    currentView = 'month';
+    document.getElementById('sss-btn-month').classList.add('active');
+    document.getElementById('sss-btn-week').classList.remove('active');
+    render();
+  });
+  document.getElementById('sss-cal-prev').addEventListener('click', () => {
+    if (currentView==='week') currentDate.setDate(currentDate.getDate()-7);
+    else currentDate.setMonth(currentDate.getMonth()-1);
+    render();
+  });
+  document.getElementById('sss-cal-next').addEventListener('click', () => {
+    if (currentView==='week') currentDate.setDate(currentDate.getDate()+7);
+    else currentDate.setMonth(currentDate.getMonth()+1);
+    render();
+  });
+
+  render();
+})();
+
+  </script>
 </body>
+
 </html>
