@@ -215,15 +215,15 @@ function setupTrigger() {
 
 // ========== 設定値（absence_check.gsのCONFIGと共通化推奨） ==========
 const REMINDER_CONFIG = {
-  SPREADSHEET_ID:   'YOUR_SPREADSHEET_ID',  // ← 自分のIDに変更
+  SPREADSHEET_ID:   '1HWZDOIJaQB0S3K4a9hXomJZFqmdznmKywQ2Sc_ON1Fo',
   SHEET_PROFILE:    '公開プロフィール',
   SHEET_SENT:       '催促送信済みログ',       // 催促用の送信済みログ（別シート）
 
   COL_ID:           1,
-  COL_NAME:         2,
-  COL_EMAIL:        7,
-  COL_PARENT_EMAIL: 8,
-  COL_CALENDAR_ID:  9,
+  COL_NAME:         4,
+  COL_EMAIL:        2,
+  COL_PARENT_EMAIL: 3,
+  COL_CALENDAR_ID:  11,
 
   // VERSION_B用：直近何日間に予定がなければ送るか
   VERSION_B_DAYS_THIS_WEEK: 7,   // 今週（7日間）

@@ -56,7 +56,7 @@ const SHEET_BOOK_REACTIONS = '参考書リアクション';
 const CALENDAR_CONFIG = {
   SPREADSHEET_ID: '1HWZDOIJaQB0S3K4a9hXomJZFqmdznmKywQ2Sc_ON1Fo',
   SHEET_PROFILE: '公開プロフィール',
-  COL_CALENDAR_ID: 9,
+  COL_CALENDAR_ID: 11,
 };
 
 // ====================================================================
@@ -139,6 +139,11 @@ function doPost(e) {
     // 📚 参考書おすすめへのリアクション
     if (action === 'reactBook') {
       const msg = reactBookPost(body.token, body.postId, body.emoji);
+      return jsonResponse({ ok: true, message: msg });
+    }
+    // 📅 自習室予定のカレンダー登録
+    if (action === 'addCalendarEvents') {
+      const msg = addCalendarEventsForStudent(body.token, body.events);
       return jsonResponse({ ok: true, message: msg });
     }
 
@@ -1154,7 +1159,7 @@ function getCalendarEventsForStudent(token, year, month) {
   const profiles = ss.getSheetByName(CALENDAR_CONFIG.SHEET_PROFILE)
     .getDataRange().getValues().slice(1);
 
-  const student = profiles.find(row => String(row[IDX_PROFILE.TOKEN - 1]).trim() === token);
+  const student = profiles.find(row => String(row[IDX_PROFILE.TOKEN]).trim() === token);
   if (!student) return { error: 'unauthorized' };
 
   const calId = String(student[CALENDAR_CONFIG.COL_CALENDAR_ID - 1]).trim();
@@ -1179,4 +1184,37 @@ function getCalendarEventsForStudent(token, year, month) {
   }));
 
   return { events };
+}
+
+// ====================================================================
+// カレンダー登録
+// ====================================================================
+function addCalendarEventsForStudent(token, events) {
+  const ss = SpreadsheetApp.openById(CALENDAR_CONFIG.SPREADSHEET_ID);
+  const profiles = ss.getSheetByName(CALENDAR_CONFIG.SHEET_PROFILE)
+    .getDataRange().getValues().slice(1);
+
+  const student = profiles.find(row => String(row[IDX_PROFILE.TOKEN]).trim() === token);
+  if (!student) throw new Error('unauthorized');
+
+  const calId = String(student[CALENDAR_CONFIG.COL_CALENDAR_ID - 1]).trim();
+  if (!calId) throw new Error('カレンダーIDが設定されていません');
+
+  let calendar;
+  try { calendar = CalendarApp.getCalendarById(calId); } catch (e) {
+    throw new Error('カレンダーの取得に失敗しました');
+  }
+  if (!calendar) throw new Error('カレンダーが見つかりません');
+  if (!Array.isArray(events) || events.length === 0) throw new Error('予定データがありません');
+
+  let count = 0;
+  events.forEach(ev => {
+    const start = new Date(ev.date + 'T' + ev.start + ':00');
+    const end   = new Date(ev.date + 'T' + ev.end   + ':00');
+    const title = ev.memo ? `自習室 - ${ev.memo}` : '自習室';
+    calendar.createEvent(title, start, end);
+    count++;
+  });
+
+  return `${count}件の予定を登録しました`;
 }

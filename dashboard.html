@@ -4546,6 +4546,153 @@
   render();
 })();
 
+  // =====================================================================
+  // 予定入力モーダル（自習室スケジュール登録）
+  // =====================================================================
+  (function () {
+    let schedules = [];
+    let repeatMode = 'none';
+    let selectedDays = new Set();
+
+    function openSseModal() {
+      document.getElementById('sse-overlay').style.display = 'block';
+      document.getElementById('sse-modal').style.display = 'block';
+    }
+    function closeSseModal() {
+      document.getElementById('sse-overlay').style.display = 'none';
+      document.getElementById('sse-modal').style.display = 'none';
+    }
+    document.getElementById('sse-open-btn').addEventListener('click', openSseModal);
+    document.getElementById('sse-close-btn').addEventListener('click', closeSseModal);
+    document.getElementById('sse-overlay').addEventListener('click', closeSseModal);
+
+    window.sseSetRepeat = function (mode) {
+      repeatMode = mode;
+      document.querySelectorAll('.sse-repeat-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector(`.sse-repeat-btn[data-repeat="${mode}"]`).classList.add('active');
+      document.getElementById('sse-day-picker').style.display = (mode === 'custom') ? 'flex' : 'none';
+    };
+
+    window.sseToggleDay = function (day) {
+      const btn = document.querySelector(`.sse-day-btn[data-day="${day}"]`);
+      if (selectedDays.has(day)) { selectedDays.delete(day); btn.classList.remove('active'); }
+      else { selectedDays.add(day); btn.classList.add('active'); }
+    };
+
+    function fmt(d) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    function fmtDisplay(dateStr) {
+      const days = ['日', '月', '火', '水', '木', '金', '土'];
+      const d = new Date(dateStr + 'T00:00:00');
+      return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+    }
+    function showSseErr(msg) {
+      const el = document.getElementById('sse-err');
+      el.textContent = `! ${msg}`;
+      el.style.display = 'block';
+    }
+    function hideSseErr() {
+      document.getElementById('sse-err').style.display = 'none';
+    }
+
+    window.sseAddSchedule = function () {
+      const date  = document.getElementById('sse-date').value;
+      const start = document.getElementById('sse-start').value;
+      const end   = document.getElementById('sse-end').value;
+      const memo  = document.getElementById('sse-memo').value;
+
+      if (!date || !start || !end) { showSseErr('日付・開始・終了時刻を入力してください'); return; }
+      if (start >= end) { showSseErr('終了時刻は開始時刻より後にしてください'); return; }
+      hideSseErr();
+
+      const entries = [];
+      if (repeatMode === 'none') {
+        entries.push({ date, start, end, memo });
+      } else if (repeatMode === 'weekly') {
+        const base = new Date(date + 'T00:00:00');
+        for (let i = 0; i < 4; i++) {
+          const d = new Date(base); d.setDate(base.getDate() + i * 7);
+          entries.push({ date: fmt(d), start, end, memo });
+        }
+      } else if (repeatMode === 'custom') {
+        if (selectedDays.size === 0) { showSseErr('曜日を選択してください'); return; }
+        const base = new Date(date + 'T00:00:00');
+        for (let i = 0; i < 14; i++) {
+          const d = new Date(base); d.setDate(base.getDate() + i);
+          if (selectedDays.has(d.getDay())) entries.push({ date: fmt(d), start, end, memo });
+        }
+      }
+
+      schedules.push(...entries);
+      schedules.sort((a, b) => a.date.localeCompare(b.date));
+      sseRenderList();
+      document.getElementById('sse-memo').value = '';
+    };
+
+    window.sseRemoveItem = function (i) { schedules.splice(i, 1); sseRenderList(); };
+
+    function sseRenderList() {
+      const el  = document.getElementById('sse-items');
+      const cnt = document.getElementById('sse-count');
+      const btn = document.getElementById('sse-submit-btn');
+      if (schedules.length === 0) {
+        el.innerHTML = '<div class="sse-empty">// NO ENTRIES //</div>';
+        cnt.textContent = '0';
+        btn.style.display = 'none';
+        return;
+      }
+      cnt.textContent = schedules.length;
+      btn.style.display = 'block';
+      el.innerHTML = schedules.map((s, i) => `
+        <div class="sse-item">
+          <span class="d">${fmtDisplay(s.date)}</span>
+          <span class="t">${s.start}-${s.end}</span>
+          <span class="m">${s.memo || ''}</span>
+          <button class="x" onclick="sseRemoveItem(${i})" aria-label="削除">×</button>
+        </div>`).join('');
+    }
+
+    window.sseSubmitAll = async function () {
+      if (schedules.length === 0) return;
+      const btn = document.getElementById('sse-submit-btn');
+      hideSseErr();
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = '登録中...';
+      try {
+        const res  = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: JSON.stringify({ action: 'addCalendarEvents', token: studentToken, events: schedules })
+        });
+        const json = await res.json();
+        if (!json.ok) throw new Error(json.error || '登録に失敗しました');
+        document.getElementById('sse-form-view').style.display = 'none';
+        document.getElementById('sse-done-view').style.display = 'block';
+      } catch (e) {
+        showSseErr(e.message || '通信エラーが発生しました');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    };
+
+    window.sseReset = function () {
+      schedules = [];
+      repeatMode = 'none';
+      selectedDays.clear();
+      document.querySelectorAll('.sse-day-btn').forEach(b => b.classList.remove('active'));
+      sseSetRepeat('none');
+      hideSseErr();
+      sseRenderList();
+      document.getElementById('sse-form-view').style.display = 'block';
+      document.getElementById('sse-done-view').style.display = 'none';
+    };
+
+    sseRenderList();
+  })();
+
   </script>
 </body>
 
