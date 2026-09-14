@@ -8,20 +8,14 @@
 //   - このスクリプトを既存GASプロジェクトに追加してトリガー設定する
 // ============================================================
 
+// 公開プロフィールシートの列定義・スプレッドシートIDは
+// コード.gs の IDX_PROFILE / CALENDAR_CONFIG に一本化（同一GASプロジェクトのため直接参照可能）
+
 // ========== 設定値（環境に合わせて変更） ==========
 const CONFIG = {
-  SPREADSHEET_ID: '1HWZDOIJaQB0S3K4a9hXomJZFqmdznmKywQ2Sc_ON1Fo',        // スプレッドシートのID
-  SHEET_PROFILE:  '公開プロフィール',               // 生徒マスタシート名
   SHEET_LOG:      '管理シート',                    // 入退室ログシート名
   SHEET_SENT:     '送信済みログ',                  // 送信済みログシート名（新設）
   ABSENCE_MINUTES: 5,                             // 予定開始から何分後に欠席判定するか
-
-  // 公開プロフィールシートのカラム番号（1始まり）
-  COL_ID:           1,   // 生徒ID
-  COL_NAME:         4,   // 実名
-  COL_EMAIL:        2,   // 生徒メールアドレス（★新規追加列）
-  COL_PARENT_EMAIL: 3,   // 保護者メールアドレス（★新規追加列、空欄でもOK）
-  COL_CALENDAR_ID:  11,   // GoogleカレンダーID（★新規追加列）
 
   // 管理シートのカラム番号（1始まり）
   LOG_COL_DATE:     1,   // 日付
@@ -33,14 +27,14 @@ const CONFIG = {
 // メイン関数 — 時間トリガーで5分ごとに実行
 // ============================================================
 function checkAbsenceAndSendMail() {
-  const ss     = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  const ss     = SpreadsheetApp.openById(CALENDAR_CONFIG.SPREADSHEET_ID);
   const today  = new Date();
   const todayStr = Utilities.formatDate(today, 'Asia/Tokyo', 'yyyy/MM/dd');
 
   // 各シートを取得
-  const profileSheet = ss.getSheetByName(CONFIG.SHEET_PROFILE);
+  const profileSheet = ss.getSheetByName(CALENDAR_CONFIG.SHEET_PROFILE);
   const logSheet     = ss.getSheetByName(CONFIG.SHEET_LOG);
-  const sentSheet    = getOrCreateSentSheet(ss);
+  const sentSheet    = ensureSheet(CONFIG.SHEET_SENT, ['日付', '送信キー', '生徒ID', '生徒名', '予定開始', '送信先']);
 
   // 生徒マスタを全取得（1行目はヘッダーなのでスキップ）
   const profiles = profileSheet.getDataRange().getValues().slice(1);
@@ -53,11 +47,11 @@ function checkAbsenceAndSendMail() {
 
   // 各生徒のカレンダーをチェック
   profiles.forEach(row => {
-    const studentId   = String(row[CONFIG.COL_ID - 1]).trim();
-    const studentName = String(row[CONFIG.COL_NAME - 1]).trim();
-    const studentMail = String(row[CONFIG.COL_EMAIL - 1]).trim();
-    const parentMail  = String(row[CONFIG.COL_PARENT_EMAIL - 1]).trim();
-    const calendarId  = String(row[CONFIG.COL_CALENDAR_ID - 1]).trim();
+    const studentId   = String(row[IDX_PROFILE.ID]).trim();
+    const studentName = String(row[IDX_PROFILE.NAME]).trim();
+    const studentMail = String(row[IDX_PROFILE.STUDENT_EMAIL]).trim();
+    const parentMail  = String(row[IDX_PROFILE.PARENT_EMAIL]).trim();
+    const calendarId  = String(row[IDX_PROFILE.CALENDAR_ID]).trim();
 
     // カレンダーIDまたはメールが未設定の生徒はスキップ
     if (!calendarId || calendarId === '' || !studentMail || studentMail === '') return;
@@ -96,13 +90,9 @@ function checkAbsenceAndSendMail() {
       const subject    = buildSubject(studentName, eventStart);
       const body       = buildBody(studentName, eventStart);
 
-      try {
-        GmailApp.sendEmail(recipients, subject, body);
+      sendMailSafely(recipients, subject, body, `${studentName} (${eventStartStr})`, () => {
         logSent(sentSheet, todayStr, sentKey, studentId, studentName, eventStartStr, recipients);
-        console.log(`送信完了: ${studentName} (${eventStartStr})`);
-      } catch(e) {
-        console.error(`送信失敗: ${studentName} — ${e.message}`);
-      }
+      });
     });
   });
 }
@@ -131,8 +121,7 @@ function getSentKeys(sentSheet, todayStr) {
   const data = sentSheet.getDataRange().getValues();
   data.slice(1).forEach(row => {
     const rowDateStr = Utilities.formatDate(row[0],'Asia/Tokyo','yyyy/MM/dd');
-    const checkin = row[CONFIG.LOG_COL_CHECKIN - 1];
-    if (rowDateStr === todayStr && checkin !== '') keys.add(String(row[1]));
+    if (rowDateStr === todayStr) keys.add(String(row[1]));
   });
   return keys;
 }
@@ -144,6 +133,17 @@ function buildRecipients(studentMail, parentMail) {
     list.push(parentMail);
   }
   return list.join(',');
+}
+
+/** メール送信を安全に行う共通ヘルパー（欠席確認・催促メール共通、成功時のみ onSuccess でログ記録） */
+function sendMailSafely(recipients, subject, body, label, onSuccess) {
+  try {
+    GmailApp.sendEmail(recipients, subject, body);
+    onSuccess();
+    console.log(`${label} 送信完了`);
+  } catch (e) {
+    console.error(`${label} 送信失敗 — ${e.message}`);
+  }
 }
 
 /** メール件名を組み立てる */
@@ -166,17 +166,6 @@ function buildBody(studentName, eventStart) {
 ──────────────────────
 SSS Education
 ──────────────────────`;
-}
-
-/** 送信済みログシートを取得（なければ新規作成） */
-function getOrCreateSentSheet(ss) {
-  let sheet = ss.getSheetByName(CONFIG.SHEET_SENT);
-  if (!sheet) {
-    sheet = ss.insertSheet(CONFIG.SHEET_SENT);
-    sheet.appendRow(['日付', '送信キー', '生徒ID', '生徒名', '予定開始', '送信先']);
-    sheet.setFrozenRows(1);
-  }
-  return sheet;
 }
 
 /** 送信済みログに1行追記 */
@@ -215,15 +204,7 @@ function setupTrigger() {
 
 // ========== 設定値（absence_check.gsのCONFIGと共通化推奨） ==========
 const REMINDER_CONFIG = {
-  SPREADSHEET_ID:   '1HWZDOIJaQB0S3K4a9hXomJZFqmdznmKywQ2Sc_ON1Fo',
-  SHEET_PROFILE:    '公開プロフィール',
   SHEET_SENT:       '催促送信済みログ',       // 催促用の送信済みログ（別シート）
-
-  COL_ID:           1,
-  COL_NAME:         4,
-  COL_EMAIL:        2,
-  COL_PARENT_EMAIL: 3,
-  COL_CALENDAR_ID:  11,
 
   // VERSION_B用：直近何日間に予定がなければ送るか
   VERSION_B_DAYS_THIS_WEEK: 7,   // 今週（7日間）
@@ -234,10 +215,10 @@ const REMINDER_CONFIG = {
 // Version A：翌週分（月〜日）が1件も入力されていない生徒に送る
 // ============================================================
 function sendReminderVersionA() {
-  const ss = SpreadsheetApp.openById(REMINDER_CONFIG.SPREADSHEET_ID);
-  const profiles  = ss.getSheetByName(REMINDER_CONFIG.SHEET_PROFILE)
+  const ss = SpreadsheetApp.openById(CALENDAR_CONFIG.SPREADSHEET_ID);
+  const profiles  = ss.getSheetByName(CALENDAR_CONFIG.SHEET_PROFILE)
                       .getDataRange().getValues().slice(1);
-  const sentSheet = getOrCreateReminderSentSheet(ss);
+  const sentSheet = ensureSheet(REMINDER_CONFIG.SHEET_SENT, ['送信キー', '生徒ID', '生徒名', 'バージョン', '対象週', '送信先', '送信日時']);
 
   // 翌週の月曜〜日曜を算出
   const today     = new Date();
@@ -250,11 +231,11 @@ function sendReminderVersionA() {
   const sentKeys = getReminderSentKeys(sentSheet);
 
   profiles.forEach(row => {
-    const studentId  = String(row[REMINDER_CONFIG.COL_ID - 1]).trim();
-    const name       = String(row[REMINDER_CONFIG.COL_NAME - 1]).trim();
-    const email      = String(row[REMINDER_CONFIG.COL_EMAIL - 1]).trim();
-    const parentMail = String(row[REMINDER_CONFIG.COL_PARENT_EMAIL - 1]).trim();
-    const calId      = String(row[REMINDER_CONFIG.COL_CALENDAR_ID - 1]).trim();
+    const studentId  = String(row[IDX_PROFILE.ID]).trim();
+    const name       = String(row[IDX_PROFILE.NAME]).trim();
+    const email      = String(row[IDX_PROFILE.STUDENT_EMAIL]).trim();
+    const parentMail = String(row[IDX_PROFILE.PARENT_EMAIL]).trim();
+    const calId      = String(row[IDX_PROFILE.CALENDAR_ID]).trim();
 
     if (!calId || !email) return;
 
@@ -269,16 +250,12 @@ function sendReminderVersionA() {
 
     if (events.length === 0) {
       // 翌週に予定が1件もない → 催促メール送信
-      const recipients = buildReminderRecipients(email, parentMail);
+      const recipients = buildRecipients(email, parentMail);
       const subject    = buildReminderSubjectA(name, nextMonday, nextSunday);
       const body       = buildReminderBodyA(name, nextMonday, nextSunday);
-      try {
-        GmailApp.sendEmail(recipients, subject, body);
+      sendMailSafely(recipients, subject, body, `[Version A] ${name}`, () => {
         logReminderSent(sentSheet, sentKey, studentId, name, 'A', weekKey, recipients);
-        console.log(`[Version A] 送信: ${name}`);
-      } catch(e) {
-        console.error(`[Version A] 送信失敗: ${name} — ${e.message}`);
-      }
+      });
     }
   });
 }
@@ -287,10 +264,10 @@ function sendReminderVersionA() {
 // Version B：今週 OR 翌週のどちらかが空の生徒に送る
 // ============================================================
 function sendReminderVersionB() {
-  const ss = SpreadsheetApp.openById(REMINDER_CONFIG.SPREADSHEET_ID);
-  const profiles  = ss.getSheetByName(REMINDER_CONFIG.SHEET_PROFILE)
+  const ss = SpreadsheetApp.openById(CALENDAR_CONFIG.SPREADSHEET_ID);
+  const profiles  = ss.getSheetByName(CALENDAR_CONFIG.SHEET_PROFILE)
                       .getDataRange().getValues().slice(1);
-  const sentSheet = getOrCreateReminderSentSheet(ss);
+  const sentSheet = ensureSheet(REMINDER_CONFIG.SHEET_SENT, ['送信キー', '生徒ID', '生徒名', 'バージョン', '対象週', '送信先', '送信日時']);
 
   const today      = new Date();
   const thisMonday = getThisMonday(today);
@@ -308,11 +285,11 @@ function sendReminderVersionB() {
   const sentKeys = getReminderSentKeys(sentSheet);
 
   profiles.forEach(row => {
-    const studentId  = String(row[REMINDER_CONFIG.COL_ID - 1]).trim();
-    const name       = String(row[REMINDER_CONFIG.COL_NAME - 1]).trim();
-    const email      = String(row[REMINDER_CONFIG.COL_EMAIL - 1]).trim();
-    const parentMail = String(row[REMINDER_CONFIG.COL_PARENT_EMAIL - 1]).trim();
-    const calId      = String(row[REMINDER_CONFIG.COL_CALENDAR_ID - 1]).trim();
+    const studentId  = String(row[IDX_PROFILE.ID]).trim();
+    const name       = String(row[IDX_PROFILE.NAME]).trim();
+    const email      = String(row[IDX_PROFILE.STUDENT_EMAIL]).trim();
+    const parentMail = String(row[IDX_PROFILE.PARENT_EMAIL]).trim();
+    const calId      = String(row[IDX_PROFILE.CALENDAR_ID]).trim();
 
     if (!calId || !email) return;
 
@@ -330,16 +307,12 @@ function sendReminderVersionB() {
     const nextWeekEmpty = nextWeekEvents.length === 0;
 
     if (thisWeekEmpty || nextWeekEmpty) {
-      const recipients = buildReminderRecipients(email, parentMail);
+      const recipients = buildRecipients(email, parentMail);
       const subject    = buildReminderSubjectB(name, thisWeekEmpty, nextWeekEmpty);
       const body       = buildReminderBodyB(name, thisMonday, thisSunday, nextMonday, nextSunday, thisWeekEmpty, nextWeekEmpty);
-      try {
-        GmailApp.sendEmail(recipients, subject, body);
+      sendMailSafely(recipients, subject, body, `[Version B] ${name} (今週空:${thisWeekEmpty}, 翌週空:${nextWeekEmpty})`, () => {
         logReminderSent(sentSheet, sentKey, studentId, name, 'B', weekKey, recipients);
-        console.log(`[Version B] 送信: ${name} (今週空:${thisWeekEmpty}, 翌週空:${nextWeekEmpty})`);
-      } catch(e) {
-        console.error(`[Version B] 送信失敗: ${name} — ${e.message}`);
-      }
+      });
     }
   });
 }
@@ -369,12 +342,6 @@ function getNextMonday(date) {
 // ============================================================
 // メール文面
 // ============================================================
-
-function buildReminderRecipients(email, parentMail) {
-  const list = [email];
-  if (parentMail && parentMail !== '' && parentMail !== 'undefined') list.push(parentMail);
-  return list.join(',');
-}
 
 function buildReminderSubjectA(name, nextMonday, nextSunday) {
   const from = Utilities.formatDate(nextMonday, 'Asia/Tokyo', 'M/d');
@@ -426,16 +393,6 @@ function buildReminderBodyB(name, thisMonday, thisSunday, nextMonday, nextSunday
 // 送信済みログ管理
 // ============================================================
 
-function getOrCreateReminderSentSheet(ss) {
-  let sheet = ss.getSheetByName(REMINDER_CONFIG.SHEET_SENT);
-  if (!sheet) {
-    sheet = ss.insertSheet(REMINDER_CONFIG.SHEET_SENT);
-    sheet.appendRow(['送信キー', '生徒ID', '生徒名', 'バージョン', '対象週', '送信先', '送信日時']);
-    sheet.setFrozenRows(1);
-  }
-  return sheet;
-}
-
 function getReminderSentKeys(sentSheet) {
   const keys = new Set();
   sentSheet.getDataRange().getValues().slice(1).forEach(row => {
@@ -451,6 +408,13 @@ function logReminderSent(sentSheet, sentKey, studentId, name, version, weekKey, 
 
 // ============================================================
 // トリガー登録：月曜日 8:00 に実行（初回のみ手動実行）
+//
+// 【注意】Version A・Bは「どちらを採用するか検討中」の2案であり、
+// このまま両方登録すると毎週月曜、対象条件に一致した生徒には
+// 催促メールが2通（A・B）届く。GASの時間トリガーは分単位を
+// 指定できないため実際はほぼ同時刻に実行される
+// （下のコメントの「8:05にずらす」は現状コード上は未実装）。
+// 本運用に入れる際はどちらか一方だけを登録すること。
 // ============================================================
 function setupReminderTrigger() {
   // 既存トリガーを削除

@@ -1,7 +1,7 @@
 // ====================================================================
 // 【列構成 最新版】インデックス定義（公開プロフィール / 個人情報マスタ共通）
 // A:ID / B:生徒メアド / C:保護者メアド / D:氏名 / E:ニックネーム
-// F:目標時間 / G:URLトークン / H:模試名 / I:模試日
+// F:目標時間 / G:URLトークン / H:模試名 / I:模試日 / K:カレンダーID
 // ====================================================================
 const IDX_PROFILE = {
   ID: 0,             // A列
@@ -12,7 +12,8 @@ const IDX_PROFILE = {
   GOAL_HOURS: 5,     // F列
   TOKEN: 6,          // G列
   EXAM_NAME: 7,      // H列
-  EXAM_DATE: 8       // I列
+  EXAM_DATE: 8,      // I列
+  CALENDAR_ID: 10    // K列
 };
 const IDX_PERSONAL = IDX_PROFILE;
 
@@ -51,12 +52,11 @@ const SHEET_BOOK_POSTS = '参考書投稿';
 const SHEET_BOOK_REACTIONS = '参考書リアクション';
 
 // ====================================================================
-// カレンダー取得用シート
+// カレンダー取得用シート（列定義は IDX_PROFILE に一本化）
 // ====================================================================
 const CALENDAR_CONFIG = {
   SPREADSHEET_ID: '1HWZDOIJaQB0S3K4a9hXomJZFqmdznmKywQ2Sc_ON1Fo',
   SHEET_PROFILE: '公開プロフィール',
-  COL_CALENDAR_ID: 11,
 };
 
 // ====================================================================
@@ -186,6 +186,7 @@ function ensureSheet(sheetName, headers) {
     sheet = ss.insertSheet(sheetName);
     if (headers && headers.length > 0) {
       sheet.getRange(1, 1, 1, headers.length).setValues([headers]).setFontWeight('bold');
+      sheet.setFrozenRows(1);
     }
   }
   return sheet;
@@ -1162,7 +1163,7 @@ function getCalendarEventsForStudent(token, year, month) {
   const student = profiles.find(row => String(row[IDX_PROFILE.TOKEN]).trim() === token);
   if (!student) return { error: 'unauthorized' };
 
-  const calId = String(student[CALENDAR_CONFIG.COL_CALENDAR_ID - 1]).trim();
+  const calId = String(student[IDX_PROFILE.CALENDAR_ID]).trim();
   if (!calId) return { events: [] };
 
   const y = parseInt(year);
@@ -1197,7 +1198,7 @@ function addCalendarEventsForStudent(token, events) {
   const student = profiles.find(row => String(row[IDX_PROFILE.TOKEN]).trim() === token);
   if (!student) throw new Error('unauthorized');
 
-  const calId = String(student[CALENDAR_CONFIG.COL_CALENDAR_ID - 1]).trim();
+  const calId = String(student[IDX_PROFILE.CALENDAR_ID]).trim();
   if (!calId) throw new Error('カレンダーIDが設定されていません');
 
   let calendar;
