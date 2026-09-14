@@ -2544,6 +2544,7 @@
 
     .sss-week-cell {
       min-height: 72px;
+      min-width: 0;
       background: var(--bg-2);
       border: 1px solid var(--line-soft);
       padding: 6px 4px;
@@ -2633,12 +2634,24 @@
       font-family: var(--mono);
       font-size: 9px;
       letter-spacing: 0.05em;
-      padding: 2px 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      padding: 3px 4px;
+      width: 100%;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      white-space: normal;
+      overflow-wrap: break-word;
+      word-break: break-word;
       cursor: default;
       transition: all 0.15s;
+    }
+
+    .sss-event-chip .chip-time {
+      font-weight: 700;
+      white-space: nowrap;
     }
 
     .sss-event-chip:hover {
@@ -4499,7 +4512,10 @@
       const todayCls = isToday(d) ? ' today' : '';
       const dayEvents = getEventsForDay(allEvents, d);
       const chips = dayEvents.length > 0
-        ? dayEvents.map(e => `<div class="sss-event-chip" title="${e.title}">${e.allDay ? 'ALL DAY' : formatTime(e.start)} ${e.title}</div>`).join('')
+        ? dayEvents.map(e => {
+            const time = e.allDay ? 'ALL DAY' : `${formatTime(e.start)}-${formatTime(e.end)}`;
+            return `<div class="sss-event-chip"><span class="chip-time">${time}</span><span class="chip-title">${escapeHtml(e.title)}</span></div>`;
+          }).join('')
         : `<div class="sss-no-event">--</div>`;
       html += `<div class="sss-week-cell${dow}${todayCls}">
         <div class="sss-week-date">${d.getDate()}</div>
