@@ -697,7 +697,8 @@
       --accent: var(--neon-cyan);
     }
 
-    .cd-title {
+    /* 共通ラベル（見出しキャプション） */
+    .caption-label {
       font-family: var(--mono);
       font-size: 9px;
       letter-spacing: 0.25em;
@@ -804,7 +805,8 @@
     }
 
     /* ===== QR ===== */
-    details.box-qr {
+    /* 共通カード枠（QR/ミッション/目標/実績/参考書投稿/小テスト） */
+    .panel-card {
       background: var(--bg-1);
       border: 1px solid var(--line);
       padding: 18px;
@@ -1046,7 +1048,8 @@
       text-shadow: 0 0 14px rgba(255, 43, 214, 0.5);
     }
 
-    .rank-next {
+    /* 共通:小さいmonoテキスト */
+    .mono-small {
       font-family: var(--mono);
       font-size: 10px;
       color: var(--text-2);
@@ -1144,15 +1147,6 @@
       --accent: var(--neon-amber);
     }
 
-    .kpi-label {
-      font-family: var(--mono);
-      font-size: 9px;
-      letter-spacing: 0.25em;
-      color: var(--text-3);
-      text-transform: uppercase;
-      margin-bottom: 8px;
-    }
-
     .kpi-value {
       font-family: var(--display);
       font-weight: 800;
@@ -1163,12 +1157,6 @@
     }
 
     /* ===== ミッション ===== */
-    .mission-card {
-      background: var(--bg-1);
-      border: 1px solid var(--line);
-      padding: 18px;
-      margin-bottom: 20px;
-    }
 
     .mission-list {
       display: flex;
@@ -1237,12 +1225,6 @@
     }
 
     /* ===== 週次目標 ===== */
-    .goal-card {
-      background: var(--bg-1);
-      border: 1px solid var(--line);
-      padding: 18px;
-      margin-bottom: 20px;
-    }
 
     .goal-row {
       display: flex;
@@ -1345,12 +1327,6 @@
     }
 
     /* ===== アチーブメント ===== */
-    .ach-card {
-      background: var(--bg-1);
-      border: 1px solid var(--line);
-      padding: 18px;
-      margin-bottom: 20px;
-    }
 
     .ach-summary {
       font-family: var(--mono);
@@ -1362,7 +1338,8 @@
       text-transform: uppercase;
     }
 
-    .ach-summary strong {
+    .ach-summary strong,
+    .test-count span {
       color: var(--neon-lime);
       font-size: 14px;
       font-weight: 700;
@@ -1569,7 +1546,8 @@
     }
 
     /* ===== チャート ===== */
-    .chart-wrap {
+    /* 共通カード枠（大きめの余白：グラフ/カレンダー） */
+    .panel-section {
       background: var(--bg-1);
       border: 1px solid var(--line);
       padding: 18px;
@@ -1729,12 +1707,6 @@
     }
 
     /* ===== 参考書 ===== */
-    .book-form {
-      background: var(--bg-1);
-      border: 1px solid var(--line);
-      padding: 18px;
-      margin-bottom: 20px;
-    }
 
     .book-form-row {
       margin-bottom: 12px;
@@ -1781,7 +1753,8 @@
       padding: 4px 0;
     }
 
-    .rating-label {
+    /* 共通ラベル（フォーム項目名） */
+    .field-label {
       font-family: var(--mono);
       font-size: 10px;
       letter-spacing: 0.2em;
@@ -1941,7 +1914,9 @@
       margin-bottom: 10px;
     }
 
-    .book-reactions {
+    .book-reactions,
+    .grid-container,
+    .sse-repeat-options {
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
@@ -1992,12 +1967,6 @@
     }
 
     /* ===== 小テスト ===== */
-    details.test-container {
-      background: var(--bg-1);
-      border: 1px solid var(--line);
-      padding: 18px;
-      margin-bottom: 20px;
-    }
 
     details.test-container summary {
       outline: none;
@@ -2060,18 +2029,6 @@
       font-family: var(--mono);
       color: var(--text-2);
       font-size: 12px;
-    }
-
-    .test-count span {
-      color: var(--neon-lime);
-      font-weight: 700;
-      font-size: 14px;
-    }
-
-    .grid-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
     }
 
     .grid-box {
@@ -2180,14 +2137,6 @@
       margin: 0 0 16px;
       font-size: 16px;
       letter-spacing: 0.05em;
-    }
-
-    .modal label {
-      font-family: var(--mono);
-      font-size: 10px;
-      letter-spacing: 0.2em;
-      color: var(--text-3);
-      text-transform: uppercase;
     }
 
     .modal-input {
@@ -2424,13 +2373,6 @@
       }
     }
 
-    .sss-cal-section {
-      background: var(--bg-1);
-      border: 1px solid var(--line);
-      padding: 18px;
-      margin-bottom: 24px;
-    }
-
     .sss-cal-header {
       display: flex;
       align-items: center;
@@ -2536,7 +2478,8 @@
     }
 
     /* 週表示グリッド */
-    .sss-week-grid {
+    /* 共通:7列グリッド(週/月カレンダー) */
+    .cal-grid-7 {
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       gap: 3px;
@@ -2580,11 +2523,6 @@
     }
 
     /* 月表示グリッド */
-    .sss-month-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 3px;
-    }
 
     .sss-month-cell {
       min-height: 52px;
@@ -2605,12 +2543,6 @@
     .sss-month-cell.other-month {
       opacity: 0.25;
       background: transparent;
-    }
-
-    .sss-month-date {
-      font-family: var(--mono);
-      font-size: 10px;
-      color: var(--text-2);
     }
 
     .sss-month-cell.today .sss-month-date {
@@ -2797,12 +2729,6 @@
     .sse-divider {
       border-top: 1px dashed var(--line);
       margin: 16px 0;
-    }
-
-    .sse-repeat-options {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
     }
 
     .sse-repeat-btn {
@@ -3093,21 +3019,21 @@
       <!-- カウントダウン -->
       <div class="countdown-grid fade-in">
         <div class="cd-card" data-type="common">
-          <div class="cd-title">共通テスト</div>
+          <div class="cd-title caption-label">共通テスト</div>
           <div class="cd-days" id="cd-common">--<span>DAYS</span></div>
         </div>
         <div class="cd-card" data-type="national">
-          <div class="cd-title">国立二次</div>
+          <div class="cd-title caption-label">国立二次</div>
           <div class="cd-days" id="cd-national">--<span>DAYS</span></div>
         </div>
         <div class="cd-card" data-type="custom" id="cd-custom-card" style="display:none;">
-          <div class="cd-title" id="cd-custom-title">目標模試</div>
+          <div class="cd-title caption-label" id="cd-custom-title">目標模試</div>
           <div class="cd-days" id="cd-custom">--<span>DAYS</span></div>
         </div>
       </div>
 
       <!-- QR -->
-      <details class="box-qr fade-in" id="box-qr" open>
+      <details class="box-qr panel-card fade-in" id="box-qr" open>
         <summary>▣ MY QR CODE</summary>
         <div class="qr-content">
           <p class="qr-note">受付のiPadにこの画面をかざしてください</p>
@@ -3136,7 +3062,7 @@
         <div class="rank-box">
           <div class="rank-label">CURRENT RANK</div>
           <div id="rank-badge" class="rank-badge">---</div>
-          <div id="rank-next" class="rank-next">---</div>
+          <div id="rank-next" class="rank-next mono-small">---</div>
         </div>
       </div>
 
@@ -3159,7 +3085,7 @@
       </div>
 
       <!-- デイリーミッション -->
-      <div class="mission-card fade-in">
+      <div class="mission-card panel-card fade-in">
         <div class="section-header" style="margin-bottom:0;">
           <h3>DAILY MISSIONS</h3>
           <span class="tag">/ 今日の任務</span>
@@ -3169,7 +3095,7 @@
       </div>
 
       <!-- 週次目標 -->
-      <div class="goal-card fade-in">
+      <div class="goal-card panel-card fade-in">
         <div class="goal-row">
           <div class="goal-title" id="goal-title-text">WEEKLY GOAL (--h)</div>
           <div class="goal-text"><span id="goal-current">0</span>h ─
@@ -3198,15 +3124,15 @@
       <!-- 統計KPI -->
       <div class="kpi-row fade-in">
         <div class="kpi" data-accent="lime">
-          <div class="kpi-label">TODAY</div>
+          <div class="kpi-label caption-label">TODAY</div>
           <div class="kpi-value" id="val-today">--</div>
         </div>
         <div class="kpi" data-accent="cyan">
-          <div class="kpi-label">LAST 7 DAYS</div>
+          <div class="kpi-label caption-label">LAST 7 DAYS</div>
           <div class="kpi-value" id="val-week">--</div>
         </div>
         <div class="kpi" data-accent="amber">
-          <div class="kpi-label">ALL TIME</div>
+          <div class="kpi-label caption-label">ALL TIME</div>
           <div class="kpi-value" id="val-total">--</div>
         </div>
       </div>
@@ -3215,7 +3141,7 @@
       <button class="sse-trigger-btn" id="sse-open-btn">+ 予定を追加</button>
 
       <!-- カレンダー -->
-      <section class="sss-cal-section fade-in">
+      <section class="sss-cal-section panel-section fade-in">
         <div class="sss-cal-header">
           <div class="sss-cal-nav">
             <button class="sss-cal-nav-btn" id="sss-cal-prev">&#8249;</button>
@@ -3234,7 +3160,7 @@
       </section>
 
       <!-- アチーブメント -->
-      <div class="ach-card fade-in">
+      <div class="ach-card panel-card fade-in">
         <div class="section-header" style="margin-bottom:0;">
           <h3>ACHIEVEMENTS</h3>
           <span class="tag">/ 称号と勲章</span>
@@ -3286,7 +3212,7 @@
           <span class="tag">/ 勤務時間の推移</span>
           <div class="underline"></div>
         </div>
-        <div class="chart-wrap">
+        <div class="chart-wrap panel-section">
           <div class="chart-tabs">
             <button class="chart-tab-btn active" data-chart-tab="daily">DAY</button>
             <button class="chart-tab-btn" data-chart-tab="weekly">WEEK</button>
@@ -3343,13 +3269,13 @@
           <div class="underline"></div>
         </div>
 
-        <div class="book-form">
+        <div class="book-form panel-card">
           <div class="book-form-row">
             <input type="text" id="book-name" class="book-input" maxlength="80" placeholder="参考書名（例：青チャート 数学Ⅱ・B）">
           </div>
           <div class="book-form-row">
             <div class="rating-input">
-              <span class="rating-label">RATING</span>
+              <span class="rating-label field-label">RATING</span>
               <div class="star-picker" id="star-picker">
                 <span class="star" data-val="1">★</span>
                 <span class="star" data-val="2">★</span>
@@ -3386,7 +3312,7 @@
           <span class="tag">/ 小テスト進捗</span>
           <div class="underline"></div>
         </div>
-        <details class="test-container" id="box-tests" open>
+        <details class="test-container panel-card" id="box-tests" open>
           <summary>▸ TEST STATUS</summary>
           <div id="test-list">
             <div
@@ -3430,9 +3356,9 @@
 
   <div id="settings-modal" class="modal">
     <h3>MY GOAL SETTING</h3>
-    <label>目標模試名</label>
+    <label class="field-label">目標模試名</label>
     <input type="text" id="input-exam-name" class="modal-input" placeholder="例：全統共通テスト模試">
-    <label>模試日程</label>
+    <label class="field-label">模試日程</label>
     <input type="date" id="input-exam-date" class="modal-input">
     <button class="modal-btn" id="save-btn">SAVE SETTINGS</button>
     <button class="modal-btn modal-close-btn" id="settings-close-btn">CLOSE</button>
@@ -4506,7 +4432,7 @@
       allEvents.push(...await fetchEvents(y, mo));
     }
 
-    let html = '<div class="sss-week-grid">';
+    let html = '<div class="sss-week-grid cal-grid-7">';
     days.forEach((d, i) => {
       const dow = i===6?' sat':i===0?' sun':'';
       const todayCls = isToday(d) ? ' today' : '';
@@ -4541,7 +4467,7 @@
     const backDays = firstDay.getDay();
     gridStart.setDate(firstDay.getDate() - backDays);
 
-    let html = '<div class="sss-month-grid">';
+    let html = '<div class="sss-month-grid cal-grid-7">';
     for (let i=0; i<42; i++) {
       const d = new Date(gridStart);
       d.setDate(gridStart.getDate() + i);
@@ -4552,12 +4478,14 @@
       const todayCls = isToday(d) ? ' today' : '';
       const otherCls = !isThisMonth ? ' other-month' : '';
       const dayEvents = isThisMonth ? getEventsForDay(events, d) : [];
-      const chips = dayEvents.slice(0,2).map(e =>
-        `<div class="sss-event-chip">${e.allDay ? '●' : formatTime(e.start)}</div>`).join('');
+      const chips = dayEvents.slice(0,2).map(e => {
+        const time = e.allDay ? 'ALL DAY' : `${formatTime(e.start)}-${formatTime(e.end)}`;
+        return `<div class="sss-event-chip"><span class="chip-time">${time}</span><span class="chip-title">${escapeHtml(e.title)}</span></div>`;
+      }).join('');
       const more = dayEvents.length > 2
         ? `<div class="sss-event-chip more">+${dayEvents.length-2}</div>` : '';
       html += `<div class="sss-month-cell${satCls}${sunCls}${todayCls}${otherCls}">
-        <div class="sss-month-date">${d.getDate()}</div>
+        <div class="sss-month-date mono-small">${d.getDate()}</div>
         ${chips}${more}
       </div>`;
     }
