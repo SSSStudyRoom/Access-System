@@ -3025,7 +3025,7 @@
           <div>STATION <span class="station-num">/ ZERO</span> ─ MY DASHBOARD</div>
           <h1><span class="name-target" id="student-name">─</span> <span class="kana">の記録</span></h1>
         </div>
-        <button id="refresh-btn" class="refresh-btn" onclick="refreshData()" aria-label="更新" title="データを更新">
+        <button id="refresh-btn" class="refresh-btn" aria-label="更新" title="データを更新">
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="23 4 23 10 17 10"></polyline>
           <polyline points="1 20 1 14 7 14"></polyline>
@@ -3037,16 +3037,16 @@
 
     <!-- ========== タブナビ ========== -->
     <nav class="tab-nav" id="tab-nav" style="display:none;">
-      <button class="tab-btn active" data-tab="home" onclick="switchTab('home')">
+      <button class="tab-btn active" data-tab="home">
       <span class="tab-icon">▣</span><span class="tab-label">HOME</span>
     </button>
-      <button class="tab-btn" data-tab="trends" onclick="switchTab('trends')">
+      <button class="tab-btn" data-tab="trends">
       <span class="tab-icon">◢</span><span class="tab-label">TRENDS</span>
     </button>
-      <button class="tab-btn" data-tab="books" onclick="switchTab('books')">
+      <button class="tab-btn" data-tab="books">
       <span class="tab-icon">◈</span><span class="tab-label">BOOKS</span>
     </button>
-      <button class="tab-btn" data-tab="history" onclick="switchTab('history')">
+      <button class="tab-btn" data-tab="history">
       <span class="tab-icon">◰</span><span class="tab-label">LOG</span>
     </button>
     </nav>
@@ -3063,7 +3063,7 @@
       <div class="error-box">
         <div class="err-title">▲ ERROR</div>
         <div class="err-msg" id="err-message">データの取得に失敗しました。</div>
-        <button class="err-retry" onclick="location.reload()">再読み込み</button>
+        <button class="err-retry">再読み込み</button>
       </div>
     </div>
 
@@ -3106,7 +3106,7 @@
         </div>
       </details>
 
-      <div class="settings-trigger fade-in" onclick="openModal('settings-modal')">⚙ 目標模試を自分専用に設定する</div>
+      <div class="settings-trigger fade-in" id="settings-trigger">⚙ 目標模試を自分専用に設定する</div>
 
       <!-- レベル + ランク -->
       <div class="hero-grid fade-in">
@@ -3275,9 +3275,9 @@
         </div>
         <div class="chart-wrap">
           <div class="chart-tabs">
-            <button class="chart-tab-btn active" data-chart-tab="daily" onclick="switchChartTab('daily')">DAY</button>
-            <button class="chart-tab-btn" data-chart-tab="weekly" onclick="switchChartTab('weekly')">WEEK</button>
-            <button class="chart-tab-btn" data-chart-tab="monthly" onclick="switchChartTab('monthly')">MONTH</button>
+            <button class="chart-tab-btn active" data-chart-tab="daily">DAY</button>
+            <button class="chart-tab-btn" data-chart-tab="weekly">WEEK</button>
+            <button class="chart-tab-btn" data-chart-tab="monthly">MONTH</button>
           </div>
           <div class="chart-pane active" data-chart-pane="daily">
             <div class="chart-title">DAILY (h)</div>
@@ -3352,7 +3352,7 @@
           </div>
           <div class="book-form-footer">
             <span class="char-counter"><span id="book-comment-counter">0</span> / 300</span>
-            <button class="book-post-btn" id="book-post-btn" onclick="postBook()">SUBMIT</button>
+            <button class="book-post-btn" id="book-post-btn">SUBMIT</button>
           </div>
         </div>
 
@@ -3413,7 +3413,7 @@
   </div>
 
   <!-- ===== モーダル ===== -->
-  <div class="modal-overlay" id="modal-overlay" onclick="closeAllModals()"></div>
+  <div class="modal-overlay" id="modal-overlay"></div>
 
   <div id="settings-modal" class="modal">
     <h3>MY GOAL SETTING</h3>
@@ -3421,11 +3421,10 @@
     <input type="text" id="input-exam-name" class="modal-input" placeholder="例：全統共通テスト模試">
     <label>模試日程</label>
     <input type="date" id="input-exam-date" class="modal-input">
-    <button class="modal-btn" id="save-btn" onclick="saveSettings()">SAVE SETTINGS</button>
-    <button class="modal-btn modal-close-btn" onclick="closeAllModals()">CLOSE</button>
+    <button class="modal-btn" id="save-btn">SAVE SETTINGS</button>
+    <button class="modal-btn modal-close-btn" id="settings-close-btn">CLOSE</button>
   </div>
 
-  <div class="modal-overlay" id="sse-overlay"></div>
   <div class="modal sse-modal" id="sse-modal">
 
     <div id="sse-form-view">
@@ -3458,23 +3457,23 @@
       <div class="sse-field">
         <label class="sse-field-label">繰り返し</label>
         <div class="sse-repeat-options">
-          <button class="sse-repeat-btn active" data-repeat="none" onclick="sseSetRepeat('none')">なし</button>
-          <button class="sse-repeat-btn" data-repeat="weekly" onclick="sseSetRepeat('weekly')">毎週(4週)</button>
-          <button class="sse-repeat-btn" data-repeat="custom" onclick="sseSetRepeat('custom')">曜日指定(2週)</button>
+          <button class="sse-repeat-btn active" data-repeat="none">なし</button>
+          <button class="sse-repeat-btn" data-repeat="weekly">毎週(4週)</button>
+          <button class="sse-repeat-btn" data-repeat="custom">曜日指定(2週)</button>
         </div>
         <div class="sse-day-picker" id="sse-day-picker" style="display:none;">
-          <button class="sse-day-btn" data-day="1" onclick="sseToggleDay(1)">月</button>
-          <button class="sse-day-btn" data-day="2" onclick="sseToggleDay(2)">火</button>
-          <button class="sse-day-btn" data-day="3" onclick="sseToggleDay(3)">水</button>
-          <button class="sse-day-btn" data-day="4" onclick="sseToggleDay(4)">木</button>
-          <button class="sse-day-btn" data-day="5" onclick="sseToggleDay(5)">金</button>
-          <button class="sse-day-btn sat" data-day="6" onclick="sseToggleDay(6)">土</button>
-          <button class="sse-day-btn sun" data-day="0" onclick="sseToggleDay(0)">日</button>
+          <button class="sse-day-btn" data-day="1">月</button>
+          <button class="sse-day-btn" data-day="2">火</button>
+          <button class="sse-day-btn" data-day="3">水</button>
+          <button class="sse-day-btn" data-day="4">木</button>
+          <button class="sse-day-btn" data-day="5">金</button>
+          <button class="sse-day-btn sat" data-day="6">土</button>
+          <button class="sse-day-btn sun" data-day="0">日</button>
         </div>
       </div>
 
       <p class="sse-err" id="sse-err"></p>
-      <button class="sse-btn-add" onclick="sseAddSchedule()">+ この予定を追加する</button>
+      <button class="sse-btn-add" id="sse-add-btn">+ この予定を追加する</button>
 
       <div class="sse-divider"></div>
 
@@ -3486,7 +3485,7 @@
         <div class="sse-empty">// NO ENTRIES //</div>
       </div>
 
-      <button class="sse-submit" id="sse-submit-btn" onclick="sseSubmitAll()">
+      <button class="sse-submit" id="sse-submit-btn">
       Googleカレンダーに登録する
     </button>
     </div>
@@ -3495,7 +3494,7 @@
       <div class="sse-done-icon">✓</div>
       <h4>登録完了</h4>
       <p>自習室の予定がGoogleカレンダーに<br>追加されました。</p>
-      <button class="sse-btn-add" style="margin-top:18px;" onclick="sseReset()">続けて入力する</button>
+      <button class="sse-btn-add" id="sse-reset-btn" style="margin-top:18px;">続けて入力する</button>
     </div>
 
   </div>
@@ -3618,11 +3617,47 @@
   }
 
   // =====================================================================
+  // イベント配線
+  // =====================================================================
+  function setupUIEvents() {
+    document.getElementById('refresh-btn').addEventListener('click', refreshData);
+
+    document.querySelectorAll('.tab-btn[data-tab]').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    document.querySelector('.err-retry').addEventListener('click', () => location.reload());
+
+    document.getElementById('settings-trigger').addEventListener('click', () => openModal('settings-modal'));
+
+    document.querySelectorAll('.chart-tab-btn[data-chart-tab]').forEach(btn => {
+      btn.addEventListener('click', () => switchChartTab(btn.dataset.chartTab));
+    });
+
+    document.getElementById('book-post-btn').addEventListener('click', postBook);
+
+    document.getElementById('modal-overlay').addEventListener('click', closeAllModals);
+    document.getElementById('save-btn').addEventListener('click', saveSettings);
+    document.getElementById('settings-close-btn').addEventListener('click', closeAllModals);
+
+    document.getElementById('mission-list').addEventListener('click', (e) => {
+      const item = e.target.closest('.mission-item[data-mid]');
+      if (item) toggleMission(item.dataset.mid);
+    });
+
+    document.getElementById('book-feed').addEventListener('click', (e) => {
+      const btn = e.target.closest('.reaction-btn');
+      if (btn) reactToBook(btn.dataset.postId, btn.dataset.emoji, btn);
+    });
+  }
+
+  // =====================================================================
   // 初期化
   // =====================================================================
   document.addEventListener('DOMContentLoaded', async () => {
     setupQRToggle();
     setupBookForm();
+    setupUIEvents();
 
     if (!studentToken) {
       showError('URLが正しくありません。管理者から配布されたURLからアクセスしてください。');
@@ -3861,7 +3896,7 @@
       const autoDone = def ? def.check(data) : false;
       const done = autoDone || m.manualDone;
       return `
-        <div class="mission-item ${done ? 'done' : ''}" data-mid="${m.id}" onclick="toggleMission('${m.id}')">
+        <div class="mission-item ${done ? 'done' : ''}" data-mid="${m.id}">
           <div class="mission-checkbox">${done ? '✓' : ''}</div>
           <div class="mission-text">${escapeHtml(m.text)}</div>
           <div class="mission-reward">${escapeHtml(m.reward)}</div>
@@ -3999,7 +4034,7 @@
       const reactionHtml = emojis.map(e => {
         const count = (p.reactions && p.reactions[e]) || 0;
         const active = (p.myReactions || []).includes(e);
-        return `<button class="reaction-btn ${active ? 'active' : ''}" onclick="reactToBook('${p.id}', '${e}', this)">${e}${count > 0 ? `<span class="count">${count}</span>` : ''}</button>`;
+        return `<button class="reaction-btn ${active ? 'active' : ''}" data-post-id="${escapeHtml(p.id)}" data-emoji="${escapeHtml(e)}">${e}${count > 0 ? `<span class="count">${count}</span>` : ''}</button>`;
       }).join('');
       const commentHtml = p.comment ? `<div class="book-comment">${escapeHtml(p.comment)}</div>` : '';
       return `
@@ -4396,7 +4431,7 @@
       }
     });
   }
-(function () {
+
   const DAY_LABELS = ['日','月','火','水','木','金','土'];
   let currentView = 'week';
   let currentDate = new Date();
@@ -4544,154 +4579,159 @@
   });
 
   render();
-})();
 
   // =====================================================================
   // 予定入力モーダル（自習室スケジュール登録）
   // =====================================================================
-  (function () {
-    let schedules = [];
-    let repeatMode = 'none';
-    let selectedDays = new Set();
+  let schedules = [];
+  let repeatMode = 'none';
+  let selectedDays = new Set();
 
-    function openSseModal() {
-      document.getElementById('sse-overlay').style.display = 'block';
-      document.getElementById('sse-modal').style.display = 'block';
-    }
-    function closeSseModal() {
-      document.getElementById('sse-overlay').style.display = 'none';
-      document.getElementById('sse-modal').style.display = 'none';
-    }
-    document.getElementById('sse-open-btn').addEventListener('click', openSseModal);
-    document.getElementById('sse-close-btn').addEventListener('click', closeSseModal);
-    document.getElementById('sse-overlay').addEventListener('click', closeSseModal);
+  document.getElementById('sse-open-btn').addEventListener('click', () => openModal('sse-modal'));
+  document.getElementById('sse-close-btn').addEventListener('click', closeAllModals);
 
-    window.sseSetRepeat = function (mode) {
-      repeatMode = mode;
-      document.querySelectorAll('.sse-repeat-btn').forEach(b => b.classList.remove('active'));
-      document.querySelector(`.sse-repeat-btn[data-repeat="${mode}"]`).classList.add('active');
-      document.getElementById('sse-day-picker').style.display = (mode === 'custom') ? 'flex' : 'none';
-    };
+  function sseSetRepeat(mode) {
+    repeatMode = mode;
+    document.querySelectorAll('.sse-repeat-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.sse-repeat-btn[data-repeat="${mode}"]`).classList.add('active');
+    document.getElementById('sse-day-picker').style.display = (mode === 'custom') ? 'flex' : 'none';
+  }
 
-    window.sseToggleDay = function (day) {
-      const btn = document.querySelector(`.sse-day-btn[data-day="${day}"]`);
-      if (selectedDays.has(day)) { selectedDays.delete(day); btn.classList.remove('active'); }
-      else { selectedDays.add(day); btn.classList.add('active'); }
-    };
+  function sseToggleDay(day) {
+    const btn = document.querySelector(`.sse-day-btn[data-day="${day}"]`);
+    if (selectedDays.has(day)) { selectedDays.delete(day); btn.classList.remove('active'); }
+    else { selectedDays.add(day); btn.classList.add('active'); }
+  }
 
-    function fmt(d) {
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
-    function fmtDisplay(dateStr) {
-      const days = ['日', '月', '火', '水', '木', '金', '土'];
-      const d = new Date(dateStr + 'T00:00:00');
-      return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
-    }
-    function showSseErr(msg) {
-      const el = document.getElementById('sse-err');
-      el.textContent = `! ${msg}`;
-      el.style.display = 'block';
-    }
-    function hideSseErr() {
-      document.getElementById('sse-err').style.display = 'none';
-    }
+  document.querySelectorAll('.sse-repeat-btn[data-repeat]').forEach(btn => {
+    btn.addEventListener('click', () => sseSetRepeat(btn.dataset.repeat));
+  });
+  document.querySelectorAll('.sse-day-btn[data-day]').forEach(btn => {
+    btn.addEventListener('click', () => sseToggleDay(parseInt(btn.dataset.day, 10)));
+  });
 
-    window.sseAddSchedule = function () {
-      const date  = document.getElementById('sse-date').value;
-      const start = document.getElementById('sse-start').value;
-      const end   = document.getElementById('sse-end').value;
-      const memo  = document.getElementById('sse-memo').value;
+  function fmt(d) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+  function fmtDisplay(dateStr) {
+    const days = ['日', '月', '火', '水', '木', '金', '土'];
+    const d = new Date(dateStr + 'T00:00:00');
+    return `${d.getMonth() + 1}/${d.getDate()}(${days[d.getDay()]})`;
+  }
+  function showSseErr(msg) {
+    const el = document.getElementById('sse-err');
+    el.textContent = `! ${msg}`;
+    el.style.display = 'block';
+  }
+  function hideSseErr() {
+    document.getElementById('sse-err').style.display = 'none';
+  }
 
-      if (!date || !start || !end) { showSseErr('日付・開始・終了時刻を入力してください'); return; }
-      if (start >= end) { showSseErr('終了時刻は開始時刻より後にしてください'); return; }
-      hideSseErr();
+  function sseAddSchedule() {
+    const date  = document.getElementById('sse-date').value;
+    const start = document.getElementById('sse-start').value;
+    const end   = document.getElementById('sse-end').value;
+    const memo  = document.getElementById('sse-memo').value;
 
-      const entries = [];
-      if (repeatMode === 'none') {
-        entries.push({ date, start, end, memo });
-      } else if (repeatMode === 'weekly') {
-        const base = new Date(date + 'T00:00:00');
-        for (let i = 0; i < 4; i++) {
-          const d = new Date(base); d.setDate(base.getDate() + i * 7);
-          entries.push({ date: fmt(d), start, end, memo });
-        }
-      } else if (repeatMode === 'custom') {
-        if (selectedDays.size === 0) { showSseErr('曜日を選択してください'); return; }
-        const base = new Date(date + 'T00:00:00');
-        for (let i = 0; i < 14; i++) {
-          const d = new Date(base); d.setDate(base.getDate() + i);
-          if (selectedDays.has(d.getDay())) entries.push({ date: fmt(d), start, end, memo });
-        }
+    if (!date || !start || !end) { showSseErr('日付・開始・終了時刻を入力してください'); return; }
+    if (start >= end) { showSseErr('終了時刻は開始時刻より後にしてください'); return; }
+    hideSseErr();
+
+    const entries = [];
+    if (repeatMode === 'none') {
+      entries.push({ date, start, end, memo });
+    } else if (repeatMode === 'weekly') {
+      const base = new Date(date + 'T00:00:00');
+      for (let i = 0; i < 4; i++) {
+        const d = new Date(base); d.setDate(base.getDate() + i * 7);
+        entries.push({ date: fmt(d), start, end, memo });
       }
-
-      schedules.push(...entries);
-      schedules.sort((a, b) => a.date.localeCompare(b.date));
-      sseRenderList();
-      document.getElementById('sse-memo').value = '';
-    };
-
-    window.sseRemoveItem = function (i) { schedules.splice(i, 1); sseRenderList(); };
-
-    function sseRenderList() {
-      const el  = document.getElementById('sse-items');
-      const cnt = document.getElementById('sse-count');
-      const btn = document.getElementById('sse-submit-btn');
-      if (schedules.length === 0) {
-        el.innerHTML = '<div class="sse-empty">// NO ENTRIES //</div>';
-        cnt.textContent = '0';
-        btn.style.display = 'none';
-        return;
+    } else if (repeatMode === 'custom') {
+      if (selectedDays.size === 0) { showSseErr('曜日を選択してください'); return; }
+      const base = new Date(date + 'T00:00:00');
+      for (let i = 0; i < 14; i++) {
+        const d = new Date(base); d.setDate(base.getDate() + i);
+        if (selectedDays.has(d.getDay())) entries.push({ date: fmt(d), start, end, memo });
       }
-      cnt.textContent = schedules.length;
-      btn.style.display = 'block';
-      el.innerHTML = schedules.map((s, i) => `
-        <div class="sse-item">
-          <span class="d">${fmtDisplay(s.date)}</span>
-          <span class="t">${s.start}-${s.end}</span>
-          <span class="m">${s.memo || ''}</span>
-          <button class="x" onclick="sseRemoveItem(${i})" aria-label="削除">×</button>
-        </div>`).join('');
     }
 
-    window.sseSubmitAll = async function () {
-      if (schedules.length === 0) return;
-      const btn = document.getElementById('sse-submit-btn');
-      hideSseErr();
-      btn.disabled = true;
-      const originalText = btn.textContent;
-      btn.textContent = '登録中...';
-      try {
-        const res  = await fetch(API_ENDPOINT, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain' },
-          body: JSON.stringify({ action: 'addCalendarEvents', token: studentToken, events: schedules })
-        });
-        const json = await res.json();
-        if (!json.ok) throw new Error(json.error || '登録に失敗しました');
-        document.getElementById('sse-form-view').style.display = 'none';
-        document.getElementById('sse-done-view').style.display = 'block';
-      } catch (e) {
-        showSseErr(e.message || '通信エラーが発生しました');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = originalText;
-      }
-    };
-
-    window.sseReset = function () {
-      schedules = [];
-      repeatMode = 'none';
-      selectedDays.clear();
-      document.querySelectorAll('.sse-day-btn').forEach(b => b.classList.remove('active'));
-      sseSetRepeat('none');
-      hideSseErr();
-      sseRenderList();
-      document.getElementById('sse-form-view').style.display = 'block';
-      document.getElementById('sse-done-view').style.display = 'none';
-    };
-
+    schedules.push(...entries);
+    schedules.sort((a, b) => a.date.localeCompare(b.date));
     sseRenderList();
-  })();
+    document.getElementById('sse-memo').value = '';
+  }
+
+  function sseRemoveItem(i) { schedules.splice(i, 1); sseRenderList(); }
+
+  function sseRenderList() {
+    const el  = document.getElementById('sse-items');
+    const cnt = document.getElementById('sse-count');
+    const btn = document.getElementById('sse-submit-btn');
+    if (schedules.length === 0) {
+      el.innerHTML = '<div class="sse-empty">// NO ENTRIES //</div>';
+      cnt.textContent = '0';
+      btn.style.display = 'none';
+      return;
+    }
+    cnt.textContent = schedules.length;
+    btn.style.display = 'block';
+    el.innerHTML = schedules.map((s, i) => `
+      <div class="sse-item">
+        <span class="d">${fmtDisplay(s.date)}</span>
+        <span class="t">${s.start}-${s.end}</span>
+        <span class="m">${s.memo || ''}</span>
+        <button class="x" data-idx="${i}" aria-label="削除">×</button>
+      </div>`).join('');
+  }
+
+  async function sseSubmitAll() {
+    if (schedules.length === 0) return;
+    const btn = document.getElementById('sse-submit-btn');
+    hideSseErr();
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = '登録中...';
+    try {
+      const res  = await fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'addCalendarEvents', token: studentToken, events: schedules })
+      });
+      const json = await res.json();
+      if (!json.ok) throw new Error(json.error || '登録に失敗しました');
+      document.getElementById('sse-form-view').style.display = 'none';
+      document.getElementById('sse-done-view').style.display = 'block';
+      eventsCache = {};
+      render();
+    } catch (e) {
+      showSseErr(e.message || '通信エラーが発生しました');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = originalText;
+    }
+  }
+
+  function sseReset() {
+    schedules = [];
+    repeatMode = 'none';
+    selectedDays.clear();
+    document.querySelectorAll('.sse-day-btn').forEach(b => b.classList.remove('active'));
+    sseSetRepeat('none');
+    hideSseErr();
+    sseRenderList();
+    document.getElementById('sse-form-view').style.display = 'block';
+    document.getElementById('sse-done-view').style.display = 'none';
+  }
+
+  document.getElementById('sse-add-btn').addEventListener('click', sseAddSchedule);
+  document.getElementById('sse-submit-btn').addEventListener('click', sseSubmitAll);
+  document.getElementById('sse-reset-btn').addEventListener('click', sseReset);
+  document.getElementById('sse-items').addEventListener('click', (e) => {
+    const btn = e.target.closest('.x[data-idx]');
+    if (btn) sseRemoveItem(parseInt(btn.dataset.idx, 10));
+  });
+
+  sseRenderList();
 
   </script>
 </body>
