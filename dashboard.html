@@ -2627,6 +2627,32 @@
       text-align: center;
     }
 
+    /* ===== スマホ幅対応：セル自体は7列のまま縮まるため、文字を縮小して
+       開始時刻(終了時刻は非表示)+全角3文字程度(例:「自習室」)が収まるようにする ===== */
+    @media (max-width: 480px) {
+      .sss-event-chip {
+        font-size: 7px;
+        letter-spacing: 0;
+        padding: 2px 3px;
+      }
+
+      .sss-event-chip .chip-time,
+      .sss-event-chip .chip-title {
+        line-height: 9px;
+      }
+
+      .sss-event-chip .chip-time .t-end {
+        display: none;
+      }
+
+      .sss-cal-more {
+        font-size: 7px;
+        letter-spacing: 0;
+        line-height: 9px;
+        padding: 2px 3px;
+      }
+    }
+
     .sss-no-event {
       font-family: var(--mono);
       font-size: 9px;
@@ -4448,6 +4474,12 @@
     return `${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
   }
 
+  // チップの時刻表示：終了時刻は.t-endで囲み、狭い画面では非表示にして開始時刻のみ見せる
+  function chipTimeHtml(e) {
+    if (e.allDay) return 'ALL DAY';
+    return `${formatTime(e.start)}<span class="t-end">-${formatTime(e.end)}</span>`;
+  }
+
   function renderDayHeaders() {
     const el = document.getElementById('sss-cal-day-headers');
     el.innerHTML = DAY_LABELS.map((l,i) => {
@@ -4479,8 +4511,7 @@
       const dayEvents = getEventsForDay(allEvents, d);
       const chips = dayEvents.length > 0
         ? dayEvents.slice(0, 2).map(e => {
-            const time = e.allDay ? 'ALL DAY' : `${formatTime(e.start)}-${formatTime(e.end)}`;
-            return `<div class="sss-event-chip"><span class="chip-time">${time}</span><span class="chip-title">${chipTitleHtml(e.title)}</span></div>`;
+            return `<div class="sss-event-chip"><span class="chip-time">${chipTimeHtml(e)}</span><span class="chip-title">${chipTitleHtml(e.title)}</span></div>`;
           }).join('')
         : `<div class="sss-no-event">--</div>`;
       const more = dayEvents.length > 2 ? `<div class="sss-cal-more">+${dayEvents.length - 2}</div>` : '';
@@ -4520,8 +4551,7 @@
       const otherCls = !isThisMonth ? ' other-month' : '';
       const dayEvents = isThisMonth ? getEventsForDay(events, d) : [];
       const chips = dayEvents.slice(0,2).map(e => {
-        const time = e.allDay ? 'ALL DAY' : `${formatTime(e.start)}-${formatTime(e.end)}`;
-        return `<div class="sss-event-chip"><span class="chip-time">${time}</span><span class="chip-title">${chipTitleHtml(e.title)}</span></div>`;
+        return `<div class="sss-event-chip"><span class="chip-time">${chipTimeHtml(e)}</span><span class="chip-title">${chipTitleHtml(e.title)}</span></div>`;
       }).join('');
       const more = dayEvents.length > 2
         ? `<div class="sss-cal-more">+${dayEvents.length - 2}</div>` : '';
