@@ -2601,8 +2601,11 @@
       -webkit-line-clamp: 2;
       line-clamp: 2;
       overflow: hidden;
+      /* <wbr>で明示した位置を優先的に改行させるため、CJKの任意位置改行(break-word)は使わない。
+         word-break: keep-all + overflow-wrap: break-word の組み合わせで、
+         <wbr>を尊重しつつ、長い一続きの英単語等がある場合のみ強制改行する。 */
+      word-break: keep-all;
       overflow-wrap: break-word;
-      word-break: break-word;
       line-height: 11px;
     }
 
