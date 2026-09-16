@@ -1,0 +1,15 @@
+# clasp push で GAS プロジェクトに送らないファイル。
+# .clasp.json の scriptExtensions(.js/.gs) / htmlExtensions(.html) に
+# 該当するファイルは、ここで除外しない限りすべて push 対象になる点に注意。
+# dashboard.html / index.html は意図的に除外せず、clasp push の対象に含めている。
+
+.git/**
+.clasp.json
+.claspignore
+
+# サードパーティのブラウザ用ライブラリ（GAS用のコードではない）
+qrcode.min.js
+
+# リポジトリ用のドキュメント類
+README.md
+HANDOVER_FOR_CLAUDE_CODE.md

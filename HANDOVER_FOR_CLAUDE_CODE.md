@@ -14,24 +14,24 @@
 ```
 [受付iPad] index.html ──POST(scan)──┐
                                      │
-[生徒スマホ] dashboard.html ──GET/POST─┤→ GAS Web App (コード.gs / AbsenceCheck.gs)
+[生徒スマホ] dashboard.html ──GET/POST─┤→ GAS Web App (コード.js / AbsenceCheck.js)
                                      │      ├─ スプレッドシート（生徒マスタ・ログ・投稿等）
 [スプレッドシートUI] draftDialog.html ┘      ├─ Googleカレンダー（生徒ごとの個別カレンダー）
    (google.script.run で直接呼び出し)         └─ Gmail / Google Chat 通知
 ```
 
-- **index.html / dashboard.html** は GitHub Pages で静的ホスティングされている（`https://ahmadtanzeel.github.io/-dev-webpages-/` 配下、コード.gs 内の `STUDENT_DASHBOARD_BASE_URL` 参照）。
-- **コード.gs / AbsenceCheck.gs / draftDialog.html / appsscript.json** は同一の Google Apps Script プロジェクトにバインドされ、スプレッドシートから直接デプロイされる。GAS は同一プロジェクト内なら `.gs` ファイルをまたいでもグローバルスコープが共有されるため、`コード.gs` の定数・関数を `AbsenceCheck.gs` からそのまま参照できる（`IDX_PROFILE`, `CALENDAR_CONFIG`, `ensureSheet` など）。
+- **index.html / dashboard.html** は GitHub Pages で静的ホスティングされている（`https://ahmadtanzeel.github.io/-dev-webpages-/` 配下、コード.js 内の `STUDENT_DASHBOARD_BASE_URL` 参照）。
+- **コード.js / AbsenceCheck.js / draftDialog.html / appsscript.json** は同一の Google Apps Script プロジェクトにバインドされ、スプレッドシートから直接デプロイされる。GAS は同一プロジェクト内ならスクリプトファイルをまたいでもグローバルスコープが共有されるため、`コード.js` の定数・関数を `AbsenceCheck.js` からそのまま参照できる（`IDX_PROFILE`, `CALENDAR_CONFIG`, `ensureSheet` など）。
 - フロントエンドとGASの通信は `fetch` ベース。POSTは CORS プリフリcourt（OPTIONS）を避けるため、JSONを送るにもかかわらず意図的に `Content-Type: text/plain;charset=utf-8` を使っている（`apiPost` / `sseSubmitAll` / index.htmlの`executeScan`）。
 
 ---
 
 ## 2. スプレッドシートのデータ構造
 
-コード.gs 側で `SpreadsheetApp.getActiveSpreadsheet()`（バインド先＝メインの管理用スプレッドシート）と、`CALENDAR_CONFIG.SPREADSHEET_ID`（`1HWZDOIJaQB0S3K4a9hXomJZFqmdznmKywQ2Sc_ON1Fo`）で明示的に開く別スプレッドシートの2系統がある。**実際には同一のスプレッドシートIDを指すよう運用されている前提**（`getActiveSpreadsheet()` を使う関数と `CALENDAR_CONFIG.SPREADSHEET_ID` を使う関数が同じ「公開プロフィール」シートを参照しているため）。
+コード.js 側で `SpreadsheetApp.getActiveSpreadsheet()`（バインド先＝メインの管理用スプレッドシート）と、`CALENDAR_CONFIG.SPREADSHEET_ID`（`1HWZDOIJaQB0S3K4a9hXomJZFqmdznmKywQ2Sc_ON1Fo`）で明示的に開く別スプレッドシートの2系統がある。**実際には同一のスプレッドシートIDを指すよう運用されている前提**（`getActiveSpreadsheet()` を使う関数と `CALENDAR_CONFIG.SPREADSHEET_ID` を使う関数が同じ「公開プロフィール」シートを参照しているため）。
 
 ### 2.1 「公開プロフィール」シート（生徒マスタ）
-`IDX_PROFILE`（コード.gs 1-17行目）で一元管理：
+`IDX_PROFILE`（コード.js 1-17行目）で一元管理：
 
 | 列 | 意味 | 定数 |
 |---|---|---|
@@ -47,20 +47,20 @@
 | J (9) | （未使用・欠番） | ― |
 | K (10) | 生徒個別のGoogleカレンダーID | `CALENDAR_ID` |
 
-**これが唯一の正のマッピング。** 以前は `コード.gs` と `AbsenceCheck.gs` にそれぞれ別の列定義（インデックス基準もバラバラ）が重複しており、それが過去のバグ（トークン列のズレ、カレンダーID列の不一致）の直接原因だった。現在は `AbsenceCheck.gs` 側は独自定義を持たず、`IDX_PROFILE` / `CALENDAR_CONFIG` を直接参照している。
+**これが唯一の正のマッピング。** 以前は `コード.js` と `AbsenceCheck.js` にそれぞれ別の列定義（インデックス基準もバラバラ）が重複しており、それが過去のバグ（トークン列のズレ、カレンダーID列の不一致）の直接原因だった。現在は `AbsenceCheck.js` 側は独自定義を持たず、`IDX_PROFILE` / `CALENDAR_CONFIG` を直接参照している。
 
 ### 2.2 「管理シート」（入退室ログ）
-`IDX_LOG`（コード.gs 40-46行目）：A=日付, B=生徒ID, D=入室時刻, E=退室時刻, F=エール数（`CHEERS`）。
+`IDX_LOG`（コード.js 40-46行目）：A=日付, B=生徒ID, D=入室時刻, E=退室時刻, F=エール数（`CHEERS`）。
 - C列は使われていない（IDX_LOGにC相当の定義なし）。
-- F列「エール数」は`getStudentStats`が集計して`cheers`としてAPIレスポンスに含めているが、**dashboard.html側にこの値を表示する箇所は現存しない**（`sendCheer()`関数もコード.gs側で「エール機能は廃止されました」という文字列を返すだけの空実装になっている）。旧機能の残骸としてバックエンド側にだけ集計ロジックが残っている状態。
+- F列「エール数」は`getStudentStats`が集計して`cheers`としてAPIレスポンスに含めているが、**dashboard.html側にこの値を表示する箇所は現存しない**（`sendCheer()`関数もコード.js側で「エール機能は廃止されました」という文字列を返すだけの空実装になっている）。旧機能の残骸としてバックエンド側にだけ集計ロジックが残っている状態。
 
 ### 2.3 「生徒設定」シート
 列：[生徒ID, 模試名, 模試日程]（0,1,2列、`IDX_PROFILE`とは無関係の独自レイアウト）。`getStudentStats`・`saveStudentSettings`が直接ハードコードされた列番号で読み書きする。生徒が dashboard.html の「⚙ 目標模試を自分専用に設定する」から保存すると、ここに1行追記/更新される。シートが存在しない場合は `getStudentStats` 内で自動作成される（`ss.getSheetByName('生徒設定') || ss.insertSheet('生徒設定')`）。
 
-### 2.4 「送信済みログ」シート（欠席確認メール用・AbsenceCheck.gs）
+### 2.4 「送信済みログ」シート（欠席確認メール用・AbsenceCheck.js）
 列：[日付, 送信キー, 生徒ID, 生徒名, 予定開始, 送信先]。`ensureSheet`で自動作成。送信キーは `${studentId}_${予定開始日時}` で、同日中の重複送信防止に使う。
 
-### 2.5 「催促送信済みログ」シート（AbsenceCheck.gs）
+### 2.5 「催促送信済みログ」シート（AbsenceCheck.js）
 列：[送信キー, 生徒ID, 生徒名, バージョン, 対象週, 送信先, 送信日時]。Version A/B共通の1シートに両方のログが記録される。送信キーは `A_${studentId}_${週}` / `B_${studentId}_${週}` でバージョンごとに独立。
 
 ### 2.6 参考書おすすめ機能用シート
@@ -74,7 +74,7 @@
 
 ---
 
-## 3. コード.gs 関数リファレンス
+## 3. コード.js 関数リファレンス
 
 ### エントリポイント
 - **`doGet(e)`**：`?token=...&action=...` で呼ばれる。`action` は `stats` / `heatmap` / `bookPosts` / `getCalendarEvents` のいずれか。tokenが無い場合は `index.html`（受付画面）をHTMLとして返す（GASにバインドされたHTML出力。ただし実運用ではGitHub Pages側の`index.html`が使われており、この分岐は事実上使われていない可能性が高い＝旧アーキテクチャの名残）。
@@ -97,7 +97,7 @@
 
 ### メール・通知
 - **`notifyParent`**：`MailApp.sendEmail`で保護者に入退室を通知（無条件・毎回送信）。
-- **`notifyGoogleChat`**：`GCHAT_WEBHOOK_URL`（コード.gs内に直書きされたWebhook URL＋トークン）にPOST。
+- **`notifyGoogleChat`**：`GCHAT_WEBHOOK_URL`（コード.js内に直書きされたWebhook URL＋トークン）にPOST。
 - **`createDraftsByIds(idsString)`**：スプレッドシートのメニュー（`onOpen`→`showDraftDialog`→`draftDialog.html`）から呼ばれる。カンマ/読点/空白区切りのID一覧を受け取り、各生徒宛にマイページURL案内メールの**下書き**をGmailに作成する（実際の送信はしない＝人間の確認を挟む設計）。
 
 ### カレンダー連携
@@ -105,13 +105,13 @@
 - **`addCalendarEventsForStudent(token, events)`**：`doPost`の`addCalendarEvents`アクションから呼ばれる。dashboard.htmlの予定入力モーダルから送られた `{date, start, end, memo}[]` を、生徒個人カレンダーに `calendar.createEvent()` で一括登録する。イベントタイトルは `memo` があれば `自習室 - ${memo}`、無ければ `自習室` 固定。
 
 ### その他ユーティリティ
-- **`ensureSheet(sheetName, headers)`**：シートが無ければヘッダー付きで作成し、`setFrozenRows(1)`する共通ヘルパー。コード.gs / AbsenceCheck.gs 双方から使われる。
+- **`ensureSheet(sheetName, headers)`**：シートが無ければヘッダー付きで作成し、`setFrozenRows(1)`する共通ヘルパー。コード.js / AbsenceCheck.js 双方から使われる。
 - **`findStudentByToken(token)`**：トークン→`{id, name}`変換。`getHeatmap`が使用。
 - **`debugWeeklyRanking()` / `debugProfileColumns()`**：手動実行専用のデバッグ用関数（本番フローからは呼ばれない）。`debugProfileColumns()`はシート上の実際のヘッダーと`IDX_PROFILE`の対応を突き合わせてログ出力するので、列がズレた時の調査に便利。
 
 ---
 
-## 4. AbsenceCheck.gs 関数リファレンス
+## 4. AbsenceCheck.js 関数リファレンス
 
 同一GASプロジェクト内の別ファイル。**大きく2つの独立した自動送信バッチ処理**が1ファイルにまとまっている。
 
@@ -124,7 +124,7 @@
 - 想定運用：**毎週月曜8:00の週次トリガー**（`setupReminderTrigger()`で登録）。
 - **Version A**：来週（月〜日）の予定が1件も入っていない生徒に送る。
 - **Version B**：今週 or 来週のどちらかが空の生徒に送る（Aより広い条件でヒットしやすい）。
-- ⚠️ **重要な既知の問題**（コード内に注意コメントあり、AbsenceCheck.gs 409-418行目）：`setupReminderTrigger()` は Version A と B の両方のトリガーを同時に登録してしまう。両方とも「毎週月曜8:00」指定で、GASの時間トリガーは分単位を指定できないためほぼ同時に実行される。**このまま本運用に入れると、条件に一致した生徒には催促メールが2通（A・B）届く。** ユーザー（現在の保守担当者）自身が「どちらを採用するか検討中」と認識しており、本運用前にどちらか一方だけを登録し直す必要がある。**これは開発者本人が把握している既知の未決事項であり、Claude側の推測で処理を変更すべきではない。**
+- ⚠️ **重要な既知の問題**（コード内に注意コメントあり、AbsenceCheck.js 405-414行目）：`setupReminderTrigger()` は Version A と B の両方のトリガーを同時に登録してしまう。両方とも「毎週月曜8:00」指定で、GASの時間トリガーは分単位を指定できないためほぼ同時に実行される。**このまま本運用に入れると、条件に一致した生徒には催促メールが2通（A・B）届く。** ユーザー（現在の保守担当者）自身が「どちらを採用するか検討中」と認識しており、本運用前にどちらか一方だけを登録し直す必要がある。**これは開発者本人が把握している既知の未決事項であり、Claude側の推測で処理を変更すべきではない。**
 
 ### 4.3 共通ヘルパー
 - **`buildRecipients(studentMail, parentMail)`**：生徒＋保護者メールをカンマ区切りにまとめる（保護者メールが空文字/'undefined'なら生徒のみ）。欠席確認・催促メール共通。
@@ -226,7 +226,7 @@ GASエディタのスプレッドシート側メニュー（`onOpen()`→「★�
 3. **【運用メモ】`TARGET_COMMON`（共通テスト日）・`TARGET_NATIONAL`（国立二次試験日）はdashboard.html内に西暦日付でハードコーディングされている**（現在値：2027/01/16, 2027/02/25）。年度が変わるたびに手動更新が必要。
 4. **【設計メモ】`MISSION_POOL`の`id:'test'`ミッションは条件が常に`false`で、自動達成することがない**（手動チェックのみ）。未完成実装の可能性があるが、意図未確認のため放置中。
 5. **【設計メモ】`window._sssInitDone`フラグ**（初期データ読み込み後1.5秒で`true`になる）は、ページ読み込み直後に実績・ストリークの「解除演出」が誤って再生されるのを防ぐためのタイミング制御と推測されるが、実装者の意図は未確認。
-6. **【秘匿情報】`GCHAT_WEBHOOK_URL`（Google Chat Webhook・トークン付きURL）、`CALENDAR_CONFIG.SPREADSHEET_ID`、`TEST_SS_ID`などがコード.gs内に平文でハードコーディングされている。** GASの性質上一般的ではあるが、リポジトリがpublicになった場合は要注意（現状GitHubリポジトリの公開設定は本ドキュメントの範囲外につき未確認）。
+6. **【秘匿情報】`GCHAT_WEBHOOK_URL`（Google Chat Webhook・トークン付きURL）、`CALENDAR_CONFIG.SPREADSHEET_ID`、`TEST_SS_ID`などがコード.js内に平文でハードコーディングされている。** GASの性質上一般的ではあるが、リポジトリがpublicになった場合は要注意（現状GitHubリポジトリの公開設定は本ドキュメントの範囲外につき未確認）。
 
 ---
 
@@ -235,7 +235,7 @@ GASエディタのスプレッドシート側メニュー（`onOpen()`→「★�
 このセクションだけは「取説」として使えるよう、コードを読み返さなくても実行できる手順に絞って書く。
 
 ### 9.1 GAS Web Appを再デプロイする手順
-1. GASエディタで コード.gs / AbsenceCheck.gs を編集・保存する。
+1. GASエディタで コード.js / AbsenceCheck.js を編集・保存する。
 2. 右上「デプロイ」→「デプロイを管理」→ 既存デプロイの鉛筆アイコン →「バージョン」で「新しいバージョン」を選択 →「デプロイ」。
    - 既存デプロイを「新しいバージョン」で更新する限り、Web App のURLは変わらない。URLが変わるのは「新しいデプロイ」を新規作成した場合のみ（基本的には新規作成しなくてよい）。
 3. もしURLが変わった場合（新規デプロイを作った場合）は、`dashboard.html`（3197行目）と`index.html`（212行目）の**両方**の`API_ENDPOINT`を新URLに更新する（片方だけ更新すると受付とマイページが別バックエンドを向く。9.4章のトラブル表も参照）。
@@ -268,6 +268,23 @@ GASエディタのスプレッドシート側メニュー（`onOpen()`→「★�
 ### 9.6 その他の運用情報
 - **GitHub Pages**：`dashboard.html` / `index.html` を含むこのリポジトリを静的ホスティング。SSH経由でのpush用に、`~/.ssh/config`に `github.com.arbeiten` というホストエイリアスと専用鍵を設定済み（他アカウント用のデフォルト`github.com`設定と分離）。手順は9.1章参照。
 
+### 9.7 コミット前にローカルで動作確認する方法
+
+**フロントエンド（dashboard.html / index.html）**：commit/push不要。`API_ENDPOINT`は本番デプロイのGAS URLを直接叩く作りなので、ローカルでファイルをそのままブラウザで開く（または`python -m http.server`等の簡易サーバーで配信する）だけで、GitHub Pagesに反映する前に動作確認できる。ただし実際に通信するバックエンド（スプレッドシート・カレンダー・Gmail）は現状テスト環境用になっているため、本番データへの影響は無い前提で運用している。
+
+**バックエンド（コード.js / AbsenceCheck.js）**：GAS用の公式CLI「**clasp**」を使うと、GASエディタに毎回貼り直さずローカル編集→反映ができる。このリポジトリでは既に`clasp clone`済みで、`.clasp.json`（スクリプトIDなど）と`.claspignore`（後述）がリポジトリ直下にある。
+
+1. 事前準備：Node.js/npmが使えること、対象GASプロジェクトにアクセス権のあるGoogleアカウントを持っていること。
+2. インストール：`npm install -g @google/clasp`
+3. ログイン：`clasp login`（ブラウザが開くので認可する）
+4. 初回のみ、https://script.google.com/home/usersettings で「Google Apps Script API」をONにする。
+5. ローカルで編集する（`コード.js` / `AbsenceCheck.js` / `appsscript.json` / `draftDialog.html`）。
+6. GASプロジェクトへ反映：`clasp push`（確認が出たら`y`）。**ローカルの内容でGAS側を上書きするため、GASエディタ側で直接編集していた変更があると消える**。以後は「ローカル編集→push」に一本化するのが安全。
+   - `.claspignore`により、`qrcode.min.js`（サードパーティのブラウザ用ライブラリ）や`README.md`/`HANDOVER_FOR_CLAUDE_CODE.md`（ドキュメント類）はpush対象から除外している。**`dashboard.html`/`index.html`は意図的に除外しておらず、`clasp push`でGASプロジェクト側にも反映される**（コード.jsの`doGet`が`HtmlService.createHtmlOutputFromFile('index')`を参照する箇所があるため、GASプロジェクト内の同名ファイルもこの内容で更新されることになる）。
+7. ブラウザを開かずに関数を直接実行して確認：`clasp run 関数名`（引数が必要なら`-p '["引数1","引数2"]'`でJSON配列を渡す）。`console.log`の出力もターミナルに表示される。
+8. GASエディタで見た目を確認したい時：`clasp open`。
+9. Web Appとして本番同様に確認したい場合、Web Appの「デプロイ」自体は従来通りGASエディタで「新しいバージョン」を作成する（`clasp deploy`でCLIから行うことも可能だが、まずはエディタでの操作で十分）。
+
 ---
 
 ## 10. 次回以降の積み残しタスク
@@ -282,4 +299,4 @@ GASエディタのスプレッドシート側メニュー（`onOpen()`→「★�
 
 ## 11. このドキュメントの作成方針について
 
-このリポジトリは複数の開発者が関わってきており、現在の保守担当者（このドキュメントの依頼者）は「自分が書いていないコードの意図を推測でコメント化することはしたくない」という方針を明確にしている。そのためコード本体へのコメント追加は必要最小限（`AbsenceCheck.gs`の`setupReminderTrigger()`のみ、本人が意図を把握している箇所）に留めており、本ドキュメントはコードを変更せずに**外部から見た仕様・挙動・既知の問題を客観的に記述する**形でその方針を補っている。今後このリポジトリを引き継ぐ人（人間・AIエージェント問わず）は、まずこのドキュメントで全体像を掴んだ上で、個々のロジックの「なぜそうなっているか」を変更する前には保守担当者に確認することを推奨する。
+このリポジトリは複数の開発者が関わってきており、現在の保守担当者（このドキュメントの依頼者）は「自分が書いていないコードの意図を推測でコメント化することはしたくない」という方針を明確にしている。そのためコード本体へのコメント追加は必要最小限（`AbsenceCheck.js`の`setupReminderTrigger()`のみ、本人が意図を把握している箇所）に留めており、本ドキュメントはコードを変更せずに**外部から見た仕様・挙動・既知の問題を客観的に記述する**形でその方針を補っている。今後このリポジトリを引き継ぐ人（人間・AIエージェント問わず）は、まずこのドキュメントで全体像を掴んだ上で、個々のロジックの「なぜそうなっているか」を変更する前には保守担当者に確認することを推奨する。
