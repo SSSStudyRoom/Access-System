@@ -1,0 +1,44 @@
+name: Clasp Push
+
+# main に、GASプロジェクト関連ファイルの変更を含む push があったら
+# clasp push で Google Apps Script プロジェクトへ反映する。
+# 手動実行(workflow_dispatch)も可能。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "コード.js"
+      - "AbsenceCheck.js"
+      - "appsscript.json"
+      - "draftDialog.html"
+      - ".clasp.json"
+      - ".claspignore"
+      - ".github/workflows/clasp-push.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  clasp-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install clasp
+        run: npm install -g @google/clasp
+
+      # secrets.CLASPRC_JSON には、ローカルで `clasp login` した後にできる
+      # ~/.clasprc.json の中身をそのままGitHubシークレットとして登録しておく。
+      - name: Restore clasp credentials
+        env:
+          CLASPRC_JSON: ${{ secrets.CLASPRC_JSON }}
+        run: printf '%s' "$CLASPRC_JSON" > "$HOME/.clasprc.json"
+
+      - name: Push to Apps Script
+        run: clasp push --force
