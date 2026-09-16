@@ -1,6 +1,6 @@
 # SSS Education 自習室管理システム 引継ぎ資料
 
-最終更新：2026-09-14（コードを実際に全文精読した上で作成。以前存在した同名ファイルは失われていたため新規作成）
+最終更新：2026-09-16（カレンダー表示まわり：セル高さ固定・チップ折り返し・レスポンシブ対応を追記）
 
 このドキュメントは、リポジトリ内の各ファイルを実際に読み込んで確認した「現状の仕様」をまとめたものです。
 開発者が複数世代にわたっているため、意図が完全には分からない箇所もそのまま正直に記載しています。
@@ -136,9 +136,9 @@
 ## 5. dashboard.html（生徒用マイページ）仕様
 
 ### 5.1 全体構成
-1つのHTMLファイルにCSS（`<style>`）とJS（末尾の`<script>`、行3440〜4679）がすべてインラインで書かれた単一ページアプリ。フレームワーク不使用（Vanilla JS）。外部ライブラリはChart.js（CDN）とQRコード生成用の`qrcode.min.js`（同梱ファイル）のみ。
+1つのHTMLファイルにCSS（`<style>`）とJS（末尾の`<script>`、行3496〜4751）がすべてインラインで書かれた単一ページアプリ。フレームワーク不使用（Vanilla JS）。外部ライブラリはChart.js（CDN）とQRコード生成用の`qrcode.min.js`（同梱ファイル）のみ。
 
-URLの `?token=xxx` パラメータ（`studentToken`、4449行目付近）で生徒を識別する。**このURLは生徒ごとに個別発行され、他人に共有されると誰でもその生徒のデータを閲覧・操作できてしまう**（認証はトークンの知識のみに依存する簡易方式）。
+URLの `?token=xxx` パラメータ（`studentToken`、3505行目）で生徒を識別する。**このURLは生徒ごとに個別発行され、他人に共有されると誰でもその生徒のデータを閲覧・操作できてしまう**（認証はトークンの知識のみに依存する簡易方式）。
 
 タブは4つ：`HOME` / `TRENDS` / `BOOKS` / `LOG`（`data-tab`属性で切替、`switchTab()`）。TRENDSとBOOKSタブは初回表示時に遅延ロードされる（`heatmapLoaded` / `booksLoaded`フラグ）。
 
@@ -161,8 +161,8 @@ URLの `?token=xxx` パラメータ（`studentToken`、4449行目付近）で生
 | `qr_cache_${studentId}` | QRコードのdata URLキャッシュ（再生成コスト削減） |
 
 ### 5.4 実績（ACHIEVEMENTS）とミッション（MISSION_POOL）
-- `ACHIEVEMENTS`（3746行目〜）：15種類の固定実績。条件はすべて`getStudentStats`のレスポンスから計算できるクライアント側判定（サーバー側に実績テーブルは無い）。
-- `MISSION_POOL`（3800行目〜）：7種類のミッション定義から、日替わりで3件を**日付ベースの疑似乱数シャッフル**（`hashStr`によるシード付きソート、`localStorage`にその日の抽選結果をキャッシュ）で選ぶ。
+- `ACHIEVEMENTS`（3802行目〜）：15種類の固定実績。条件はすべて`getStudentStats`のレスポンスから計算できるクライアント側判定（サーバー側に実績テーブルは無い）。
+- `MISSION_POOL`（3856行目〜）：7種類のミッション定義から、日替わりで3件を**日付ベースの疑似乱数シャッフル**（`hashStr`によるシード付きソート、`localStorage`にその日の抽選結果をキャッシュ）で選ぶ。
   - ⚠️ `id: 'test'`（「小テストを1つ進める」）のミッションは `check: d => false` と**常にfalseがハードコードされており、自動達成することはない**（手動チェックのみ可能）。実装が未完のまま残っている可能性が高いが、意図の確認が取れていないため未修正。
 
 ### 5.5 予定入力モーダル（Schedule entry / `sse-*` 接頭辞）
@@ -173,14 +173,24 @@ URLの `?token=xxx` パラメータ（`studentToken`、4449行目付近）で生
 
 ### 5.6 カレンダー表示（週/月ビュー）
 - `fetchEvents(year, month)` は月単位でGASから取得し、`eventsCache`（メモリ内、ページ再読み込みで消える）にキャッシュ。
-- イベントチップは「時刻（`chip-time`）」と「タイトル（`chip-title`）」を縦に2段表示する構造。これは長いタイトルがグリッドを横に押し広げて崩れる不具合（`min-width:auto`のflexboxデフォルト挙動）を直すために、要約表示（末尾省略）ではなく**全文を折り返して見せる方式**で対応した経緯がある。
-- 月表示では1日あたり最大2件までチップを表示し、それ以上は `+N` の集約チップ（`.sss-event-chip.more`）を出す。週表示は件数制限なし（全件縦に並ぶ）。
+- 週表示・月表示とも、1日あたり最大2件までチップを表示し、それ以上は `.sss-cal-more` で `+N` の集約表示を出す（`renderWeek`/`renderMonth`共通の仕様。以前は月表示のみこの制限があったが、現在は週表示も同じ2件制限＋`+N`に揃えている）。
+
+**セルの高さ（固定）**：`.sss-week-cell`は`height:140px`、`.sss-month-cell`は`height:131px`で固定。「日付＋チップ2枠（各チップがタイトル2行まで伸びた最大ケース）＋`+N`表示」が収まる最大値を手計算して割り当てている（内訳はdashboard.htmlの当該CSSコメント参照）。日によってセルの高さがバラつかないよう、意図的に`min-height`ではなく`height`固定＋`overflow:hidden`にしている。
+
+**チップの高さ（可変・2〜3行）**：`.sss-event-chip`自体は高さ固定にしていない。中身は「時刻（`chip-time`、常に1行）」＋「タイトル（`chip-title`）」の2段構成で、`chip-title`に`-webkit-line-clamp:2`を指定し**最大2行まで折り返し表示**（省略はその2行に収まらない場合のみ）。結果としてチップ全体は「時刻1行＋タイトル1〜2行」＝2〜3行分の高さになる。タイトルを省略せず見せたいという要望と、長いタイトルでグリッドが横に崩れないようにしたいという要望（`min-width:auto`のflexboxデフォルト挙動が原因だった）の両方を満たす形。
+
+**タイトルの改行位置制御**：予定タイトルは`addCalendarEventsForStudent`が生成する`自習室 - ${memo}`という形式が基本（2.1章・3章参照）。`chipTitleHtml(title)`関数（dashboard.html、`escapeHtml`の直後に定義）が、タイトル中の最初の`- `の直後に`<wbr>`（改行候補タグ）を挿入し、「自習室 -」と実際のメモ内容を分けて表示できるようにしている。ただし`<wbr>`は日本語（CJK）テキストでは`word-break: keep-all` + `overflow-wrap: break-word`の組み合わせが無いと無視されることがあるため（[参考記事](https://chaika.hatenablog.com/entry/2024/01/09/083000)）、`.chip-title`のCSSも`word-break: keep-all;`にしている（以前は`break-word`で任意の文字位置から折り返す設定だったが、`<wbr>`を効かせるために変更）。
+
+**モバイル幅対応**：`@media (max-width: 480px)`で、
+  - `chip-time`内の終了時刻部分（`chipTimeHtml(e)`が生成する`<span class="t-end">-終了時刻</span>`）を`display:none`にし、**開始時刻のみ**を表示。
+  - `.sss-event-chip`/`.sss-cal-more`の`font-size`を9px→7pxに縮小、`letter-spacing`を0にし、`padding`も詰めて、狭い画面でも全角3文字程度（例：「自習室」）＋開始時刻が収まるようにしている。
+  - セル自体の固定高さ（140px/131px）はモバイルでも変更していない（文字が小さくなる分、縦方向に余白ができるだけで崩れない）。
 
 ### 5.7 モーダルの開閉
 `openModal(modalId)` / `closeAllModals()` の2関数に統一されている（`settings-modal`・`sse-modal`共通）。以前は予定入力モーダル専用の別実装（独自のoverlay要素・別関数）が並存していたが、重複のため汎用実装に統合済み。
 
 ### 5.8 イベント配線
-すべて `addEventListener` ベース（`onclick`属性は現在コード全体に1つも残っていない）。静的要素は `setupUIEvents()`（3560行目）に集約。動的に`innerHTML`で再生成される要素（ミッション一覧・参考書リアクションボタン・予定入力の削除ボタン）は、親要素へのイベント委譲（`closest()`＋`data-*`属性読み取り）で処理している。
+すべて `addEventListener` ベース（`onclick`属性は現在コード全体に1つも残っていない）。静的要素は `setupUIEvents()`（3616行目）に集約。動的に`innerHTML`で再生成される要素（ミッション一覧・参考書リアクションボタン・予定入力の削除ボタン）は、親要素へのイベント委譲（`closest()`＋`data-*`属性読み取り）で処理している。
 
 ---
 
@@ -193,7 +203,7 @@ URLの `?token=xxx` パラメータ（`studentToken`、4449行目付近）で生
 - APIは `doPost`の`scan`アクションを叩き、`processScan`の結果メッセージをそのまま表示する。
 
 ### API_ENDPOINTについて（2026-09-14 修正済み）
-`dashboard.html`の`API_ENDPOINT`（3444行目）は最新デプロイURLに更新済み。`index.html`の`API_ENDPOINT`（212行目）も同日中に同じURLへ修正済み。両ファイルとも以下のURLで統一されている：
+`dashboard.html`の`API_ENDPOINT`（3500行目）は最新デプロイURLに更新済み。`index.html`の`API_ENDPOINT`（212行目）も同日中に同じURLへ修正済み。両ファイルとも以下のURLで統一されている：
 
 ```
 https://script.google.com/macros/s/AKfycbyXbt6myq6hiFODjR4wI9LB_1jUz-JJvsqRsmHlL5VQ4L62KuVgT3q8b9lVarwMGxf0uw/exec
@@ -229,7 +239,7 @@ GASエディタのスプレッドシート側メニュー（`onOpen()`→「★�
 1. GASエディタで コード.gs / AbsenceCheck.gs を編集・保存する。
 2. 右上「デプロイ」→「デプロイを管理」→ 既存デプロイの鉛筆アイコン →「バージョン」で「新しいバージョン」を選択 →「デプロイ」。
    - 既存デプロイを「新しいバージョン」で更新する限り、Web App のURLは変わらない。URLが変わるのは「新しいデプロイ」を新規作成した場合のみ（基本的には新規作成しなくてよい）。
-3. もしURLが変わった場合（新規デプロイを作った場合）は、`dashboard.html`（3444行目）と`index.html`（212行目）の**両方**の`API_ENDPOINT`を新URLに更新する（片方だけ更新すると受付とマイページが別バックエンドを向く。9.4章のトラブル表も参照）。
+3. もしURLが変わった場合（新規デプロイを作った場合）は、`dashboard.html`（3500行目）と`index.html`（212行目）の**両方**の`API_ENDPOINT`を新URLに更新する（片方だけ更新すると受付とマイページが別バックエンドを向く。9.4章のトラブル表も参照）。
 4. `git add` → `commit` → `push`（SSHエイリアス `github.com.arbeiten` 経由）でGitHub Pagesに反映する。
 5. GitHub Pagesへの反映には数分ラグが出ることがある。反映後、実際にdashboard.html/index.htmlをブラウザで開いて動作確認する。
 
@@ -254,7 +264,7 @@ GASエディタのスプレッドシート側メニュー（`onOpen()`→「★�
 | データの列がズレて表示される・変な値が出る | GASエディタで`debugProfileColumns()`を手動実行し、ログでシートの実際の列と`IDX_PROFILE`の対応を突き合わせる |
 
 ### 9.5 年次メンテナンス
-- `TARGET_COMMON` / `TARGET_NATIONAL`（dashboard.html 3445-3446行目）：共通テスト・国立二次試験の目標日。年度が変わったら西暦日付を手動で書き換える。
+- `TARGET_COMMON` / `TARGET_NATIONAL`（dashboard.html 3501-3502行目）：共通テスト・国立二次試験の目標日。年度が変わったら西暦日付を手動で書き換える。
 
 ### 9.6 その他の運用情報
 - **GitHub Pages**：`dashboard.html` / `index.html` を含むこのリポジトリを静的ホスティング。SSH経由でのpush用に、`~/.ssh/config`に `github.com.arbeiten` というホストエイリアスと専用鍵を設定済み（他アカウント用のデフォルト`github.com`設定と分離）。手順は9.1章参照。
@@ -263,10 +273,11 @@ GASエディタのスプレッドシート側メニュー（`onOpen()`→「★�
 
 ## 10. 次回以降の積み残しタスク
 
-未着手のまま次回に持ち越すタスク（2026-09-14時点）。
+未着手のまま次回に持ち越すタスク（2026-09-16時点）。
 
-1. **カレンダーの各セルの高さ固定**：週表示・月表示とも、`.sss-week-cell` / `.sss-month-cell`は現状`min-height`のみ指定で高さ可変（イベント件数が多い日だけセルが伸びる）。行の高さを揃えたい場合はセル側の高さ指定方法（`min-height`→`height`固定＋内部スクロール、など）を検討する必要がある。関連CSSは`dashboard.html`の「週表示グリッド」「月表示グリッド」セクション（2480行目以降）。
-2. **通知機能の実装（要確認）**：着手前に、既存で動いている通知系（保護者への入退室メール`notifyParent`、Google Chat通知`notifyGoogleChat`、欠席確認メール`checkAbsenceAndSendMail`、カレンダー未入力の催促メール`sendReminderVersionA/B`）と何が違うのか・何を新規に作るのかを整理してから着手する（3章・4章参照）。既存の通知経路と重複/競合しないか要確認。
+- ~~カレンダーの各セルの高さ固定~~ → 2026-09-16に対応完了（5.6章参照）。
+
+1. **通知機能の実装（要確認）**：着手前に、既存で動いている通知系（保護者への入退室メール`notifyParent`、Google Chat通知`notifyGoogleChat`、欠席確認メール`checkAbsenceAndSendMail`、カレンダー未入力の催促メール`sendReminderVersionA/B`）と何が違うのか・何を新規に作るのかを整理してから着手する（3章・4章参照）。既存の通知経路と重複/競合しないか要確認。
 
 ---
 
