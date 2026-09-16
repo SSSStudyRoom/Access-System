@@ -2485,8 +2485,9 @@
       gap: 3px;
     }
 
+    /* 高さ固定：日付+チップ2枠(各タイトル最大2行時)+「+N」表示分の最大ケースに合わせる */
     .sss-week-cell {
-      min-height: 72px;
+      height: 140px;
       min-width: 0;
       background: var(--bg-2);
       border: 1px solid var(--line-soft);
@@ -2494,6 +2495,7 @@
       display: flex;
       flex-direction: column;
       gap: 3px;
+      overflow: hidden;
       transition: border-color 0.2s;
     }
 
@@ -2505,6 +2507,7 @@
     .sss-week-date {
       font-family: var(--mono);
       font-size: 11px;
+      line-height: 12px;
       color: var(--text-2);
       margin-bottom: 2px;
     }
@@ -2524,14 +2527,16 @@
 
     /* 月表示グリッド */
 
+    /* 高さ固定：日付+チップ2枠(各タイトル最大2行時)+「+N」表示分の最大ケースに合わせる */
     .sss-month-cell {
-      min-height: 52px;
+      height: 131px;
       background: var(--bg-2);
       border: 1px solid var(--line-soft);
       padding: 4px 3px;
       display: flex;
       flex-direction: column;
       gap: 2px;
+      overflow: hidden;
       transition: border-color 0.2s;
     }
 
@@ -2543,6 +2548,10 @@
     .sss-month-cell.other-month {
       opacity: 0.25;
       background: transparent;
+    }
+
+    .sss-month-date {
+      line-height: 12px;
     }
 
     .sss-month-cell.today .sss-month-date {
@@ -2558,7 +2567,7 @@
       color: var(--neon-red);
     }
 
-    /* イベントチップ */
+    /* イベントチップ(高さ可変：時刻1行+タイトル最大2行=計2〜3行分、タイトルは省略しない) */
     .sss-event-chip {
       background: rgba(200, 255, 0, 0.12);
       border: 1px solid rgba(200, 255, 0, 0.3);
@@ -2574,9 +2583,6 @@
       display: flex;
       flex-direction: column;
       gap: 1px;
-      white-space: normal;
-      overflow-wrap: break-word;
-      word-break: break-word;
       cursor: default;
       transition: all 0.15s;
     }
@@ -2584,6 +2590,20 @@
     .sss-event-chip .chip-time {
       font-weight: 700;
       white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 11px;
+    }
+
+    .sss-event-chip .chip-title {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      overflow: hidden;
+      overflow-wrap: break-word;
+      word-break: break-word;
+      line-height: 11px;
     }
 
     .sss-event-chip:hover {
@@ -2591,10 +2611,17 @@
       box-shadow: 0 0 6px rgba(200, 255, 0, 0.2);
     }
 
-    .sss-event-chip.more {
+    /* セル内に収まりきらない予定がある場合の「+N」表示(チップ2枠を超えた分) */
+    .sss-cal-more {
       background: rgba(139, 149, 184, 0.1);
-      border-color: var(--line);
+      border: 1px solid var(--line);
       color: var(--text-3);
+      font-family: var(--mono);
+      font-size: 9px;
+      letter-spacing: 0.05em;
+      line-height: 11px;
+      padding: 3px 4px;
+      text-align: center;
     }
 
     .sss-no-event {
@@ -4202,6 +4229,17 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  // カレンダーの予定タイトル用：「自習室 - メモ」の「- 」の直後に折り返し候補(<wbr>)を挿入する。
+  // 欄に収まる場合は改行されず、収まらない時だけそこで優先的に折り返す。
+  function chipTitleHtml(title) {
+    const str = String(title || '');
+    const idx = str.indexOf('- ');
+    if (idx === -1) return escapeHtml(str);
+    const head = str.slice(0, idx + 2);
+    const rest = str.slice(idx + 2);
+    return escapeHtml(head) + '<wbr>' + escapeHtml(rest);
+  }
+
   // =====================================================================
   // QR
   // =====================================================================
@@ -4437,14 +4475,15 @@
       const todayCls = isToday(d) ? ' today' : '';
       const dayEvents = getEventsForDay(allEvents, d);
       const chips = dayEvents.length > 0
-        ? dayEvents.map(e => {
+        ? dayEvents.slice(0, 2).map(e => {
             const time = e.allDay ? 'ALL DAY' : `${formatTime(e.start)}-${formatTime(e.end)}`;
-            return `<div class="sss-event-chip"><span class="chip-time">${time}</span><span class="chip-title">${escapeHtml(e.title)}</span></div>`;
+            return `<div class="sss-event-chip"><span class="chip-time">${time}</span><span class="chip-title">${chipTitleHtml(e.title)}</span></div>`;
           }).join('')
         : `<div class="sss-no-event">--</div>`;
+      const more = dayEvents.length > 2 ? `<div class="sss-cal-more">+${dayEvents.length - 2}</div>` : '';
       html += `<div class="sss-week-cell${dow}${todayCls}">
         <div class="sss-week-date">${d.getDate()}</div>
-        ${chips}
+        ${chips}${more}
       </div>`;
     });
     html += '</div>';
@@ -4479,10 +4518,10 @@
       const dayEvents = isThisMonth ? getEventsForDay(events, d) : [];
       const chips = dayEvents.slice(0,2).map(e => {
         const time = e.allDay ? 'ALL DAY' : `${formatTime(e.start)}-${formatTime(e.end)}`;
-        return `<div class="sss-event-chip"><span class="chip-time">${time}</span><span class="chip-title">${escapeHtml(e.title)}</span></div>`;
+        return `<div class="sss-event-chip"><span class="chip-time">${time}</span><span class="chip-title">${chipTitleHtml(e.title)}</span></div>`;
       }).join('');
       const more = dayEvents.length > 2
-        ? `<div class="sss-event-chip more">+${dayEvents.length-2}</div>` : '';
+        ? `<div class="sss-cal-more">+${dayEvents.length - 2}</div>` : '';
       html += `<div class="sss-month-cell${satCls}${sunCls}${todayCls}${otherCls}">
         <div class="sss-month-date mono-small">${d.getDate()}</div>
         ${chips}${more}
