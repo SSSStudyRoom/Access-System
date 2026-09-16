@@ -50,6 +50,8 @@ const IDX_LOG = {
 // ====================================================================
 const SHEET_BOOK_POSTS = '参考書投稿';
 const SHEET_BOOK_REACTIONS = '参考書リアクション';
+const BOOK_POSTS_HEADERS = ['ID', '投稿日時', '生徒ID', '書名', '評価', 'コメント'];
+const BOOK_REACTIONS_HEADERS = ['投稿ID', '生徒ID', '絵文字', '日時'];
 
 // ====================================================================
 // カレンダー取得用シート（列定義は IDX_PROFILE に一本化）
@@ -249,10 +251,6 @@ function getStudentStats(studentToken) {
 
   const now = new Date();
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const getMonday = (d) => {
-    let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
-    return new Date(d.getFullYear(), d.getMonth(), diff);
-  };
   const thisMondayMs = getMonday(new Date()).getTime();
   const lastMondayMs = thisMondayMs - 7 * 24 * 3600000;
 
@@ -488,8 +486,8 @@ function getBookPosts(token) {
   const student = findStudentByToken(token);
   if (!student) throw new Error("無効なトークンです");
 
-  ensureSheet(SHEET_BOOK_POSTS, ['ID', '投稿日時', '生徒ID', '書名', '評価', 'コメント']);
-  ensureSheet(SHEET_BOOK_REACTIONS, ['投稿ID', '生徒ID', '絵文字', '日時']);
+  ensureSheet(SHEET_BOOK_POSTS, BOOK_POSTS_HEADERS);
+  ensureSheet(SHEET_BOOK_REACTIONS, BOOK_REACTIONS_HEADERS);
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const postSheet = ss.getSheetByName(SHEET_BOOK_POSTS);
@@ -572,7 +570,7 @@ function postBookPost(token, bookName, rating, comment) {
     if (checkTarget.indexOf(w) >= 0) throw new Error("不適切な表現が含まれています");
   }
 
-  const sheet = ensureSheet(SHEET_BOOK_POSTS, ['ID', '投稿日時', '生徒ID', '書名', '評価', 'コメント']);
+  const sheet = ensureSheet(SHEET_BOOK_POSTS, BOOK_POSTS_HEADERS);
   const postId = 'B' + Date.now() + '_' + Math.floor(Math.random() * 1000);
   sheet.appendRow([postId, new Date(), student.id, bookName, r, comment]);
 
@@ -593,7 +591,7 @@ function reactBookPost(token, postId, emoji) {
   const allowed = ['👍', '🔥', '💡', '👀', '✨'];
   if (allowed.indexOf(emoji) < 0) throw new Error("使えない絵文字です");
 
-  const sheet = ensureSheet(SHEET_BOOK_REACTIONS, ['投稿ID', '生徒ID', '絵文字', '日時']);
+  const sheet = ensureSheet(SHEET_BOOK_REACTIONS, BOOK_REACTIONS_HEADERS);
   const data = sheet.getDataRange().getValues();
 
   // 既存チェック（トグル削除）
@@ -1029,6 +1027,12 @@ function getOrCreateTestProgress(studentName, studentId) {
 // ====================================================================
 function formatTime(ms) { return `${Math.floor(ms / 3600000)}時間${Math.floor((ms % 3600000) / 60000)}分`; }
 
+/** 指定日を含む週の月曜日（0:00:00）を返す（コード.gs / AbsenceCheck.gs 共通） */
+function getMonday(d) {
+  let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
+  return new Date(d.getFullYear(), d.getMonth(), diff);
+}
+
 function calculateRank(hours) {
   if (hours >= 300) return { current: "SSS MASTER", remainHours: 0 };
   if (hours >= 150) return { current: "PLATINUM", remainHours: (300 - hours).toFixed(1) };
@@ -1081,10 +1085,6 @@ function debugWeeklyRanking() {
     nickMap[pId] = pName;
   }
 
-  const getMonday = (d) => {
-    let day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1);
-    return new Date(d.getFullYear(), d.getMonth(), diff);
-  };
   const thisMondayMs = getMonday(new Date()).getTime();
   console.log('今週月曜:', new Date(thisMondayMs));
 
@@ -1147,8 +1147,8 @@ function debugProfileColumns() {
 // 🔧 参考書機能用シートの初期化（手動実行用）
 // ====================================================================
 function initBookFeatureSheets() {
-  ensureSheet(SHEET_BOOK_POSTS, ['ID', '投稿日時', '生徒ID', '書名', '評価', 'コメント']);
-  ensureSheet(SHEET_BOOK_REACTIONS, ['投稿ID', '生徒ID', '絵文字', '日時']);
+  ensureSheet(SHEET_BOOK_POSTS, BOOK_POSTS_HEADERS);
+  ensureSheet(SHEET_BOOK_REACTIONS, BOOK_REACTIONS_HEADERS);
   console.log('✓ 参考書機能用シートを初期化しました');
 }
 

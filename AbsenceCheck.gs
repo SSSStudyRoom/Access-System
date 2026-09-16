@@ -205,6 +205,7 @@ function setupTrigger() {
 // ========== 設定値（absence_check.gsのCONFIGと共通化推奨） ==========
 const REMINDER_CONFIG = {
   SHEET_SENT:       '催促送信済みログ',       // 催促用の送信済みログ（別シート）
+  SHEET_SENT_HEADERS: ['送信キー', '生徒ID', '生徒名', 'バージョン', '対象週', '送信先', '送信日時'],
 
   // VERSION_B用：直近何日間に予定がなければ送るか
   VERSION_B_DAYS_THIS_WEEK: 7,   // 今週（7日間）
@@ -218,7 +219,7 @@ function sendReminderVersionA() {
   const ss = SpreadsheetApp.openById(CALENDAR_CONFIG.SPREADSHEET_ID);
   const profiles  = ss.getSheetByName(CALENDAR_CONFIG.SHEET_PROFILE)
                       .getDataRange().getValues().slice(1);
-  const sentSheet = ensureSheet(REMINDER_CONFIG.SHEET_SENT, ['送信キー', '生徒ID', '生徒名', 'バージョン', '対象週', '送信先', '送信日時']);
+  const sentSheet = ensureSheet(REMINDER_CONFIG.SHEET_SENT, REMINDER_CONFIG.SHEET_SENT_HEADERS);
 
   // 翌週の月曜〜日曜を算出
   const today     = new Date();
@@ -267,7 +268,7 @@ function sendReminderVersionB() {
   const ss = SpreadsheetApp.openById(CALENDAR_CONFIG.SPREADSHEET_ID);
   const profiles  = ss.getSheetByName(CALENDAR_CONFIG.SHEET_PROFILE)
                       .getDataRange().getValues().slice(1);
-  const sentSheet = ensureSheet(REMINDER_CONFIG.SHEET_SENT, ['送信キー', '生徒ID', '生徒名', 'バージョン', '対象週', '送信先', '送信日時']);
+  const sentSheet = ensureSheet(REMINDER_CONFIG.SHEET_SENT, REMINDER_CONFIG.SHEET_SENT_HEADERS);
 
   const today      = new Date();
   const thisMonday = getThisMonday(today);
@@ -321,14 +322,9 @@ function sendReminderVersionB() {
 // 日付ユーティリティ
 // ============================================================
 
-/** 今週の月曜日（0:00:00）を返す */
+/** 今週の月曜日（0:00:00）を返す（実装は コード.gs の getMonday に一本化） */
 function getThisMonday(date) {
-  const d = new Date(date);
-  const day = d.getDay(); // 0=日, 1=月, ..., 6=土
-  const diff = (day === 0) ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  return getMonday(date);
 }
 
 /** 翌週の月曜日（0:00:00）を返す */
