@@ -209,7 +209,7 @@
   // =====================================================================
   // 設定（dashboard.htmlと同じAPIエンドポイントを指定）
   // =====================================================================
-  const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyXbt6myq6hiFODjR4wI9LB_1jUz-JJvsqRsmHlL5VQ4L62KuVgT3q8b9lVarwMGxf0uw/exec';
+    const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbylO6H5TRZ4db03LjhY-0i8lq3ieXnSjbRJyDItreDoY5C4mbRVP06dj59OsCi97FdV/exec';
 
   const input    = document.getElementById('scanInput');
   const msgMain  = document.getElementById('msg-main');
@@ -251,7 +251,7 @@
 
     // タイムアウト付きfetch（10秒）
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
       const res = await fetch(API_ENDPOINT, {

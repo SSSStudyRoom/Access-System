@@ -1,10 +1,18 @@
 {
   "timeZone": "Asia/Tokyo",
-  "dependencies": {},
-  "exceptionLogging": "STACKDRIVER",
-  "runtimeVersion": "V8",
+  "dependencies": {
+    "enabledAdvancedServices": [
+      {
+        "userSymbol": "AdminReports",
+        "version": "reports_v1",
+        "serviceId": "admin"
+      }
+    ]
+  },
   "webapp": {
     "executeAs": "USER_DEPLOYING",
     "access": "ANYONE_ANONYMOUS"
-  }
+  },
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8"
 }
